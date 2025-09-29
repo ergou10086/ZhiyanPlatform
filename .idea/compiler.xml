@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="zhiyan-common-basic" />
+        <module name="zhiyan-common-seata" />
+        <module name="zhiyan-common-security" />
+        <module name="zhiyan-project" />
+        <module name="zhiyan-auth" />
+        <module name="zhiyan-common-redis" />
+        <module name="zhiyan-nacos" />
+        <module name="zhiyan-api" />
+        <module name="zhiyan-gateway" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="zhiyan-api" options="-parameters" />
+      <module name="zhiyan-auth" options="-parameters" />
+      <module name="zhiyan-common-basic" options="-parameters" />
+      <module name="zhiyan-common-redis" options="-parameters" />
+      <module name="zhiyan-common-seata" options="-parameters" />
+      <module name="zhiyan-common-security" options="-parameters" />
+      <module name="zhiyan-gateway" options="-parameters" />
+      <module name="zhiyan-modules" options="" />
+      <module name="zhiyan-nacos" options="-parameters" />
+      <module name="zhiyan-project" options="-parameters" />
+    </option>
+  </component>
+</project>
