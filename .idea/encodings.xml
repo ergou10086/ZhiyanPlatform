@@ -16,6 +16,7 @@
     <file url="file://$PROJECT_DIR$/zhiyan-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/zhiyan-modules/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/zhiyan-modules/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/zhiyan-modules/zhiyan-knowledge/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/zhiyan-modules/zhiyan-project/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/zhiyan-nacos/src/main/java" charset="UTF-8" />
   </component>

@@ -2,7 +2,7 @@ package hbnu.project.zhiyancommonsecurity.service;
 
 import hbnu.project.zhiyanauth.service.UserService;
 
-import hbnu.project.zhiyancommonbasic.utils.IpUtils;
+import hbnu.project.zhiyancommonbasic.utils.ip.IpUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 
 import hbnu.project.zhiyancommonredis.service.RedisService;

@@ -3,6 +3,8 @@ package hbnu.project.zhiyancommonbasic.utils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import cn.hutool.core.util.StrUtil;
 import org.springframework.util.AntPathMatcher;
 import hbnu.project.zhiyancommonbasic.constants.GeneralConstants;
 import hbnu.project.zhiyancommonbasic.utils.text.StrFormatter;
@@ -11,17 +13,22 @@ import hbnu.project.zhiyancommonbasic.utils.text.StrFormatter;
  * 重新针对项目实现的字符串工具类
  *
  * @author ErgouTree
+ * @rewrite yui
+ * @Re_rewrite asddjv
  */
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
 
     /** 空字符串 */
-    private static final String NULLSTR = "";
+    public static final String NULLSTR = "";
 
     /** 下划线 */
-    private static final char SEPARATOR = '_';
+    public static final char SEPARATOR = '_';
+
+    /** 逗号  */
+    public static final String COMMA = ",";
 
     /** 星号 */
-    private static final char ASTERISK = '*';
+    public static final char ASTERISK = '*';
 
     /**
      * 获取参数不为空值
@@ -32,6 +39,16 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     public static <T> T nvl(T value, T defaultValue)
     {
         return value != null ? value : defaultValue;
+    }
+
+    /**
+     * 获取参数不为空值，spz加的
+     *
+     * @param str defaultValue 要判断的value
+     * @return value 返回值
+     */
+    public static String blankToDefault(String str, String defaultValue) {
+        return StrUtil.blankToDefault(str, defaultValue);
     }
 
     /**

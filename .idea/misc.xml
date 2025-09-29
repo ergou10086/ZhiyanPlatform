@@ -9,6 +9,7 @@
         <option value="$PROJECT_DIR$/zhiyan-api/pom.xml" />
         <option value="$PROJECT_DIR$/zhiyan-modules/zhiyan-project/pom.xml" />
         <option value="$PROJECT_DIR$/zhiyan-api/zhiyan-api-system/pom.xml" />
+        <option value="$PROJECT_DIR$/zhiyan-modules/zhiyan-knowledge/pom.xml" />
       </list>
     </option>
   </component>

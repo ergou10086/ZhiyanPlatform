@@ -11,6 +11,7 @@
         <module name="zhiyan-common-security" />
         <module name="zhiyan-project" />
         <module name="zhiyan-auth" />
+        <module name="zhiyan-knowledge" />
         <module name="zhiyan-common-redis" />
         <module name="zhiyan-nacos" />
         <module name="zhiyan-gateway" />
@@ -28,6 +29,7 @@
       <module name="zhiyan-common-seata" options="-parameters" />
       <module name="zhiyan-common-security" options="-parameters" />
       <module name="zhiyan-gateway" options="-parameters" />
+      <module name="zhiyan-knowledge" options="-parameters" />
       <module name="zhiyan-modules" options="" />
       <module name="zhiyan-nacos" options="-parameters" />
       <module name="zhiyan-project" options="-parameters" />

@@ -2,7 +2,7 @@ package hbnu.project.zhiyancommonsecurity.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyancommonbasic.utils.IpUtils;
+import hbnu.project.zhiyancommonbasic.utils.ip.IpUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 
 import jakarta.servlet.ServletException;
