@@ -1,0 +1,22 @@
+spring:
+  config:
+    import: nacos:zhiyan-gateway.yaml
+  application:
+    # 对应Nacos中配置的data-id前缀
+    name: zhiyan-gateway
+#  profiles:
+#    active: dev
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: zhiyan-dev
+        file-extension: yaml
+        group: DEFAULT_GROUP
+        import-check:
+          enabled: true
+#        # 共享配置
+#        shared-configs:
+#          - data-id: common-config.yaml
+#            group: DEFAULT_GROUP
+#            refresh: true

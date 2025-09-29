@@ -13,14 +13,15 @@
         <module name="zhiyan-auth" />
         <module name="zhiyan-common-redis" />
         <module name="zhiyan-nacos" />
-        <module name="zhiyan-api" />
         <module name="zhiyan-gateway" />
+        <module name="zhiyan-api-system" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="zhiyan-api" options="-parameters" />
+      <module name="zhiyan-api" options="" />
+      <module name="zhiyan-api-system" options="-parameters" />
       <module name="zhiyan-auth" options="-parameters" />
       <module name="zhiyan-common-basic" options="-parameters" />
       <module name="zhiyan-common-redis" options="-parameters" />

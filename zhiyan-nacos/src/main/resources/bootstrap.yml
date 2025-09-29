@@ -1,0 +1,16 @@
+spring:
+  config:
+    import: nacos:zhiyan-nacos.yaml
+  application:
+    # 对应Nacos中配置的data-id前缀
+    name: zhiyan-nacos
+  cloud:
+    nacos:
+      # Nacos配置中心连接信息
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yaml
+        namespace: zhiyan-dev
+        group: DEFAULT_GROUP
+        import-check:
+          enabled: true

@@ -50,9 +50,15 @@
         <minio.version>8.5.9</minio.version>
         <spring-boot-starter-mail.version>${spring-boot.version}</spring-boot-starter-mail.version>
         <pagehelper.boot.version>2.0.0</pagehelper.boot.version>
+        <knife4j.version>4.1.0</knife4j.version>
+        <seata.version>2.0.0</seata.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
+        <zhiyan-common-redis.version>0.0.1-SNAPSHOT</zhiyan-common-redis.version>
+        <zhiyan-auth.version>0.0.1-SNAPSHOT</zhiyan-auth.version>
+
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -192,6 +198,46 @@
                 <version>${pagehelper.version}</version>
             </dependency>
 
+            <!-- Knife4j (Swagger增强工具) -->
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+                <version>${knife4j.version}</version>
+            </dependency>
+
+            <!-- Seata 分布式事务 -->
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-spring-boot-starter</artifactId>
+                <version>${seata.version}</version>
+                <!-- 可选：排除冲突依赖（如与Spring Cloud版本冲突时） -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-autoconfigure</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <!-- Seata 核心依赖（自动被starter引入，这里仅做版本管理） -->
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-core</artifactId>
+                <version>${seata.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.seata</groupId>
+                <artifactId>seata-all</artifactId>
+                <version>${seata.version}</version>
+            </dependency>
+
+            <!--MapStruct-->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+
             <!--本项目自模块依赖-->
 
             <!-- zhiyan-common-basic核心模块 -->
@@ -206,6 +252,20 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-common-security</artifactId>
                 <version>${zhiyan-common-security.version}</version>
+            </dependency>
+
+            <!--zhiyan-common-redis安全模块-->
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-common-redis</artifactId>
+                <version>${zhiyan-common-redis.version}</version>
+            </dependency>
+
+            <!--zhiyan-auth认证模块-->
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-auth</artifactId>
+                <version>${zhiyan-auth.version}</version>
             </dependency>
 
         </dependencies>
