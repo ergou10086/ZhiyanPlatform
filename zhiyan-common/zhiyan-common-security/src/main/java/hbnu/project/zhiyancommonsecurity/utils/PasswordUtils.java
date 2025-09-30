@@ -1,6 +1,6 @@
 package hbnu.project.zhiyancommonsecurity.utils;
 
-import hbnu.project.zhiyancommon.utils.StringUtils;
+import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 
 import java.util.regex.Pattern;
 

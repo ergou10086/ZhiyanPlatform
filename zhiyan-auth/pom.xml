@@ -97,6 +97,12 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
         </dependency>
+
+<!--        &lt;!&ndash;&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>hbnu.project</groupId>-->
+<!--            <artifactId>zhiyan-api-system</artifactId>-->
+<!--        </dependency>-->
     </dependencies>
 
 </project>

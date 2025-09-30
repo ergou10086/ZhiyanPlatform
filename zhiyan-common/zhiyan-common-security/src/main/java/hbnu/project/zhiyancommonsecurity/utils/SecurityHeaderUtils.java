@@ -1,9 +1,9 @@
 package hbnu.project.zhiyancommonsecurity.utils;
 
-import hbnu.project.zhiyancommon.constants.SecurityConstants;
-import hbnu.project.zhiyancommon.utils.StringUtils;
-import hbnu.project.zhiyansecurity.context.LoginUserBody;
-import hbnu.project.zhiyansecurity.context.SecurityContextHolder;
+import hbnu.project.zhiyancommonbasic.constants.SecurityConstants;
+import hbnu.project.zhiyancommonbasic.utils.StringUtils;
+import hbnu.project.zhiyancommonsecurity.context.LoginUserBody;
+import hbnu.project.zhiyancommonsecurity.context.SecurityContextHolder;
 import org.springframework.http.HttpHeaders;
 
 import java.util.HashMap;

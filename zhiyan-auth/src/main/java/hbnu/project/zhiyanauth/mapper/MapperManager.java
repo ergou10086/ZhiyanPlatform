@@ -1,8 +1,8 @@
 package hbnu.project.zhiyanauth.mapper;
 
+import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
 import hbnu.project.zhiyanauth.model.dto.RoleDTO;
-import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.Permission;
 import hbnu.project.zhiyanauth.model.entity.Role;
 import hbnu.project.zhiyanauth.model.entity.User;
