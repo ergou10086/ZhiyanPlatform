@@ -4,41 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2c577916-babf-4a25-8b89-78ba42e09e87" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-api/zhiyan-api-system/src/main/java/hbnu/project/zhiyanapisystem/controller/AuthController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/model/dto/LoginDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/model/dto/RegisterDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/response/UserLoginResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/response/UserRegisterResponse.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthLoginFailureService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthUserDetailsService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AbstractLoginFailureService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/UserDetailsService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ApifoxUploaderProjectSetting.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+    <list default="true" id="2c577916-babf-4a25-8b89-78ba42e09e87" name="更改" comment="增加登录注册验证码接口，调整模块之间依赖">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-auth/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/controller/AuthController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/AuthServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/domain/R.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/domain/R.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationFailureHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/impl/AuthenticationFailureHandlerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationSuccessHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/impl/AuthenticationSuccessHandlerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/CustomUserDetailsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/CustomUserDetailsService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureService.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PasswordUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PasswordUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PermissionUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PermissionUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityHeaderUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityHeaderUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -320,8 +287,17 @@
       <workItem from="1759200088141" duration="872000" />
       <workItem from="1759200970269" duration="2072000" />
       <workItem from="1759215825192" duration="7194000" />
-      <workItem from="1759362041462" duration="19714000" />
+      <workItem from="1759362041462" duration="20470000" />
     </task>
+    <task id="LOCAL-00001" summary="增加登录注册验证码接口，调整模块之间依赖">
+      <option name="closed" value="true" />
+      <created>1759398420806</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1759398420806</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -337,6 +313,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="增加登录注册验证码接口，调整模块之间依赖" />
+    <option name="LAST_COMMIT_MESSAGE" value="增加登录注册验证码接口，调整模块之间依赖" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
