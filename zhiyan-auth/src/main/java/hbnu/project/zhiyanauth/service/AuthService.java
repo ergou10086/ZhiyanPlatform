@@ -1,7 +1,11 @@
 package hbnu.project.zhiyanauth.service;
 
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
+import hbnu.project.zhiyanauth.model.form.LoginBody;
+import hbnu.project.zhiyanauth.model.form.RegisterBody;
 import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
+import hbnu.project.zhiyanauth.response.UserLoginResponse;
+import hbnu.project.zhiyanauth.response.UserRegisterResponse;
 import hbnu.project.zhiyancommonbasic.domain.R;
 
 /**
@@ -11,6 +15,32 @@ import hbnu.project.zhiyancommonbasic.domain.R;
  * @author ErgouTree
  */
 public interface AuthService {
+
+
+    /**
+     * 用户注册
+     *
+     * @param request 注册请求体
+     * @return 注册结果
+     */
+    R<UserRegisterResponse> register(RegisterBody request);
+
+    /**
+     * 用户登录
+     *
+     * @param loginBody 登录请求体
+     * @return 登录结果
+     */
+    R<UserLoginResponse> login(LoginBody loginBody);
+
+    /**
+     * 检查邮箱是否已存在
+     *
+     * @param email 邮箱
+     * @return 是否存在
+     */
+    R<Boolean> checkEmail(String email);
+
 
     /**
      * 发送验证码

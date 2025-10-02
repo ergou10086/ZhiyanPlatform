@@ -1,89 +1,118 @@
-package hbnu.project.zhiyanauth.controller;//package hbnu.project.zhiyanauthservice.controller;
+package hbnu.project.zhiyanapisystem.controller;
+
+import hbnu.project.zhiyanauth.mapper.UserMapper;
+import hbnu.project.zhiyanauth.model.dto.TokenDTO;
+import hbnu.project.zhiyanauth.model.dto.UserDTO;
+import hbnu.project.zhiyanauth.model.entity.User;
+import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
+import hbnu.project.zhiyanauth.model.form.LoginBody;
+import hbnu.project.zhiyanauth.model.form.RegisterBody;
+import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
+import hbnu.project.zhiyanauth.repository.UserRepository;
+import hbnu.project.zhiyanauth.response.UserLoginResponse;
+import hbnu.project.zhiyanauth.response.UserRegisterResponse;
+import hbnu.project.zhiyanauth.service.AuthService;
+import hbnu.project.zhiyanauth.service.VerificationCodeService;
+import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
+import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.utils.StringUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+
+/**
+ * 用户认证控制器
+ * 负责用户注册、登录、密码重置等认证相关功能
+ *
+ * @author yxy
+ */
+@RestController
+@RequestMapping("/zhiyan/auth")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "用户认证", description = "用户注册、登录、验证等认证相关接口")
+public class AuthController {
+
+    private final AuthService authService;
+    private final UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final VerificationCodeService verificationCodeService;
+
+    /**
+     * 发送验证码
+     */
+    @PostMapping("/send-verfcode")
+    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
+    public R<Void> sendVerificationCode(
+            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
+        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
+
+        // 直接调用 auth 模块的服务
+        return authService.sendVerificationCode(verificationCodeBody);
+    }
+
+    /**
+     * 用户注册
+     */
+    @PostMapping("/register")
+    @Operation(summary = "用户注册", description = "通过邮箱和验证码进行用户注册")
+    public R<UserRegisterResponse> register(
+            @Valid @RequestBody RegisterBody request) {
+        log.info("用户注册请求: 邮箱={}, 姓名={}", request.getEmail(), request.getName());
+
+        // 直接调用 auth 模块的服务
+        return authService.register(request);
+    }
+
+    /**
+     * 用户登录
+     */
+    @PostMapping("/login")
+    @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
+    public R<UserLoginResponse> login(
+            @Valid @RequestBody LoginBody loginBody) {
+        log.info("用户登录API请求: 邮箱={}", loginBody.getEmail());
+
+        // 直接调用 auth 模块的服务
+        return authService.login(loginBody);
+    }
+
+    /**
+     * 验证验证码
+     */
+    @PostMapping("/verify-code")
+    @Operation(summary = "验证验证码", description = "单独验证验证码是否正确")
+    public R<Boolean> verifyCode(
+            @RequestParam String email,
+            @RequestParam String code,
+            @RequestParam String type) {
+        log.info("验证验证码API请求: 邮箱={}, 类型={}", email, type);
+
+        return authService.verifyCode(email, code, type);
+    }
+
+
+    /**
+     * 检查邮箱是否已注册
+     */
+    @GetMapping("/check-email")
+    @Operation(summary = "检查邮箱", description = "检查邮箱是否已被注册")
+    public R<Boolean> checkEmail(@RequestParam String email) {
+        log.info("检查邮箱API请求: 邮箱={}", email);
+
+        return authService.checkEmail(email);
+    }
+
+}
 //
-//import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.Parameter;
-//import io.swagger.v3.oas.annotations.tags.Tag;
-//import jakarta.validation.Valid;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.web.bind.annotation.*;
 //
-///**
-// * 用户认证控制器
-// * 负责用户注册、登录、密码重置等认证相关功能
-//// *
-// * @author ErgouTree
-// */
-//@RestController
-//@RequestMapping("/zhiyan/auth")
-//@RequiredArgsConstructor
-//@Slf4j
-//@Tag(name = "用户认证", description = "用户注册、登录、验证等认证相关接口")
-//public class AuthController {
-//    // TODO: 注入AuthService
-//    // TODO: 各种各样的注入
-//    // private final AuthService authService;
-//
-//    /**
-//     * 发送验证码
-//     */
-//    @PostMapping("/send-verfcode")
-//    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
-//    public Result<Void> sendVerificationCode(
-//            @Valid @RequestBody SendVerificationCodeRequest request) {
-//        log.info("发送验证码请求: 邮箱={}, 类型={}", request.getEmail(), request.getType());
-//
-//        // TODO: 实现发送验证码逻辑
-//        // 1. 校验邮箱格式和域名白名单
-//        // 2. 生成随机验证码
-//        // 3. 存储验证码到Redis（5分钟有效期）
-//
-//        return Result.success();
-//    }
-//
-//
-//    /**
-//     * 用户注册
-//     * 邮箱 + 验证码方式注册
-//     */
-//    @PostMapping("/register")
-//    @Operation(summary = "用户注册", description = "通过邮箱和验证码进行用户注册")
-//    public Result<UserRegisterResponse> register(
-//            @Valid @RequestBody UserRegisterRequest request) {
-//        log.info("用户注册请求: 邮箱={}, 姓名={}", request.getEmail(), request.getName());
-//
-//        // TODO: 实现用户注册逻辑
-//        // 1. 校验验证码是否正确且未过期
-//        // 2. 检查邮箱是否已存在
-//        // 3. 加密密码（BCrypt）
-//        // 4. 创建用户记录
-//        // 5. 分配默认角色（普通用户）
-//        // 6. 返回注册成功信息
-//
-//        return Result.success();
-//    }
-//
-//
-//    /**
-//     * 用户登录
-//     * 支持邮箱+密码 或 用户名+密码
-//     */
-//    @PostMapping("/login")
-//    @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
-//    public Result<UserLoginResponse> login(
-//            @Valid @RequestBody UserLoginRequest request) {
-//        log.info("用户登录请求: 账号={}", request.getAccount());
-//
-//        // TODO: 实现用户登录逻辑
-//        // 1. 根据账号（邮箱或用户名）查询用户
-//        // 2. 校验密码
-//        // 3. 检查用户状态（是否锁定、删除）
-//        // 4. 生成JWT Access Token和Refresh Token
-//        // 5. 存储Refresh Token到Redis
-//        // 6. 返回用户信息和令牌
-//
-//        return Result.success();
-//    }
 //
 //
 //    /**

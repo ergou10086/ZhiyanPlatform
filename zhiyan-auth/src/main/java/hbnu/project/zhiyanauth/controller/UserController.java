@@ -8,4 +8,6 @@ package hbnu.project.zhiyanauth.controller;
  * @author ErgouTree
  */
 public class UserController {
+
+
 }

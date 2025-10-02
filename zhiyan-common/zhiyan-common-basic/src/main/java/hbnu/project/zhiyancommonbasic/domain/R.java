@@ -79,6 +79,7 @@ public class R<T> implements Serializable
         return apiResult;
     }
 
+
     public int getCode()
     {
         return code;

@@ -5,43 +5,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2c577916-babf-4a25-8b89-78ba42e09e87" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/MailService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/MailServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/utils/MailUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/config/AsyncConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/config/ThreadPoolConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/config/ValidatorConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/constants/RegexConstants.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/enums/BusinessStatusEnum.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/enums/FormatsType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/exception/SseException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/factory/RegexPatternPoolFactory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/MessageUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ObjectUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/StreamUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ThreadsUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/TreeBuildUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ValidatorUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ip/AddressUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ip/NetUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ip/RegionUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/regex/RegexUtils.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/regex/RegexValidator.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/annotation/EnumPattern.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/validate/EnumPatternValidator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-api/zhiyan-api-system/src/main/java/hbnu/project/zhiyanapisystem/controller/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/model/dto/LoginDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/model/dto/RegisterDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/response/UserLoginResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/response/UserRegisterResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthLoginFailureService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthUserDetailsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AbstractLoginFailureService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/UserDetailsService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ApifoxUploaderProjectSetting.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/zhiyan-auth/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/VerificationCodeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/VerificationCodeServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/IpUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/ip/IpUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/StringUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/utils/StringUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationFailureHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationFailureHandlerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationSuccessHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationSuccessHandlerImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/controller/AuthController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/AuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth/service/impl/AuthServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/domain/R.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/domain/R.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationFailureHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/impl/AuthenticationFailureHandlerImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/AuthenticationSuccessHandlerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/impl/AuthenticationSuccessHandlerImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/CustomUserDetailsService.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/CustomUserDetailsService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureService.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PasswordUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PasswordUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PermissionUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/PermissionUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityHeaderUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityHeaderUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/utils/SecurityUtils.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,8 +77,8 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:ergou10086/ZhiyanPlatform.git&quot;,
-    &quot;accountId&quot;: &quot;df8848fb-8ae1-4276-a31a-6cf6aa41faf9&quot;
+    &quot;url&quot;: &quot;https://github.com/ergou10086/ZhiyanPlatform&quot;,
+    &quot;accountId&quot;: &quot;3f1e8a9b-25bc-48ab-8ffd-5de25ea5f1f2&quot;
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
@@ -96,6 +93,9 @@
       </MavenGeneralSettings>
     </option>
   </component>
+  <component name="PerforceDirect.Settings">
+    <option name="CHARSET" value="无" />
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -107,45 +107,58 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Maven.zhiyan-backend [clean].executor": "Run",
-    "Maven.zhiyan-backend [compile].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/WorkSpace/JavaDemo/Programe/ZhiyanPlatform/NewStructure/zhiyan-backend/zhiyan-common/zhiyan-common-basic/src/main/java/hbnu/project/zhiyancommonbasic/enums",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "模块",
-    "project.structure.proportion": "0.14921875",
-    "project.structure.side.proportion": "0.13239719",
-    "run.configurations.included.in.services": "true",
-    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.zhiyan-backend [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.zhiyan-backend [compile].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.ZhiyanApiApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ZhiyanAuthApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.ZhiyanBackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_directory_selection&quot;: &quot;D:/zhiyan/back/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/zhiyan/back/zhiyan-auth/src/main/java/hbnu/project/zhiyanauth&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.14921875&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.29885057&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql_aurora_aws&quot;
+    ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\zhiyan\back\zhiyan-auth\src\main\java\hbnu\project\zhiyanauth" />
       <recent name="D:\WorkSpace\JavaDemo\Programe\ZhiyanPlatform\NewStructure\zhiyan-backend\zhiyan-common\zhiyan-common-basic\src\main\java\hbnu\project\zhiyancommonbasic\enums" />
       <recent name="D:\WorkSpace\JavaDemo\Programe\ZhiyanPlatform\NewStructure\zhiyan-backend\zhiyan-common\zhiyan-common-basic\src\main\java\hbnu\project\zhiyancommonbasic\utils\ip" />
       <recent name="D:\WorkSpace\JavaDemo\Programe\ZhiyanPlatform\NewStructure\zhiyan-backend\zhiyan-common\zhiyan-common-basic\src\main\java\hbnu\project\zhiyancommonbasic\utils" />
       <recent name="D:\WorkSpace\JavaDemo\Programe\ZhiyanPlatform\NewStructure\zhiyan-backend\zhiyan-common\zhiyan-common-security\src\main\java\hbnu\project\zhiyancommonsecurity\validate" />
-      <recent name="D:\WorkSpace\JavaDemo\Programe\ZhiyanPlatform\NewStructure\zhiyan-backend\zhiyan-auth\src\main\java\hbnu\project\zhiyanauth\controller" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="hbnu.project.zhiyanauth.response" />
+      <recent name="hbnu.project.zhiyanauth" />
       <recent name="hbnu.project.zhiyancommonbasic.config" />
       <recent name="hbnu.project.zhiyancommonbasic.exception" />
       <recent name="hbnu.project.zhiyancommonbasic.utils" />
-      <recent name="hbnu.project.zhiyancommonsecurity.annotation" />
-      <recent name="hbnu.project.zhiyancommonsecurity.validate" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -158,7 +171,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.ZhiyanBackendApplication">
+  <component name="RunManager" selected="Spring Boot.ZhiyanAuthApplication">
     <configuration name="ZhiyanApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="zhiyan-api" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="hbnu.project.zhiyanapi.ZhiyanApiApplication" />
@@ -257,15 +270,32 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Spring Boot.ZhiyanApiApplication" />
+      <item itemvalue="Spring Boot.ZhiyanAuthApplication" />
+      <item itemvalue="Spring Boot.ZhiyanCommonApplication" />
+      <item itemvalue="Spring Boot.ZhiyanKnowledgeApplication" />
+      <item itemvalue="Spring Boot.ZhiyanApiSystemApplication" />
+      <item itemvalue="Spring Boot.ZhiyanBackendApplication" />
+      <item itemvalue="Spring Boot.ZhiyanCommonBasicApplication" />
+      <item itemvalue="Spring Boot.ZhiyanCommonRedisApplication" />
+      <item itemvalue="Spring Boot.ZhiyanCommonSeataApplication" />
+      <item itemvalue="Spring Boot.ZhiyanCommonSecurityApplication" />
+      <item itemvalue="Spring Boot.ZhiyanGatewayApplication" />
+      <item itemvalue="Spring Boot.ZhiyanModulesApplication" />
+      <item itemvalue="Spring Boot.ZhiyanNacosApplication" />
+      <item itemvalue="Spring Boot.ZhiyanProjectApplication" />
+    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.23892.409" />
-        <option value="bundled-js-predefined-d6986cc7102b-e03c56caf84a-JavaScript-IU-252.23892.409" />
+        <option value="bundled-jdk-9f38398b9061-39b83d9b5494-intellij.indexing.shared.core-IU-241.19416.15" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-IU-241.19416.15" />
       </set>
     </attachedChunks>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="StructureViewState">
     <option name="selectedTab" value="逻辑" />
   </component>
@@ -283,11 +313,42 @@
       <workItem from="1759138401220" duration="5541000" />
       <workItem from="1759144134674" duration="3334000" />
       <workItem from="1759149735561" duration="1527000" />
+      <workItem from="1759154255003" duration="255000" />
+      <workItem from="1759154544103" duration="352000" />
+      <workItem from="1759194710200" duration="777000" />
+      <workItem from="1759197069124" duration="1949000" />
+      <workItem from="1759200088141" duration="872000" />
+      <workItem from="1759200970269" duration="2072000" />
+      <workItem from="1759215825192" duration="7194000" />
+      <workItem from="1759362041462" duration="19714000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-field">
+          <url>file://$PROJECT_DIR$/zhiyan-common/zhiyan-common-security/src/main/java/hbnu/project/zhiyancommonsecurity/service/LoginFailureServiceImpl.java</url>
+          <line>37</line>
+          <properties field="LOGIN_IP_FAILURE_PREFIX" class="hbnu.project.zhiyancommonsecurity.service.LoginFailureServiceImpl" />
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

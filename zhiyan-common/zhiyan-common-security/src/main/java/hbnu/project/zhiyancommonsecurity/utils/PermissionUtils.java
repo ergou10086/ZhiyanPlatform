@@ -1,7 +1,7 @@
 package hbnu.project.zhiyancommonsecurity.utils;
 
-import hbnu.project.zhiyansecurity.context.LoginUserBody;
-import hbnu.project.zhiyansecurity.context.SecurityContextHolder;
+import hbnu.project.zhiyancommonsecurity.context.LoginUserBody;
+import hbnu.project.zhiyancommonsecurity.context.SecurityContextHolder;
 import lombok.extern.slf4j.Slf4j;
 
 /**
