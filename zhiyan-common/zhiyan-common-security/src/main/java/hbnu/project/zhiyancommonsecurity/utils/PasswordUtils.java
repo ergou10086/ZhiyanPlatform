@@ -1,7 +1,6 @@
 package hbnu.project.zhiyancommonsecurity.utils;
 
-//import hbnu.project.zhiyancommonbasic.utils;
-import org.springframework.util.StringUtils;
+import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 
 import java.util.regex.Pattern;
 
@@ -57,7 +56,7 @@ public class PasswordUtils {
      * @return 是否符合要求
      */
     public static boolean isValidPassword(String password) {
-        if (!StringUtils.hasText(password)) { // 使用Spring的StringUtils
+        if (StringUtils.isBlank(password)) {
             return false;
         }
         

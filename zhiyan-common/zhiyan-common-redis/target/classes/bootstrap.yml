@@ -1,0 +1,16 @@
+# 引导配置，负责连接 Nacos 配置中心
+
+spring:
+  application:
+    name: zhiyan-common-redis  # 应用名，与 Nacos 配置的 Data ID 前缀一致
+  cloud:
+    nacos:
+      config:  # 仅启用「配置中心」，不启用「服务发现」
+        server-addr: 127.0.0.1:8848  # Nacos 配置中心地址
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf        # 命名空间（与 Nacos 中配置一致）
+        group: DEFAULT_GROUP         # 配置分组（与 Nacos 中配置一致）
+        file-extension: yaml         # 配置文件格式（YAML）
+        prefix: ${spring.application.name}  # 配置文件前缀（默认用应用名）
+  config:
+    import:
+      - nacos:${spring.application.name}.yaml?refresh=true  # 导入 Nacos 中对应的配置（Data ID: zhiyan-common-redis.yaml）

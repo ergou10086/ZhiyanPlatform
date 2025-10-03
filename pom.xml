@@ -59,6 +59,7 @@
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
         <zhiyan-common-redis.version>0.0.1-SNAPSHOT</zhiyan-common-redis.version>
         <zhiyan-auth.version>0.0.1-SNAPSHOT</zhiyan-auth.version>
+        <zhiyan-api-system.version>0.0.1-SNAPSHOT</zhiyan-api-system.version>
 
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -274,6 +275,12 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-auth</artifactId>
                 <version>${zhiyan-auth.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-api-system</artifactId>
+                <version>${zhiyan-api-system.version}</version>
             </dependency>
 
         </dependencies>
