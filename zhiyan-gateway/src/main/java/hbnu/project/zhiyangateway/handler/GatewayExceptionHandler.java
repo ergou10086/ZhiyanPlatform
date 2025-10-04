@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import hbnu.project.zhiyancommon.utils.ServletUtils;
+import hbnu.project.zhiyancommonbasic.utils.ServletUtils;
 
 /**
  * 网关统一异常处理
