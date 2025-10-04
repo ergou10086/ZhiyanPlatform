@@ -70,6 +70,13 @@ public interface AuthService {
     TokenDTO generateTokens(Long userId, boolean rememberMe);
 
     /**
+     * 刷新JWT令牌
+     *
+     * @param refreshToken 刷新令牌
+     * @return 新的token信息
+     */
+    TokenDTO refreshToken(String refreshToken);
+    /**
      * 验证JWT令牌
      *
      * @param token JWT令牌

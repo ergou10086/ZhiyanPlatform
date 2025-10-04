@@ -42,6 +42,13 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     private static final int CODE_EXPIRE_MINUTES = 10;
     private static final int RATE_LIMIT_MINUTES = 1;
 
+    /**
+     * 生成并发送验证码
+     *
+     * @param email  邮箱
+     * @param type   验证码类型
+     * @return R<Void>
+     */
     @Override
     @Transactional
     public R<Void> generateAndSendCode(String email, VerificationCodeType type) {

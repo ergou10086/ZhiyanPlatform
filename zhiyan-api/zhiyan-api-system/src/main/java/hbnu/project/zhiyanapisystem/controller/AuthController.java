@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanapisystem.controller;
 
+import com.alibaba.nacos.api.model.v2.Result;
 import hbnu.project.zhiyanauth.mapper.UserMapper;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
@@ -9,6 +10,7 @@ import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
 import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
 import hbnu.project.zhiyanauth.repository.UserRepository;
+import hbnu.project.zhiyanauth.response.TokenRefreshRespone;
 import hbnu.project.zhiyanauth.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Parameter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,18 +48,43 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final VerificationCodeService verificationCodeService;
 
-    /**
-     * 发送验证码
-     */
-    @PostMapping("/send-verfcode")
-    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
-    public R<Void> sendVerificationCode(
-            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
-        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
 
-        // 直接调用 auth 模块的服务
-        return authService.sendVerificationCode(verificationCodeBody);
+    /**
+     //     * 刷新访问令牌
+     // TODO: 实现令牌刷新逻辑
+     // 1. 校验Refresh Token的有效性
+     // 2. 检查Token是否在黑名单中
+     // 3. 生成新的Access Token（可选择是否生成新的Refresh Token）
+     // 4. 使旧的Refresh Token失效
+     // 5. 返回新的令牌
+     //     */
+    @PostMapping("/refresh")
+    @Operation(summary = "刷新令牌", description = "使用Refresh Token获取新的Access Token")
+    public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshRespone request) {
+        log.info("令牌刷新请求 - refreshToken: {}", request.getRefreshToken());
+        TokenDTO tokenDTO = authService.refreshToken(request.getRefreshToken());
+        return R.ok(tokenDTO);
     }
+
+
+//    /**
+//     * 用户登出
+//     */
+//    @PostMapping("/logout")
+//    @Operation(summary = "用户登出", description = "用户登出，使令牌失效")
+//    public R<Void> logout(
+//            @Parameter(description = "访问令牌", required = true)
+//            @RequestHeader("Authorization") String token) {
+//        log.info("用户登出请求");
+//
+//        // TODO: 实现用户登出逻辑
+//        // 1. 解析JWT Token获取用户信息
+//        // 2. 将Token加入黑名单（Redis）
+//        // 3. 删除对应的Refresh Token
+//
+//        return Result.success();
+//    }
+
 
     /**
      * 用户注册
@@ -70,6 +98,20 @@ public class AuthController {
         // 直接调用 auth 模块的服务
         return authService.register(request);
     }
+    /**
+     * 发送验证码
+     */
+    @PostMapping("/send-verfcode")
+    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
+    public R<Void> sendVerificationCode(
+            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
+        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
+
+        // 直接调用 auth 模块的服务
+        return authService.sendVerificationCode(verificationCodeBody);
+    }
+
+
 
     /**
      * 用户登录
@@ -115,43 +157,6 @@ public class AuthController {
 //
 //
 //
-//    /**
-//     * 刷新访问令牌
-//     */
-//    @PostMapping("/refresh")
-//    @Operation(summary = "刷新令牌", description = "使用refresh token获取新的access token")
-//    public Result<TokenRefreshResponse> refreshToken(
-//            @Valid @RequestBody TokenRefreshRequest request) {
-//        log.info("令牌刷新请求");
-//
-//        // TODO: 实现令牌刷新逻辑
-//        // 1. 校验Refresh Token的有效性
-//        // 2. 检查Token是否在黑名单中
-//        // 3. 生成新的Access Token（可选择是否生成新的Refresh Token）
-//        // 4. 使旧的Refresh Token失效
-//        // 5. 返回新的令牌
-//
-//        return Result.success();
-//    }
-//
-//
-//    /**
-//     * 用户登出
-//     */
-//    @PostMapping("/logout")
-//    @Operation(summary = "用户登出", description = "用户登出，使令牌失效")
-//    public Result<Void> logout(
-//            @Parameter(description = "访问令牌", required = true)
-//            @RequestHeader("Authorization") String token) {
-//        log.info("用户登出请求");
-//
-//        // TODO: 实现用户登出逻辑
-//        // 1. 解析JWT Token获取用户信息
-//        // 2. 将Token加入黑名单（Redis）
-//        // 3. 删除对应的Refresh Token
-//
-//        return Result.success();
-//    }
 //
 //
 //    /**

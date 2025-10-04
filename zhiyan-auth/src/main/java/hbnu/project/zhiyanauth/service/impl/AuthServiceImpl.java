@@ -3,6 +3,7 @@ package hbnu.project.zhiyanauth.service.impl;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
+import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
 import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
@@ -49,15 +50,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
 
-    /**
-     * 密码编码器
-     *
-     * @return 密码编码器
-     */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
 
     /**
      * 用户注册
@@ -71,61 +64,46 @@ public class AuthServiceImpl implements AuthService {
         log.info("处理用户注册: 邮箱={}, 姓名={}", request.getEmail(), request.getName());
 
         try {
-            // 1. 检查密码和确认密码是否一致
-            if (!request.getPassword().equals(request.getConfirmPassword())) {
-                return R.fail("密码和确认密码不一致");
+            // 1. 邮箱唯一性校验
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                return R.fail("该邮箱已被注册");
             }
 
-            // 2. 检查密码强度
+            // 2. 密码一致性校验
+            if (!request.getPassword().equals(request.getConfirmPassword())) {
+                return R.fail("两次输入的密码不一致");
+            }
+
+            // 3. 密码强度校验（只校验合法性，不在接口里暴露强度分数）
             if (!PasswordUtils.isValidPassword(request.getPassword())) {
                 return R.fail("密码必须为6-16位字母和数字组合");
             }
 
-            int passwordStrength = PasswordUtils.validatePasswordStrength(request.getPassword());
-            if (passwordStrength < 2) {
-                log.warn("用户注册密码强度较弱 - 邮箱: {}, 强度等级: {}", request.getEmail(), passwordStrength);
+            // 4. 校验验证码
+            if (!verificationCodeService.validateCode(
+                    request.getEmail(), request.getVerificationCode(), VerificationCodeType.REGISTER
+            ).getData()) {
+                return R.fail("验证码错误或已过期");
             }
 
-            // 3. 检查邮箱是否已存在
-            Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
-            if (existingUser.isPresent()) {
-                return R.fail("该邮箱已被注册");
-            }
-
-            // 4. 验证验证码
-            R<Boolean> verifyResult = verifyCode(
-                    request.getEmail(),
-                    request.getVerificationCode(),
-                    VerificationCodeType.REGISTER.name()
-            );
-
-            if (R.isError(verifyResult) || !Boolean.TRUE.equals(verifyResult.getData())) {
-                return R.fail(verifyResult.getMsg() != null ? verifyResult.getMsg() : "验证码错误或已过期");
-            }
-
-            // 5. 加密密码
-            String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-            // 6. 创建用户记录
-            User newUser = User.builder()
+            // 5. 创建用户
+            User user = User.builder()
                     .email(request.getEmail())
-                    .passwordHash(encodedPassword)
+                    .passwordHash(passwordEncoder.encode(request.getPassword()))
                     .name(request.getName())
                     .title(request.getTitle())
                     .institution(request.getInstitution())
-                    .isLocked(false)
-                    .isDeleted(false)
-                    //.createdTime(LocalDateTime.now())
-                    //.updatedTime(LocalDateTime.now())
-                    //.lastLoginTime(LocalDateTime.now())
+                    .status(UserStatus.ACTIVE)
+
                     .build();
 
-            User savedUser = userRepository.save(newUser);
+            User savedUser = userRepository.save(user);
 
-            // 7. 生成令牌
-            TokenDTO tokenDTO = generateTokens(savedUser.getId(), false);
+            // 6. 生成JWT令牌（注册后自动登录）
+            boolean rememberMe = false; // 注册时固定为 falsefalse;
+            TokenDTO tokenDTO = generateTokens(savedUser.getId(), rememberMe);
 
-            // 8. 构建响应
+            // 7. 构建完整的响应（包含登录令牌）
             UserRegisterResponse response = UserRegisterResponse.builder()
                     .userId(savedUser.getId())
                     .email(savedUser.getEmail())
@@ -136,19 +114,17 @@ public class AuthServiceImpl implements AuthService {
                     .refreshToken(tokenDTO.getRefreshToken())
                     .expiresIn(tokenDTO.getExpiresIn())
                     .tokenType(tokenDTO.getTokenType())
-                    .passwordStrength(PasswordUtils.getPasswordStrengthDescription(request.getPassword()))
+                    .rememberMe(rememberMe)
                     .build();
 
-            log.info("用户注册成功: 用户ID={}, 邮箱={}, 密码强度={}",
-                    savedUser.getId(), savedUser.getEmail(), passwordStrength);
+            log.info("用户注册成功并自动登录: 用户ID={}, 邮箱={}", savedUser.getId(), savedUser.getEmail());
             return R.ok(response);
 
         } catch (Exception e) {
-            log.error("用户注册失败 - 邮箱: {}, 错误: {}", request.getEmail(), e.getMessage(), e);
+            log.error("用户注册失败 - 邮箱: {}, 错误: {}", request.getEmail(), e.getMessage());
             return R.fail("注册失败，请稍后重试");
         }
     }
-
     /**
      * 用户登录
      *
@@ -169,15 +145,10 @@ public class AuthServiceImpl implements AuthService {
 
             User user = userOptional.get();
 
-            // 2. 检查用户状态
-            if (Boolean.TRUE.equals(user.getIsDeleted())) {
-                log.warn("登录失败: 用户已被删除 - 用户ID: {}, 邮箱: {}", user.getId(), user.getEmail());
-                return R.fail("账户不存在");
-            }
 
-            if (Boolean.TRUE.equals(user.getIsLocked())) {
-                log.warn("登录失败: 用户已被锁定 - 用户ID: {}, 邮箱: {}", user.getId(), user.getEmail());
-                return R.fail("账户已被锁定，请联系管理员");
+            // 1. 检查用户状态（用枚举）
+            if (user.getStatus() != UserStatus.ACTIVE) {
+                return R.fail("账户不可用：" + user.getStatus().getDescription());
             }
 
             // 3. 校验密码
@@ -202,9 +173,7 @@ public class AuthServiceImpl implements AuthService {
                     .avatarUrl(user.getAvatarUrl())
                     .title(user.getTitle())
                     .institution(user.getInstitution())
-                    //.lastLoginTime(user.getLastLoginTime())
-                   // .createdTime(user.getCreatedTime())
-                    //.updatedTime(user.getUpdatedTime())
+
                     .build();
 
             // 7. 构建登录响应
@@ -246,8 +215,8 @@ public class AuthServiceImpl implements AuthService {
                 return R.fail("邮箱格式不正确");
             }
 
-            Optional<User> existingUser = userRepository.findByEmail(email);
-            return R.ok(existingUser.isPresent(), existingUser.isPresent() ? "邮箱已被注册" : "邮箱可用");
+            boolean exists = userRepository.findByEmail(email).isPresent();
+            return exists ? R.fail("邮箱已被注册") : R.ok(true, "邮箱可用");
 
         } catch (Exception e) {
             log.error("检查邮箱异常 - 邮箱: {}, 错误: {}", email, e.getMessage(), e);
@@ -365,6 +334,61 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("生成令牌失败");
         }
     }
+    /**
+     *刷新令牌
+     * 根据传入的refreshToken，生成新的访问令牌Access Token
+     */
+    @Override
+    public TokenDTO refreshToken(String refreshToken) {
+        try {
+            // 1. 校验 Refresh Token 格式和签名
+            if (!jwtUtils.validateToken(refreshToken)) {
+                throw new RuntimeException("无效的Refresh Token");
+            }
+
+            // 2. 校验是否在黑名单
+            if (isTokenBlacklisted(refreshToken)) {
+                throw new RuntimeException("Refresh Token已失效");
+            }
+
+            // 3. 解析用户ID
+            String userIdStr = jwtUtils.parseToken(refreshToken);
+            if (userIdStr == null) {
+                throw new RuntimeException("无法解析用户ID");
+            }
+            Long userId = Long.valueOf(userIdStr);
+
+            // 4. 判断 Refresh Token 是否过期
+            Long remainingTime = jwtUtils.getRemainingTime(refreshToken);
+            if (remainingTime == null || remainingTime <= 0) {
+                throw new RuntimeException("Refresh Token已过期");
+            }
+
+            // 5. 生成新的Access Token
+            int accessTokenExpireMinutes = TokenConstants.DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES;
+            String newAccessToken = jwtUtils.createToken(userIdStr, accessTokenExpireMinutes);
+
+            // 存储新的Access Token到Redis
+            String tokenKey = CacheConstants.USER_TOKEN_PREFIX + userId;
+            long cacheTimeSeconds = (long) accessTokenExpireMinutes * 60;
+            redisService.setCacheObject(tokenKey, newAccessToken, cacheTimeSeconds, TimeUnit.SECONDS);
+
+            // 6. 返回新的TokenDTO（Refresh Token一般不变）
+            TokenDTO tokenDTO = new TokenDTO();
+            tokenDTO.setAccessToken(newAccessToken);
+            tokenDTO.setRefreshToken(refreshToken); // 保持不变
+            tokenDTO.setTokenType(TokenConstants.TOKEN_TYPE_BEARER);
+            tokenDTO.setExpiresIn(cacheTimeSeconds);
+
+            log.info("刷新Token成功 - 用户ID: {}", userId);
+            return tokenDTO;
+
+        } catch (Exception e) {
+            log.error("刷新Token失败 - 错误: {}", e.getMessage(), e);
+            throw new RuntimeException("刷新Token失败");
+        }
+    }
+
 
 
     /**
@@ -430,4 +454,5 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
     }
+
 }

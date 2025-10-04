@@ -6,7 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication(scanBasePackages = {
         "hbnu.project.zhiyanauth",
         "hbnu.project.zhiyancommonbasic",
-        "hbnu.project.zhiyancommonredis"
+        "hbnu.project.zhiyancommonredis",
+        "hbnu.project.zhiyancommonsecurity"
 })
 public class ZhiyanAuthApplication {
 

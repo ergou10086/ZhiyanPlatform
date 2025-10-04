@@ -66,4 +66,6 @@ public class RegisterBody {
      */
     @Size(max = 200, message = "所属机构长度不能超过200个字符")
     private String institution;
+
+
 }

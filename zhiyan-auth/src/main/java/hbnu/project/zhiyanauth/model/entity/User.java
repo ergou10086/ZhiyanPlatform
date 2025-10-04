@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.model.entity;
 
+import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
@@ -77,20 +78,27 @@ public class User extends BaseAuditEntity{
             columnDefinition = "VARCHAR(200) COMMENT '用户所属机构'")
     private String institution;
 
-    /**
-     * 账号是否锁定
-     */
-    @Column(name = "is_locked", nullable = false,
-            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否锁定（禁止登录）'")
-    private Boolean isLocked = false;
+//    /**
+//     * 账号是否锁定
+//     */
+//    @Column(name = "is_locked", nullable = false,
+//            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否锁定（禁止登录）'")
+//    private Boolean isLocked = false;
+//
+//    /**
+//     * 软删除标记
+//     */
+//    @Column(name = "is_deleted", nullable = false,
+//            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '软删除标记'")
+//    private Boolean isDeleted = false;
 
     /**
-     * 软删除标记
+     * 用户状态
      */
-    @Column(name = "is_deleted", nullable = false,
-            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '软删除标记'")
-    private Boolean isDeleted = false;
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20,
+            columnDefinition = "VARCHAR(20) COMMENT '用户状态（枚举：ACTIVE/LOCKED/DISABLED/DELETED）'")
+    private UserStatus status = UserStatus.ACTIVE;
     /**
      * 用户角色关联（一对多）
      */

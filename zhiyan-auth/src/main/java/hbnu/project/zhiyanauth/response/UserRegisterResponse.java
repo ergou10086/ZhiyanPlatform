@@ -14,9 +14,11 @@ public class UserRegisterResponse {
     private String name;
     private String title;
     private String institution;
+
     private String accessToken;
     private String refreshToken;
     private Long expiresIn;
     private String tokenType;
     private String passwordStrength; // 新增密码强度信息
+    private Boolean rememberMe;
 }
