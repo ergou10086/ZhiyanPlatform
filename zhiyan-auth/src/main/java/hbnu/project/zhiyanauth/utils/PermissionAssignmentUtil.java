@@ -4,6 +4,7 @@ import hbnu.project.zhiyanauth.model.entity.Permission;
 import hbnu.project.zhiyanauth.model.entity.Role;
 import hbnu.project.zhiyanauth.model.entity.RolePermission;
 import hbnu.project.zhiyanauth.model.enums.PermissionModule;
+import hbnu.project.zhiyanauth.model.enums.RoleTemplate;
 import hbnu.project.zhiyanauth.model.enums.SystemPermission;
 import hbnu.project.zhiyanauth.repository.PermissionRepository;
 import hbnu.project.zhiyanauth.repository.RolePermissionRepository;
@@ -112,7 +113,7 @@ public class PermissionAssignmentUtil {
     public int assignRoleTemplate(Role role, RoleTemplate roleTemplate) {
         log.info("为角色 {} 应用角色模板: {}", role.getName(), roleTemplate.getRoleName());
 
-        return assignPermissionModules(role, roleTemplate.getPermissionModules());
+        return assignPermissionModules(role, roleTemplate.getPermissionMoules());
     }
 
 
@@ -260,5 +261,50 @@ public class PermissionAssignmentUtil {
         }
 
         log.info("系统权限初始化完成");
+    }
+
+    /**
+     * 检查角色类型是否匹配
+     */
+    private boolean isRoleTemplateCompatibleWithRoleType(Role role, RoleTemplate roleTemplate) {
+        if (role.getRoleType() == null) {
+            log.warn("角色 {} 的角色类型为空", role.getName());
+            return false;
+        }
+
+        // 使用字符串比较
+        return role.getRoleType().equals(roleTemplate.getRoleType());
+    }
+
+    /**
+     * 检查权限模块是否与角色类型兼容
+     */
+    private boolean isPermissionModuleCompatibleWithRoleType(Role role, PermissionModule permissionModule) {
+        if (role.getRoleType() == null) {
+            log.warn("角色 {} 的角色类型为空", role.getName());
+            return false;
+        }
+
+        // 根据角色类型判断权限模块是否兼容
+        if ("SYSTEM".equals(role.getRoleType())) {
+            // 系统角色可以使用所有权限模块
+            return true;
+        } else if ("PROJECT".equals(role.getRoleType())) {
+            // 项目角色只能使用项目相关的权限模块
+            return isProjectRelatedPermissionModule(permissionModule);
+        } else {
+            log.warn("未知的角色类型: {}", role.getRoleType());
+            return false;
+        }
+    }
+
+    /**
+     * 检查权限模块是否与项目相关
+     */
+    private boolean isProjectRelatedPermissionModule(PermissionModule permissionModule) {
+        // 项目角色可以使用的权限模块
+        return permissionModule == PermissionModule.PROJECT_MANAGER ||
+                permissionModule == PermissionModule.PROJECT_OWNER ||
+                permissionModule == PermissionModule.BASIC_USER;
     }
 }

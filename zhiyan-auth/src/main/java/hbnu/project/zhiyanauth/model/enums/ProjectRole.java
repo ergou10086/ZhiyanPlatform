@@ -9,8 +9,8 @@ import java.util.List;
  *
  * @author ErgouTree
  */
-public enum ProjectRole {
-    
+public enum ProjectRole implements RoleTemplate {
+
     /**
      * 项目创建者/拥有者 - 拥有项目的全部权限
      */
@@ -19,7 +19,7 @@ public enum ProjectRole {
             SystemPermission.PROJECT_DELETE,
             SystemPermission.KNOWLEDGE_MANAGE
     )),
-    
+
     /**
      * 项目负责人/成员 - 拥有项目管理权限，但不能删除项目
      */
@@ -51,10 +51,17 @@ public enum ProjectRole {
     }
 
     /**
-     * 获取角色代码（用于权限判断）
+     * 获取角色类型
      */
-    public String getCode() {
-        return this.name();
+    @Override
+    public String getRoleType() {
+        return "PROJECT";
+    }    public String getCode() { return this.name();
+    }
+
+    @Override
+    public List<PermissionModule> getPermissionMoules() {
+        return List.of();
     }
 
     /**

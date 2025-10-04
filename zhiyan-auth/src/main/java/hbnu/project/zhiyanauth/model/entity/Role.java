@@ -47,6 +47,27 @@ public class Role extends BaseAuditEntity{
     private String description;
 
     /**
+     * 角色类型 - 使用字符串存储
+     */
+    @Column(name = "role_type", nullable = false, length = 20,
+            columnDefinition = "VARCHAR(20) COMMENT '角色类型（SYSTEM/PROJECT）'")
+    private String roleType;
+
+    /**
+     * 项目ID（项目角色时使用）
+     */
+    @Column(name = "project_id",
+            columnDefinition = "BIGINT COMMENT '项目ID（项目角色时使用）'")
+    private Long projectId;
+
+    /**
+     * 是否为系统默认角色
+     */
+    @Column(name = "is_system_default", nullable = false,
+            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否为系统默认角色'")
+    private Boolean isSystemDefault = false;
+
+    /**
      * 数据创建人（由审计自动填充）
      */
     @CreatedBy

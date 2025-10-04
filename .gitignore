@@ -1,0 +1,20 @@
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+
+# 编译输出
+target/
+build/
+out/
+bin/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz

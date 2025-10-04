@@ -1,5 +1,10 @@
 package hbnu.project.zhiyanauth.model.enums;
 
+import org.apache.catalina.Role;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 系统角色枚举
  * 简化的角色体系，主要分为系统级角色和项目级角色
@@ -11,38 +16,64 @@ package hbnu.project.zhiyanauth.model.enums;
  *
  * @author ErgouTree
  */
-public enum SysRole {
-    
+public enum SysRole implements RoleTemplate {
+
+
+
     /**
      * 开发者
      */
-    DEVELOPER("开发者", "拥有系统所有权限"),
-    
+    DEVELOPER("开发者", "拥有系统所有权限", Arrays.asList(
+            SystemPermission.PROFILE_MANAGE,
+            SystemPermission.PROJECT_CREATE,
+            SystemPermission.USER_ADMIN,
+            SystemPermission.SYSTEM_ADMIN
+    )),
+
     /**
      * 普通用户 - 可以创建项目，拥有基础功能权限
      */
-    USER("普通用户", "可以创建项目，管理个人信息，参与项目团队"),
-    
+    USER("普通用户", "可以创建项目，管理个人信息，参与项目团队", Arrays.asList(
+            SystemPermission.PROFILE_MANAGE,
+            SystemPermission.PROJECT_CREATE
+    )),
+
     /**
      * 访客用户 - 受限的只读权限
      */
-    GUEST("访客用户", "受限的访问权限，无法创建项目");
+    GUEST("访客用户", "受限的访问权限，无法创建项目", Arrays.asList(
+            SystemPermission.PROFILE_MANAGE
+    ));
 
     private final String roleName;
     private final String description;
+    private final List<SystemPermission> permissions;
 
-    SysRole(String roleName, String description) {
+    SysRole(String roleName, String description, List<SystemPermission> permissions) {
         this.roleName = roleName;
         this.description = description;
+        this.permissions = permissions;
     }
 
+    @Override
     public String getRoleName() {
         return roleName;
     }
-
+    @Override
     public String getDescription() {
         return description;
     }
+
+    @Override
+    public List<SystemPermission> getPermissions() {
+        return permissions;
+    }
+
+    @Override
+    public String getRoleType() {
+        return "SYSTEM";
+    }
+
 
     /**
      * 获取角色代码（用于权限判断）
@@ -50,4 +81,15 @@ public enum SysRole {
     public String getCode() {
         return this.name();
     }
+
+    @Override
+    public List<PermissionModule> getPermissionMoules() {
+        return List.of();
+    }
+
+
+    /**
+     * 获取角色类型
+     */
+
 }

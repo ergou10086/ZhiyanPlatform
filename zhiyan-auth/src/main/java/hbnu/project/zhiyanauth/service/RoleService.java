@@ -3,6 +3,9 @@ package hbnu.project.zhiyanauth.service;
 import hbnu.project.zhiyanauth.model.dto.RoleDTO;
 import hbnu.project.zhiyanauth.model.entity.Role;
 import hbnu.project.zhiyanauth.model.enums.PermissionModule;
+import hbnu.project.zhiyanauth.model.enums.ProjectRole;
+import hbnu.project.zhiyanauth.model.enums.RoleTemplate;
+import hbnu.project.zhiyanauth.model.enums.SysRole;
 import hbnu.project.zhiyanauth.utils.PermissionAssignmentUtil;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import org.springframework.data.domain.Page;
@@ -139,6 +142,9 @@ public interface RoleService {
      * @param roleName     自定义角色名称（可选，为空时使用模板名称）
      * @return 创建结果
      */
+
+    // ========== 角色模板方法（保持向后兼容） ==========
+
     R<RoleDTO> createRoleFromTemplate(RoleTemplate roleTemplate, String roleName);
 
     /**
@@ -150,6 +156,115 @@ public interface RoleService {
      * @return 应用结果
      */
     R<Integer> applyRoleTemplate(Long roleId, RoleTemplate roleTemplate, boolean resetMode);
+
+    // ========== 系统角色专用方法 ==========
+
+    /**
+     * 创建系统角色
+     *
+     * @param sysRole        系统角色枚举
+     * @param customRoleName 自定义角色名称（可选，为空时使用模板名称）
+     * @return 创建结果
+     */
+    R<RoleDTO> createSystemRole(SysRole sysRole, String customRoleName);
+
+    /**
+     * 为现有角色应用系统角色模板
+     *
+     * @param roleId    角色ID
+     * @param sysRole   系统角色枚举
+     * @param resetMode 是否重置模式
+     * @return 应用结果
+     */
+    R<Integer> applySystemRole(Long roleId, SysRole sysRole, boolean resetMode);
+
+    /**
+     * 为用户分配系统角色（注册时使用）
+     *
+     * @param userId  用户ID
+     * @param sysRole 系统角色枚举
+     * @return 分配结果
+     */
+    R<Void> assignSystemRoleToUser(Long userId, SysRole sysRole);
+
+    // ========== 项目角色专用方法 ==========
+
+    /**
+     * 创建项目角色
+     *
+     * @param projectRole    项目角色枚举
+     * @param customRoleName 自定义角色名称（可选，为空时使用模板名称）
+     * @param projectId      项目ID（用于关联特定项目）
+     * @return 创建结果
+     */
+    R<RoleDTO> createProjectRole(ProjectRole projectRole, String customRoleName, Long projectId);
+
+    /**
+     * 为现有角色应用项目角色模板
+     *
+     * @param roleId      角色ID
+     * @param projectRole 项目角色枚举
+     * @param resetMode   是否重置模式
+     * @param projectId   项目ID
+     * @return 应用结果
+     */
+    R<Integer> applyProjectRole(Long roleId, ProjectRole projectRole, boolean resetMode, Long projectId);
+
+    /**
+     * 为用户在特定项目中分配角色
+     *
+     * @param userId      用户ID
+     * @param projectId   项目ID
+     * @param projectRole 项目角色枚举
+     * @return 分配结果
+     */
+    R<Void> assignProjectRoleToUser(Long userId, Long projectId, ProjectRole projectRole);
+
+    /**
+     * 移除用户在特定项目中的角色
+     *
+     * @param userId    用户ID
+     * @param projectId 项目ID
+     * @return 移除结果
+     */
+    R<Void> removeUserFromProject(Long userId, Long projectId);
+
+    /**
+     * 获取用户在特定项目中的角色
+     *
+     * @param userId    用户ID
+     * @param projectId 项目ID
+     * @return 项目角色列表
+     */
+    R<Set<String>> getUserProjectRoles(Long userId, Long projectId);
+
+    // ========== 角色类型查询方法 ==========
+
+    /**
+     * 根据角色类型查询角色列表
+     *
+     * @param roleType 角色类型（SYSTEM/PROJECT）
+     * @param pageable 分页参数
+     * @return 角色列表
+     */
+    R<Page<RoleDTO>> getRolesByType(String roleType, Pageable pageable);
+
+    /**
+     * 获取特定项目的所有角色
+     *
+     * @param projectId 项目ID
+     * @param pageable  分页参数
+     * @return 项目角色列表
+     */
+    R<Page<RoleDTO>> getProjectRoles(Long projectId, Pageable pageable);
+
+    /**
+     * 获取系统级角色列表
+     *
+     * @param pageable 分页参数
+     * @return 系统角色列表
+     */
+    R<Page<RoleDTO>> getSystemRoles(Pageable pageable);
 
     /**
      * 移除角色的权限模块
@@ -174,4 +289,9 @@ public interface RoleService {
      * @return 初始化结果
      */
     R<Void> initializeSystemPermissions();
+
+
+
+
+
 }
