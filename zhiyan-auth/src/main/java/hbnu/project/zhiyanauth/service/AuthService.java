@@ -3,7 +3,9 @@ package hbnu.project.zhiyanauth.service;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
+import hbnu.project.zhiyanauth.model.form.ResetPasswordBody;
 import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
+import hbnu.project.zhiyanauth.response.TokenValidateResponse;
 import hbnu.project.zhiyanauth.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.response.UserRegisterResponse;
 import hbnu.project.zhiyancommonbasic.domain.R;
@@ -99,4 +101,16 @@ public interface AuthService {
      * @return 是否在黑名单中
      */
     boolean isTokenBlacklisted(String token);
+
+
+    /**
+     * 验证令牌并返回详细验证结果
+     */
+    TokenValidateResponse validateTokenWithDetails(String token);
+
+    R<Void> resetPassword(ResetPasswordBody request);
+
+    R<Void> forgotPassword(String email);
+
+    R<Void> logout(String tokenHeader);
 }

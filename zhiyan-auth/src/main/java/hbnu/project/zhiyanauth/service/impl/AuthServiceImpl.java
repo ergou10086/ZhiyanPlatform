@@ -7,8 +7,10 @@ import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
 import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
+import hbnu.project.zhiyanauth.model.form.ResetPasswordBody;
 import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
 import hbnu.project.zhiyanauth.repository.UserRepository;
+import hbnu.project.zhiyanauth.response.TokenValidateResponse;
 import hbnu.project.zhiyanauth.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
@@ -23,12 +25,9 @@ import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -408,7 +407,7 @@ public class AuthServiceImpl implements AuthService {
 
             // 解析令牌获取用户ID字符串
             return jwtUtils.parseToken(token);
-            
+
         } catch (Exception e) {
             log.debug("JWT令牌验证失败 - token: {}, 错误: {}", token, e.getMessage());
             return null;
@@ -417,42 +416,225 @@ public class AuthServiceImpl implements AuthService {
 
 
     /**
-     * 将token加入黑名单
+     * 将指定 token 加入黑名单，并清除用户的缓存
      */
     @Override
     public void blacklistToken(String token, Long userId) {
+        if (StringUtils.isBlank(token) || userId == null) {
+            log.warn("加入黑名单失败 - token 或 userId 为空");
+            return;
+        }
+
         try {
-            // 获取token的剩余有效时间
+            // 计算 token 剩余有效时间
             Long remainingTime = jwtUtils.getRemainingTime(token);
             if (remainingTime != null && remainingTime > 0) {
                 String blacklistKey = CacheConstants.TOKEN_BLACKLIST_PREFIX + token;
                 redisService.setCacheObject(blacklistKey, userId.toString(), remainingTime, TimeUnit.SECONDS);
+                log.debug("Token 已加入黑名单 - 用户ID: {}, 剩余有效期: {} 秒", userId, remainingTime);
             }
-            
-            // 同时清除用户的token缓存
+
+            // 清除用户的 token 缓存（保证后续不会再查到）
             String userTokenKey = CacheConstants.USER_TOKEN_PREFIX + userId;
             redisService.deleteObject(userTokenKey);
-            
-            log.info("Token已加入黑名单 - 用户ID: {}", userId);
-            
+
+            log.info("Token 已失效并加入黑名单 - 用户ID: {}", userId);
+
         } catch (Exception e) {
-            log.error("加入token黑名单失败 - 用户ID: {}, 错误: {}", userId, e.getMessage(), e);
+            log.error("加入 token 黑名单失败 - 用户ID: {}, 错误: {}", userId, e.getMessage(), e);
+        }
+    }
+
+
+
+    /**
+     * 检查 token 是否在黑名单中
+     */
+    @Override
+    public boolean isTokenBlacklisted(String token) {
+        if (StringUtils.isBlank(token)) {
+            return false;
+        }
+        try {
+            String blacklistKey = CacheConstants.TOKEN_BLACKLIST_PREFIX + token;
+            return Boolean.TRUE.equals(redisService.hasKey(blacklistKey));
+        } catch (Exception e) {
+            log.warn("检查 token 黑名单状态失败 - token: {}, 错误: {}", token, e.getMessage());
+            return false;
         }
     }
 
 
     /**
-     * 检查token是否在黑名单中
+     * 验证令牌并返回详细验证结果
      */
     @Override
-    public boolean isTokenBlacklisted(String token) {
+    public TokenValidateResponse validateTokenWithDetails(String token) {
+        TokenValidateResponse response = new TokenValidateResponse();
+
         try {
-            String blacklistKey = CacheConstants.TOKEN_BLACKLIST_PREFIX + token;
-            return redisService.hasKey(blacklistKey);
+            // 移除Bearer前缀（如果服务层被直接调用，可能没有前缀）
+            String cleanToken = removeBearerPrefix(token);
+
+            // 1. 检查Token是否在黑名单中
+            if (isTokenBlacklisted(cleanToken)) {
+                response.setIsValid(false);
+                response.setMessage("令牌已失效");
+                log.debug("令牌验证失败 - 在黑名单中");
+                return response;
+            }
+
+            // 2. 校验JWT Token签名和有效期
+            String userId = validateToken(cleanToken);
+            if (userId == null) {
+                response.setIsValid(false);
+                response.setMessage("令牌无效或已过期");
+                log.debug("令牌验证失败 - JWT验证不通过");
+                return response;
+            }
+
+            // 3. 获取令牌剩余时间
+            Long remainingTime = jwtUtils.getRemainingTime(cleanToken);
+
+            // 4. 构建成功响应
+            response.setIsValid(true);
+            response.setUserId(userId);
+            response.setRemainingTime(remainingTime);
+            response.setMessage("令牌有效");
+
+            log.debug("令牌验证成功 - 用户ID: {}, 剩余时间: {}秒", userId, remainingTime);
+
         } catch (Exception e) {
-            log.debug("检查token黑名单状态失败 - token: {}, 错误: {}", token, e.getMessage());
-            return false;
+            log.error("令牌验证异常", e);
+            response.setIsValid(false);
+            response.setMessage("令牌验证异常");
+        }
+
+        return response;
+    }
+
+    /**
+     * 去掉 Bearer 前缀（如果有的话）
+     */
+    private String removeBearerPrefix(String token) {
+        if (token == null) {
+            return null;
+        }
+        if (token.startsWith("Bearer ")) {
+            return token.substring(7).trim();
+        }
+        return token.trim();
+    }
+
+
+    /**
+     * 忘记密码 - 发送重置密码验证码
+     * */
+    @Override
+    public R<Void> forgotPassword(String email) {
+        log.info("处理忘记密码请求 - 邮箱: {}", email);
+
+        try {
+            // 1. 检查邮箱是否存在
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            if (userOpt.isEmpty()) {
+                return R.fail("该邮箱未注册");
+            }
+
+            // 2. 生成并发送重置密码验证码
+            return verificationCodeService.generateAndSendCode(email, VerificationCodeType.RESET_PASSWORD);
+
+
+
+        } catch (Exception e) {
+            log.error("忘记密码处理失败 - 邮箱: {}, 错误: {}", email, e.getMessage(), e);
+            return R.fail("发送重置验证码失败，请稍后重试");
         }
     }
+
+    /**
+     * 重置密码
+     */
+    @Override
+    @Transactional
+    public R<Void> resetPassword(ResetPasswordBody request) {
+        log.info("处理重置密码请求 - 邮箱: {}", request.getEmail());
+
+        try {
+            // 1. 校验验证码
+            R<Boolean> validResult = verificationCodeService.validateCode(
+                    request.getEmail(), request.getVerificationCode(), VerificationCodeType.RESET_PASSWORD
+            );
+            if (!R.isSuccess(validResult) || Boolean.FALSE.equals(validResult.getData())) {
+                return R.fail("验证码错误或已过期");
+            }
+
+            // 2. 校验两次密码一致性
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                return R.fail("两次输入的密码不一致");
+            }
+
+            // 3. 校验密码强度
+            if (!PasswordUtils.isValidPassword(request.getNewPassword())) {
+                return R.fail("密码必须为6-16位字母和数字组合");
+            }
+
+            // 4. 查找用户
+            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+            if (userOpt.isEmpty()) {
+                return R.fail("该邮箱未注册");
+            }
+            User user = userOpt.get();
+
+            // 5. 更新用户密码
+            user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+
+            // 6. 将旧 token 加入黑名单并清理
+            String userTokenKey = CacheConstants.USER_TOKEN_PREFIX + user.getId();
+            String oldToken = redisService.getCacheObject(userTokenKey);
+            if (oldToken != null) {
+                blacklistToken(oldToken, user.getId());
+            }
+
+            log.info("用户密码重置成功 - 用户ID: {}, 邮箱: {}", user.getId(), user.getEmail());
+            return R.ok(null, "密码重置成功，请重新登录");
+
+        } catch (Exception e) {
+            log.error("重置密码失败 - 邮箱: {}, 错误: {}", request.getEmail(), e.getMessage(), e);
+            return R.fail("密码重置失败，请稍后重试");
+        }
+    }
+
+    @Override
+    public R<Void> logout(String tokenHeader) {
+        if (StringUtils.isBlank(tokenHeader) ||
+                !tokenHeader.startsWith(TokenConstants.TOKEN_TYPE_BEARER + " ")) {
+            return R.fail("无效的Authorization头");
+        }
+
+        // 去掉 "Bearer " 前缀
+        String token = tokenHeader.substring((TokenConstants.TOKEN_TYPE_BEARER + " ").length());
+
+        try {
+            // 1. 验证 token
+            String userIdStr = validateToken(token);
+            if (userIdStr == null) {
+                return R.fail("无效的Token");
+            }
+            Long userId = Long.valueOf(userIdStr);
+
+            // 2. 将 token 加入黑名单并清理缓存
+            blacklistToken(token, userId);
+
+            log.info("用户登出成功 - 用户ID: {}", userId);
+            return R.ok(null,"登出成功");  //
+
+        } catch (Exception e) {
+            log.error("用户登出失败 - 错误: {}", e.getMessage(), e);
+            return R.fail("登出失败");
+        }
+    }
+
 
 }

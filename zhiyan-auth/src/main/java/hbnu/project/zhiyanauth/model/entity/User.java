@@ -78,19 +78,19 @@ public class User extends BaseAuditEntity{
             columnDefinition = "VARCHAR(200) COMMENT '用户所属机构'")
     private String institution;
 
-//    /**
-//     * 账号是否锁定
-//     */
-//    @Column(name = "is_locked", nullable = false,
-//            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否锁定（禁止登录）'")
-//    private Boolean isLocked = false;
-//
-//    /**
-//     * 软删除标记
-//     */
-//    @Column(name = "is_deleted", nullable = false,
-//            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '软删除标记'")
-//    private Boolean isDeleted = false;
+    /**
+     * 账号是否锁定
+     */
+    @Column(name = "is_locked", nullable = false,
+            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否锁定（禁止登录）'")
+    private Boolean isLocked = false;
+
+    /**
+     * 软删除标记
+     */
+    @Column(name = "is_deleted", nullable = false,
+            columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '软删除标记'")
+    private Boolean isDeleted = false;
 
     /**
      * 用户状态

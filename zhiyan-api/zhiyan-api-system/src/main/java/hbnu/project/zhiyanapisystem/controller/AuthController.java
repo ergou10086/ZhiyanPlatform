@@ -8,9 +8,11 @@ import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
 import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
+import hbnu.project.zhiyanauth.model.form.ResetPasswordBody;
 import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
 import hbnu.project.zhiyanauth.repository.UserRepository;
 import hbnu.project.zhiyanauth.response.TokenRefreshRespone;
+import hbnu.project.zhiyanauth.response.TokenValidateResponse;
 import hbnu.project.zhiyanauth.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
@@ -49,41 +51,7 @@ public class AuthController {
     private final VerificationCodeService verificationCodeService;
 
 
-    /**
-     //     * 刷新访问令牌
-     // TODO: 实现令牌刷新逻辑
-     // 1. 校验Refresh Token的有效性
-     // 2. 检查Token是否在黑名单中
-     // 3. 生成新的Access Token（可选择是否生成新的Refresh Token）
-     // 4. 使旧的Refresh Token失效
-     // 5. 返回新的令牌
-     //     */
-    @PostMapping("/refresh")
-    @Operation(summary = "刷新令牌", description = "使用Refresh Token获取新的Access Token")
-    public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshRespone request) {
-        log.info("令牌刷新请求 - refreshToken: {}", request.getRefreshToken());
-        TokenDTO tokenDTO = authService.refreshToken(request.getRefreshToken());
-        return R.ok(tokenDTO);
-    }
 
-
-//    /**
-//     * 用户登出
-//     */
-//    @PostMapping("/logout")
-//    @Operation(summary = "用户登出", description = "用户登出，使令牌失效")
-//    public R<Void> logout(
-//            @Parameter(description = "访问令牌", required = true)
-//            @RequestHeader("Authorization") String token) {
-//        log.info("用户登出请求");
-//
-//        // TODO: 实现用户登出逻辑
-//        // 1. 解析JWT Token获取用户信息
-//        // 2. 将Token加入黑名单（Redis）
-//        // 3. 删除对应的Refresh Token
-//
-//        return Result.success();
-//    }
 
 
     /**
@@ -98,20 +66,6 @@ public class AuthController {
         // 直接调用 auth 模块的服务
         return authService.register(request);
     }
-    /**
-     * 发送验证码
-     */
-    @PostMapping("/send-verfcode")
-    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
-    public R<Void> sendVerificationCode(
-            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
-        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
-
-        // 直接调用 auth 模块的服务
-        return authService.sendVerificationCode(verificationCodeBody);
-    }
-
-
 
     /**
      * 用户登录
@@ -152,70 +106,93 @@ public class AuthController {
         return authService.checkEmail(email);
     }
 
-}
-//
-//
-//
-//
-//
-//
-//    /**
-//     * 忘记密码 - 发送重置验证码
-//     */
-//    @PostMapping("/forgot-password")
-//    @Operation(summary = "忘记密码", description = "发送密码重置验证码到邮箱")
-//    public Result<Void> forgotPassword(
-//            @Valid @RequestBody ForgotPasswordRequest request) {
-//        log.info("忘记密码请求: 邮箱={}", request.getEmail());
-//
-//        // TODO: 实现忘记密码逻辑
-//        // 1. 检查邮箱是否存在
-//        // 2. 生成密码重置验证码
-//        // 3. 存储验证码到Redis
-//        // 4. 发送重置密码邮件
-//
-//        return Result.success();
-//    }
-//
-//
-//
-//    /**
-//     * 重置密码
-//     */
-//    @PostMapping("/reset-password")
-//    @Operation(summary = "重置密码", description = "通过验证码重置密码")
-//    public Result<Void> resetPassword(
-//            @Valid @RequestBody ResetPasswordRequest request) {
-//        log.info("重置密码请求: 邮箱={}", request.getEmail());
-//
-//        // TODO: 实现重置密码逻辑
-//        // 1. 校验验证码
-//        // 2. 加密新密码
-//        // 3. 更新用户密码
-//        // 4. 使该用户所有现有Token失效
-//
-//        return Result.success();
-//    }
-//
-//
-//    /**
-//     * 验证令牌有效性
-//     */
-//    @GetMapping("/validate")
-//    @Operation(summary = "验证令牌", description = "验证访问令牌是否有效")
-//    public Result<TokenValidateResponse> validateToken(
-//            @Parameter(description = "访问令牌", required = true)
-//            @RequestHeader("Authorization") String token) {
-//        log.info("令牌验证请求");
-//
-//        // TODO: 实现令牌验证逻辑
-//        // 1. 校验JWT Token签名和有效期
-//        // 2. 检查Token是否在黑名单中
-//        // 3. 返回Token中的用户信息
-//
-//        return Result.success();
-//    }
-//
+
+
+    /**
+     //     * 刷新访问令牌
+     // TODO: 实现令牌刷新逻辑
+     // 1. 校验Refresh Token的有效性
+     // 2. 检查Token是否在黑名单中
+     // 3. 生成新的Access Token（可选择是否生成新的Refresh Token）
+     // 4. 使旧的Refresh Token失效
+     // 5. 返回新的令牌
+     //     */
+    @PostMapping("/refresh")
+    @Operation(summary = "刷新令牌", description = "使用Refresh Token获取新的Access Token")
+    public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshRespone request) {
+        log.info("令牌刷新请求 - refreshToken: {}", request.getRefreshToken());
+        TokenDTO tokenDTO = authService.refreshToken(request.getRefreshToken());
+        return R.ok(tokenDTO);
+    }
+
+    /**
+     * 验证令牌有效性
+     */
+    @GetMapping("/validate")
+    @Operation(summary = "验证令牌", description = "验证访问令牌是否有效")
+    public Result<TokenValidateResponse> validateToken(
+            @RequestHeader("Authorization") String token) {
+        log.info("令牌验证请求");
+
+        // 直接调用服务层完成验证逻辑
+        TokenValidateResponse response =authService.validateTokenWithDetails(token);
+
+        return Result.success(response);
+    }
+
+    /**
+     * 忘记密码 - 发送重置验证码
+     */
+    @PostMapping("/forgot-password")
+    @Operation(summary = "忘记密码", description = "发送密码重置验证码到邮箱")
+    public R<Void> forgotPassword(@Valid @RequestBody ResetPasswordBody request) {
+        log.info("忘记密码请求: 邮箱={}", request.getEmail());
+
+        // 调用 service
+        return authService.forgotPassword(request.getEmail());
+    }
+
+    /**
+     * 重置密码
+     */
+    @PostMapping("/reset-password")
+    @Operation(summary = "重置密码", description = "通过验证码重置密码")
+    public R<Void> resetPassword(@Valid @RequestBody ResetPasswordBody request) {
+        log.info("重置密码请求: 邮箱={}", request.getEmail());
+
+        return authService.resetPassword(request);
+    }
+
+
+
+    /**
+     * 用户登出接口
+     */
+    @PostMapping("/logout")
+    @Operation(summary = "用户登出", description = "用户登出，使令牌失效")
+    public R<String> logout(@RequestHeader("Authorization") String tokenHeader) {
+        authService.logout(tokenHeader);
+        return R.ok(  null,"登出成功"); // 返回 R<Void>
+    }
+
+
+    /**
+     * 发送验证码
+     */
+    @PostMapping("/send-verfcode")
+    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
+    public R<Void> sendVerificationCode(
+            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
+        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
+
+        // 直接调用 auth 模块的服务
+        return authService.sendVerificationCode(verificationCodeBody);
+    }
+
+
+
+
+//留给李亮
 //    /**
 //     * 权限校验接口（供其他微服务调用）
 //     */
@@ -254,3 +231,5 @@ public class AuthController {
 //    }
 //
 //}
+}
+

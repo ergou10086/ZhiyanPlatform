@@ -37,6 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
 
     /**
+     * 从Authorization头提取token
+     */
+    private String extractTokenFromHeader(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (StringUtils.isNotBlank(authHeader) && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7); // 移除"Bearer "前缀
+        }
+        return null;
+    }
+    /**
      * 处理每个请求的认证逻辑
      * @param request
      * @param response
