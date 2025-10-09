@@ -20,6 +20,11 @@ import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
+import hbnu.project.zhiyanauth.model.form.PermissionCheckBody;
+import hbnu.project.zhiyanauth.model.form.BatchPermissionCheckBody;
+import hbnu.project.zhiyanauth.response.PermissionCheckResponse;
+import hbnu.project.zhiyanauth.response.BatchPermissionCheckResponse;
+import hbnu.project.zhiyanauth.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,6 +35,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 用户认证控制器
@@ -49,6 +57,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationCodeService verificationCodeService;
+    private final PermissionService permissionService;
 
 
 
@@ -192,44 +201,80 @@ public class AuthController {
 
 
 
-//留给李亮
-//    /**
-//     * 权限校验接口（供其他微服务调用）
-//     */
-//    @PostMapping("/check-permission")
-//    @Operation(summary = "权限校验", description = "检查用户是否拥有指定权限（内部接口）")
-//    public Result<PermissionCheckResponse> checkPermission(
-//            @Valid @RequestBody PermissionCheckRequest request) {
-//        log.info("权限校验请求: 用户ID={}, 权限={}", request.getUserId(), request.getPermission());
-//
-//        // TODO: 实现权限校验逻辑
-//        // 1. 根据用户ID查询用户角色
-//        // 2. 根据角色查询权限列表
-//        // 3. 检查是否包含指定权限
-//        // 4. 结果缓存到Redis中
-//
-//        return Result.success();
-//    }
-//
-//
-//    /**
-//     * 批量权限校验
-//     */
-//    @PostMapping("/check-permissions")
-//    @Operation(summary = "批量权限校验", description = "批量检查用户权限（内部接口）")
-//    public Result<BatchPermissionCheckResponse> checkPermissions(
-//            @Valid @RequestBody BatchPermissionCheckRequest request) {
-//        log.info("批量权限校验请求: 用户ID={}, 权限数量={}",
-//                request.getUserId(), request.getPermissions().size());
-//
-//        // TODO: 实现批量权限校验逻辑
-//        // 1. 查询用户所有权限
-//        // 2. 逐一检查请求的权限列表
-//        // 3. 返回权限检查结果映射
-//
-//        return Result.success();
-//    }
-//
-//}
+    /**
+     * 权限校验接口（供其他微服务调用）
+     */
+    @PostMapping("/check-permission")
+    @Operation(summary = "权限校验", description = "检查用户是否拥有指定权限（内部接口）")
+    public R<PermissionCheckResponse> checkPermission(
+            @Valid @RequestBody PermissionCheckBody request) {
+        log.info("权限校验请求: 用户ID={}, 权限={}", request.getUserId(), request.getPermission());
+
+        try {
+            // 1. 调用PermissionService检查权限
+            R<Boolean> result = permissionService.hasPermission(request.getUserId(), request.getPermission());
+
+            if (!R.isSuccess(result)) {
+                return R.fail(result.getMsg());
+            }
+
+            // 2. 构建响应
+            PermissionCheckResponse response = PermissionCheckResponse.builder()
+                    .userId(request.getUserId())
+                    .permission(request.getPermission())
+                    .hasPermission(result.getData())
+                    .message(result.getData() ? "拥有该权限" : "无该权限")
+                    .build();
+
+            return R.ok(response);
+        } catch (Exception e) {
+            log.error("权限校验失败: userId={}, permission={}",
+                    request.getUserId(), request.getPermission(), e);
+            return R.fail("权限校验失败");
+        }
+    }
+
+
+    /**
+     * 批量权限校验
+     */
+    @PostMapping("/check-permissions")
+    @Operation(summary = "批量权限校验", description = "批量检查用户权限（内部接口）")
+    public R<BatchPermissionCheckResponse> checkPermissions(
+            @Valid @RequestBody BatchPermissionCheckBody request) {
+        log.info("批量权限校验请求: 用户ID={}, 权限数量={}",
+                request.getUserId(), request.getPermissions().size());
+
+        try {
+            // 1. 获取用户所有权限
+            R<Set<String>> userPermissionsResult = permissionService.getUserPermissions(request.getUserId());
+
+            if (!R.isSuccess(userPermissionsResult)) {
+                return R.fail(userPermissionsResult.getMsg());
+            }
+
+            Set<String> userPermissions = userPermissionsResult.getData();
+
+            // 2. 逐一检查请求的权限列表
+            Map<String, Boolean> permissionResults = request.getPermissions().stream()
+                    .collect(Collectors.toMap(
+                            permission -> permission,
+                            userPermissions::contains
+                    ));
+
+            // 3. 构建响应
+            BatchPermissionCheckResponse response = BatchPermissionCheckResponse.builder()
+                    .userId(request.getUserId())
+                    .permissionResults(permissionResults)
+                    .message("批量权限检查完成")
+                    .build();
+
+            return R.ok(response);
+        } catch (Exception e) {
+            log.error("批量权限校验失败: userId={}, permissions={}",
+                    request.getUserId(), request.getPermissions(), e);
+            return R.fail("批量权限校验失败");
+        }
+    }
 }
 
