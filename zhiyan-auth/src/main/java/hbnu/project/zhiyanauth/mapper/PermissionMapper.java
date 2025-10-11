@@ -15,63 +15,51 @@ import java.util.stream.Collectors;
  *
  * @author ErgouTree
  */
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        builder = @Builder(disableBuilder = true) // 禁用Builder避免属性识别问题
+)
 public interface PermissionMapper {
 
     /**
      * 将Permission实体转换为PermissionDTO
-     *
-     * @param permission 权限实体
-     * @return PermissionDTO
      */
+    @Named("toFullDTO")
+    @Mapping(target = "createdAt", ignore = true) // Permission实体没有这些字段
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
     PermissionDTO toDTO(Permission permission);
 
     /**
      * 将Permission实体列表转换为PermissionDTO列表
-     *
-     * @param permissions 权限实体列表
-     * @return PermissionDTO列表
      */
+    @IterableMapping(qualifiedByName = "toFullDTO")
     List<PermissionDTO> toDTOList(List<Permission> permissions);
 
     /**
      * 将PermissionDTO转换为Permission实体
      * 用于创建新权限
-     *
-     * @param permissionDTO 权限DTO
-     * @return Permission实体
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     Permission fromDTO(PermissionDTO permissionDTO);
 
     /**
      * 更新Permission实体的信息
-     *
-     * @param permission 目标权限实体
-     * @param permissionDTO 更新数据
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updatePermission(@MappingTarget Permission permission, PermissionDTO permissionDTO);
 
     /**
      * 创建简化的PermissionDTO
      * 只包含基础信息，用于列表展示
-     *
-     * @param permission 权限实体
-     * @return 简化的PermissionDTO
      */
+    @Named("toSimpleDTO")
+    @Mapping(target = "description", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
@@ -79,10 +67,13 @@ public interface PermissionMapper {
     PermissionDTO toSimpleDTO(Permission permission);
 
     /**
+     * 批量创建简化的PermissionDTO列表
+     */
+    @IterableMapping(qualifiedByName = "toSimpleDTO")
+    List<PermissionDTO> toSimpleDTOList(List<Permission> permissions);
+
+    /**
      * 提取权限名称列表
-     *
-     * @param permissions 权限实体列表
-     * @return 权限名称列表
      */
     default List<String> extractPermissionNames(List<Permission> permissions) {
         if (permissions == null || permissions.isEmpty()) {
@@ -95,9 +86,6 @@ public interface PermissionMapper {
 
     /**
      * 从RolePermission关联中提取权限名称列表
-     *
-     * @param rolePermissions 角色权限关联列表
-     * @return 权限名称列表
      */
     default List<String> extractPermissionNamesFromRolePermissions(List<RolePermission> rolePermissions) {
         if (rolePermissions == null || rolePermissions.isEmpty()) {
@@ -108,12 +96,4 @@ public interface PermissionMapper {
                 .distinct()
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 批量创建简化的PermissionDTO列表
-     *
-     * @param permissions 权限实体列表
-     * @return 简化的PermissionDTO列表
-     */
-    List<PermissionDTO> toSimpleDTOList(List<Permission> permissions);
 }

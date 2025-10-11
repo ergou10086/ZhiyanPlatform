@@ -10,7 +10,7 @@ import jakarta.validation.ConstraintValidatorContext;
 /**
  * 自定义枚举校验注解实现
  *
- * @author 秋辞未寒
+ * @author asddjv
  * @date 2024-12-09
  */
 public class EnumPatternValidator implements ConstraintValidator<EnumPattern, String> {

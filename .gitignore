@@ -18,3 +18,6 @@ bin/
 *.ear
 *.zip
 *.tar.gz
+
+
+resources/

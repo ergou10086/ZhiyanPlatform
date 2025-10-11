@@ -1,16 +1,11 @@
 package hbnu.project.zhiyanauth.service.impl;
 
-import hbnu.project.zhiyanauth.mapper.MapperManager;
+import hbnu.project.zhiyanauth.mapper.UserMapper;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
-import hbnu.project.zhiyanauth.repository.RoleRepository;
 import hbnu.project.zhiyanauth.repository.UserRepository;
-import hbnu.project.zhiyanauth.repository.UserRoleRepository;
-import hbnu.project.zhiyanauth.service.AuthService;
-import hbnu.project.zhiyanauth.service.PermissionService;
 import hbnu.project.zhiyanauth.service.UserService;
-import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +32,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final UserRoleRepository userRoleRepository;
-    private final VerificationCodeService verificationCodeService;
-    private final AuthService authService;
-    private final PermissionService permissionService;
-    private final MapperManager mapperManager;
+    private final UserMapper userMapper;
 
 
     /**
@@ -59,7 +49,7 @@ public class UserServiceImpl implements UserService {
                 return R.fail("用户不存在");
             }
 
-            UserDTO userDTO = mapperManager.convertToUserDTOWithRolesAndPermissions(optionalUser.get());
+            UserDTO userDTO = userMapper.toDTOWithRolesAndPermissions(optionalUser.get());
             return R.ok(userDTO);
 
         } catch (Exception e) {
@@ -88,10 +78,10 @@ public class UserServiceImpl implements UserService {
             User user = optionalUser.get();
 
             // 更新用户信息
-            mapperManager.updateUserProfile(user, updateBody);
+            userMapper.updateUserProfile(user, updateBody);
 
             user = userRepository.save(user);
-            UserDTO userDTO = mapperManager.convertToUserDTO(user);
+            UserDTO userDTO = userMapper.toDTO(user);
 
             log.info("用户资料更新成功 - 用户ID: {}", userId);
             return R.ok(userDTO, "资料更新成功");
@@ -122,7 +112,7 @@ public class UserServiceImpl implements UserService {
                 userPage = userRepository.findByIsDeletedFalse(pageable);
             }
 
-            List<UserDTO> userDTOs = mapperManager.convertToUserDTOList(userPage.getContent());
+            List<UserDTO> userDTOs = userMapper.toDTOList(userPage.getContent());
 
             Page<UserDTO> userDTOPage = new PageImpl<>(userDTOs, pageable, userPage.getTotalElements());
             return R.ok(userDTOPage);
@@ -208,7 +198,7 @@ public class UserServiceImpl implements UserService {
                 return R.fail("用户不存在");
             }
 
-            UserDTO userDTO = mapperManager.convertToUserDTOWithRolesAndPermissions(optionalUser.get());
+            UserDTO userDTO = userMapper.toDTOWithRolesAndPermissions(optionalUser.get());
             return R.ok(userDTO);
 
         } catch (Exception e) {

@@ -1,6 +1,6 @@
 package hbnu.project.zhiyanauth.service.impl;
 
-import hbnu.project.zhiyanauth.mapper.MapperManager;
+import hbnu.project.zhiyanauth.mapper.RoleMapper;
 import hbnu.project.zhiyanauth.model.dto.RoleDTO;
 import hbnu.project.zhiyanauth.model.entity.*;
 import hbnu.project.zhiyanauth.model.enums.*;
@@ -42,7 +42,7 @@ public class RoleServiceImpl implements RoleService {
     private final UserRoleRepository userRoleRepository;
     private final RolePermissionRepository rolePermissionRepository;
     private final PermissionRepository permissionRepository;
-    private final MapperManager mapperManager;
+    private final RoleMapper roleMapper;
     private final RedisService redisService;
     private final PermissionAssignmentUtil permissionAssignmentUtil;
 
@@ -212,7 +212,7 @@ public class RoleServiceImpl implements RoleService {
     public R<Page<RoleDTO>> getAllRoles(Pageable pageable) {
         try {
             Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = mapperManager.convertToRoleDTOList(rolePage.getContent());
+            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
 
             Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
 
@@ -246,11 +246,11 @@ public class RoleServiceImpl implements RoleService {
             }
 
             // 转换为实体并保存
-            Role role = mapperManager.convertFromRoleDTO(roleDTO);
+            Role role = roleMapper.fromDTO(roleDTO);
             Role savedRole = roleRepository.save(role);
 
             // 实体转换为DTO，返回给前端
-            RoleDTO result = mapperManager.convertToRoleDTO(savedRole);
+            RoleDTO result = roleMapper.toDTO(savedRole);
 
             // 清理相关缓存
             clearRoleCache(savedRole.getId());
@@ -294,11 +294,11 @@ public class RoleServiceImpl implements RoleService {
             }
 
             // 更新角色信息，然后写入
-            mapperManager.updateRole(existingRole, roleDTO);
+            roleMapper.updateRole(existingRole, roleDTO);
             Role updatedRole = roleRepository.save(existingRole);
 
             // 实体转换为DTO返回
-            RoleDTO result = mapperManager.convertToRoleDTO(updatedRole);
+            RoleDTO result = roleMapper.toDTO(updatedRole);
 
             // 清理相关缓存
             clearRoleCache(roleId);
@@ -747,7 +747,7 @@ public class RoleServiceImpl implements RoleService {
             // 应用权限模板
             int assignedCount = permissionAssignmentUtil.assignRoleTemplate(role, roleTemplate);
 
-            RoleDTO roleDTO = mapperManager.convertToRoleDTO(role);
+            RoleDTO roleDTO = roleMapper.toDTO(role);
 
             log.info("成功创建角色模板: {} -> {}, 分配权限: {}",
                     roleTemplate.getRoleName(), finalRoleName, assignedCount);
@@ -822,7 +822,7 @@ public class RoleServiceImpl implements RoleService {
             // 应用系统角色权限
             int assignedCount = assignSystemRolePermissions(role, sysRole);
 
-            RoleDTO roleDTO = mapperManager.convertToRoleDTO(role);
+            RoleDTO roleDTO = roleMapper.toDTO(role);
 
             log.info("成功创建系统角色: {} -> {}, 分配权限: {}",
                     sysRole.getRoleName(), finalRoleName, assignedCount);
@@ -965,7 +965,7 @@ public class RoleServiceImpl implements RoleService {
             // 应用项目角色权限
             int assignedCount = assignProjectRolePermissions(role, projectRole);
 
-            RoleDTO roleDTO = mapperManager.convertToRoleDTO(role);
+            RoleDTO roleDTO = roleMapper.toDTO(role);
 
             log.info("成功创建项目角色: {} -> {}, 项目ID: {}, 分配权限: {}",
                     projectRole.getRoleName(), finalRoleName, projectId, assignedCount);
@@ -1130,7 +1130,7 @@ public class RoleServiceImpl implements RoleService {
             // 这里需要根据角色类型进行查询，可能需要扩展Repository
             // 暂时返回所有角色，后续可以根据实际需求实现
             Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = mapperManager.convertToRoleDTOList(rolePage.getContent());
+            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
 
             Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
 
@@ -1149,7 +1149,7 @@ public class RoleServiceImpl implements RoleService {
             // 这里需要根据项目ID查询项目角色，可能需要扩展Repository
             // 暂时返回所有角色，后续可以根据实际需求实现
             Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = mapperManager.convertToRoleDTOList(rolePage.getContent());
+            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
 
             Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
 
@@ -1168,7 +1168,7 @@ public class RoleServiceImpl implements RoleService {
             // 这里需要查询系统角色，可能需要扩展Repository
             // 暂时返回所有角色，后续可以根据实际需求实现
             Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = mapperManager.convertToRoleDTOList(rolePage.getContent());
+            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
 
             Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
 

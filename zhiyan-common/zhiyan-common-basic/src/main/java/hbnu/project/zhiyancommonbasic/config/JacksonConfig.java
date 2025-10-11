@@ -60,7 +60,6 @@ public class JacksonConfig {
      * @return 默认的ObjectMapper
      */
     @Bean("defaultObjectMapper")
-    @Primary
     @ConditionalOnMissingBean(ObjectMapper.class)
     @ConditionalOnProperty(name = "zhiyan.jackson.long-to-string-global", havingValue = "false")
     public ObjectMapper defaultObjectMapper() {

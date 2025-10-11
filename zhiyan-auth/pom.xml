@@ -14,7 +14,14 @@
     <name>zhiyan-auth</name>
     <description>zhiyan-auth认证授权中心</description>
 
+    <properties>
+        <!-- 定义MapStruct版本 -->
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+    </properties>
+
     <dependencies>
+        <!-- 其他依赖保持不变 -->
         <!-- SpringCloud Alibaba Nacos -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -65,22 +72,25 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- MapStruct -->
+        <!-- MapStruct-Plus -->
         <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
+            <groupId>io.github.linpeilie</groupId>
+            <artifactId>mapstruct-plus-spring-boot-starter</artifactId>
         </dependency>
 
+        <!--hutool-all-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
         </dependency>
 
+        <!--hutool-ex-->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-extra</artifactId>
         </dependency>
 
+        <!--mail的starter-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -97,11 +107,11 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
         </dependency>
+
         <!--zhiyan-common-security模块-->
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-security</artifactId>
-
         </dependency>
 
         <!-- security -->
@@ -117,4 +127,33 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <!-- Lombok 必须在 MapStruct 之前 -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.github.linpeilie</groupId>
+                            <artifactId>mapstruct-plus-processor</artifactId>
+                            <version>1.3.0</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>${lombok-mapstruct-binding.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
