@@ -24,6 +24,7 @@ public interface PermissionMapper {
      * @param permission 权限实体
      * @return PermissionDTO
      */
+    @Named("toDTO")
     PermissionDTO toDTO(Permission permission);
 
     /**
@@ -32,6 +33,7 @@ public interface PermissionMapper {
      * @param permissions 权限实体列表
      * @return PermissionDTO列表
      */
+    @IterableMapping(qualifiedByName = "toDTO")
     List<PermissionDTO> toDTOList(List<Permission> permissions);
 
     /**
@@ -43,10 +45,6 @@ public interface PermissionMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     Permission fromDTO(PermissionDTO permissionDTO);
 
     /**
@@ -57,25 +55,17 @@ public interface PermissionMapper {
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updatePermission(@MappingTarget Permission permission, PermissionDTO permissionDTO);
 
     /**
      * 创建简化的PermissionDTO
-     * 只包含基础信息，用于列表展示
+     * 只包含基础信息
      *
      * @param permission 权限实体
      * @return 简化的PermissionDTO
      */
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
+    @Named("toSimpleDTO")
     PermissionDTO toSimpleDTO(Permission permission);
 
     /**
@@ -108,12 +98,5 @@ public interface PermissionMapper {
                 .distinct()
                 .collect(Collectors.toList());
     }
-
-    /**
-     * 批量创建简化的PermissionDTO列表
-     *
-     * @param permissions 权限实体列表
-     * @return 简化的PermissionDTO列表
-     */
-    List<PermissionDTO> toSimpleDTOList(List<Permission> permissions);
 }
+

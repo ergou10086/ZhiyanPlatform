@@ -26,6 +26,7 @@ public interface RoleMapper {
      * @param role 角色实体
      * @return RoleDTO
      */
+    @Named("toDTO")
     @Mapping(target = "permissions", ignore = true)
     RoleDTO toDTO(Role role);
 
@@ -36,6 +37,7 @@ public interface RoleMapper {
      * @param role 角色实体（需要已加载rolePermissions关联）
      * @return 包含权限信息的RoleDTO
      */
+    @Named("toDTOWithPermissions")
     @Mapping(target = "permissions", expression = "java(extractPermissionNames(role.getRolePermissions()))")
     RoleDTO toDTOWithPermissions(Role role);
 
@@ -58,6 +60,7 @@ public interface RoleMapper {
      * @param roles 角色实体列表
      * @return RoleDTO列表
      */
+    @IterableMapping(qualifiedByName = "toDTO")
     List<RoleDTO> toDTOList(List<Role> roles);
 
     /**
@@ -66,6 +69,7 @@ public interface RoleMapper {
      * @param roles 角色实体列表
      * @return 包含权限信息的RoleDTO列表
      */
+    @IterableMapping(qualifiedByName = "toDTOWithPermissions")
     List<RoleDTO> toDTOListWithPermissions(List<Role> roles);
 
     /**
@@ -78,10 +82,6 @@ public interface RoleMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "userRoles", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     Role fromDTO(RoleDTO roleDTO);
 
     /**
@@ -93,11 +93,6 @@ public interface RoleMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "userRoles", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateRole(@MappingTarget Role role, RoleDTO roleDTO);
 
@@ -108,11 +103,8 @@ public interface RoleMapper {
      * @param role 角色实体
      * @return 简化的RoleDTO
      */
+    @Named("toSimpleDTO")
     @Mapping(target = "permissions", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
     RoleDTO toSimpleDTO(Role role);
 
     /**
@@ -146,3 +138,4 @@ public interface RoleMapper {
                 .collect(Collectors.toList());
     }
 }
+

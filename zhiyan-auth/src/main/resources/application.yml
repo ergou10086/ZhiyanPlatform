@@ -22,9 +22,9 @@ spring:
       # Nacos配置中心
       config:
         # 和服务发现的一样
-        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        group: ${spring.cloud.nacos.discovery.group}
+        group: DEFAULT_GROUP
         file-extension: yaml
 
     # OpenFeign配置
@@ -43,9 +43,9 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/zhiyan_platform?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
+    url: jdbc:mysql://localhost:3306/zhiyan?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    username: root
+    password: YzBdPnDl1212
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 连接池
     hikari:
@@ -73,8 +73,8 @@ spring:
   mail:
     host: smtp.163.com
     port: 465
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    username: 16630024679@163.com
+    password: YzBdPnDl1212
     properties:
       mail:
         smtp:

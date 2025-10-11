@@ -8,7 +8,11 @@ spring:
       client:
         username: zhiyan
         password: zhiyan
-
+  cloud:
+    nacos:
+      core:
+        auth:
+          enabled: false
 
 logging:
   level:

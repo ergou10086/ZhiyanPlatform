@@ -265,7 +265,7 @@ public class PermissionAssignmentUtil {
 
     /**
      * 检查角色类型是否匹配
-     */
+
     private boolean isRoleTemplateCompatibleWithRoleType(Role role, RoleTemplate roleTemplate) {
         if (role.getRoleType() == null) {
             log.warn("角色 {} 的角色类型为空", role.getName());

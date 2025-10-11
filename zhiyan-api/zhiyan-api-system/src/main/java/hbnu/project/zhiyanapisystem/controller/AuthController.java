@@ -1,11 +1,7 @@
 package hbnu.project.zhiyanapisystem.controller;
 
 import com.alibaba.nacos.api.model.v2.Result;
-import hbnu.project.zhiyanauth.mapper.UserMapper;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
-import hbnu.project.zhiyanauth.model.dto.UserDTO;
-import hbnu.project.zhiyanauth.model.entity.User;
-import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
 import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
 import hbnu.project.zhiyanauth.model.form.ResetPasswordBody;
@@ -17,9 +13,7 @@ import hbnu.project.zhiyanauth.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
 import hbnu.project.zhiyanauth.service.VerificationCodeService;
-import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyanauth.model.form.PermissionCheckBody;
 import hbnu.project.zhiyanauth.model.form.BatchPermissionCheckBody;
 import hbnu.project.zhiyanauth.response.PermissionCheckResponse;
@@ -30,11 +24,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Parameter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
