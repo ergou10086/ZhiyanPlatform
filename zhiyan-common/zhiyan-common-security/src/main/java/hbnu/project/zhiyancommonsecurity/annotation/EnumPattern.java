@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 /**
  * 自定义枚举校验
  *
- * @author 秋辞未寒
+ * @author asddjv
  * @date 2024-12-09
  */
 @Documented

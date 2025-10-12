@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanapisystem.controller;
+package hbnu.project.zhiyanauth.controller;
 
 import com.alibaba.nacos.api.model.v2.Result;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
@@ -6,18 +6,17 @@ import hbnu.project.zhiyanauth.model.form.LoginBody;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
 import hbnu.project.zhiyanauth.model.form.ResetPasswordBody;
 import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
-import hbnu.project.zhiyanauth.repository.UserRepository;
-import hbnu.project.zhiyanauth.response.TokenRefreshRespone;
-import hbnu.project.zhiyanauth.response.TokenValidateResponse;
-import hbnu.project.zhiyanauth.response.UserLoginResponse;
-import hbnu.project.zhiyanauth.response.UserRegisterResponse;
+import hbnu.project.zhiyanauth.model.response.TokenRefreshRespone;
+import hbnu.project.zhiyanauth.model.response.TokenValidateResponse;
+import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
+import hbnu.project.zhiyanauth.model.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
 import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanauth.model.form.PermissionCheckBody;
 import hbnu.project.zhiyanauth.model.form.BatchPermissionCheckBody;
-import hbnu.project.zhiyanauth.response.PermissionCheckResponse;
-import hbnu.project.zhiyanauth.response.BatchPermissionCheckResponse;
+import hbnu.project.zhiyanauth.model.response.PermissionCheckResponse;
+import hbnu.project.zhiyanauth.model.response.BatchPermissionCheckResponse;
 import hbnu.project.zhiyanauth.service.PermissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,14 +44,7 @@ import java.util.stream.Collectors;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserMapper userMapper;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final VerificationCodeService verificationCodeService;
     private final PermissionService permissionService;
-
-
-
 
 
     /**

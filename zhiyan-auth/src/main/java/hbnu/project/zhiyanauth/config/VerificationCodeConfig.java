@@ -3,6 +3,7 @@ package hbnu.project.zhiyanauth.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 /**
  * 验证码配置类
@@ -10,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * @author ErgouTree
  */
 @Data
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "app.verification-code")
 public class VerificationCodeConfig {
 

@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanapisystem.service;
+package hbnu.project.zhiyanauth.service;
 
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.form.ChangeEmailBody;

@@ -24,9 +24,6 @@ public interface UserMapper {
     /**
      * 将User实体转换为UserDTO
      * 基础转换，不包含角色和权限信息
-     *
-     * @param user 用户实体
-     * @return UserDTO
      */
     @Named("toDTO")
     @Mapping(target = "roles", ignore = true)
@@ -36,9 +33,6 @@ public interface UserMapper {
     /**
      * 将User实体转换为包含角色和权限的UserDTO
      * 完整转换，包含用户的角色和权限信息
-     *
-     * @param user 用户实体（需要已加载userRoles关联）
-     * @return 包含角色和权限信息的UserDTO
      */
     @Named("toDTOWithRolesAndPermissions")
     @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
@@ -74,25 +68,22 @@ public interface UserMapper {
 
     /**
      * 将User实体列表转换为UserDTO列表
-     *
-     * @param users 用户实体列表
-     * @return UserDTO列表
      */
     @IterableMapping(qualifiedByName = "toDTO")
     List<UserDTO> toDTOList(List<User> users);
 
     /**
      * 将注册表单转换为User实体
-     *
-     * @param registerBody 注册表单
-     * @param passwordHash 加密后的密码
-     * @return User实体
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "passwordHash", source = "passwordHash")
     @Mapping(target = "isLocked", constant = "false")
     @Mapping(target = "isDeleted", constant = "false")
     @Mapping(target = "userRoles", ignore = true)
+    @Mapping(target = "avatarUrl", ignore = true)
+    @Mapping(target = "title", ignore = true)
+    @Mapping(target = "institution", ignore = true)
+    @Mapping(target = "status", ignore = true)
     User fromRegisterBody(RegisterBody registerBody, String passwordHash);
 
     /**

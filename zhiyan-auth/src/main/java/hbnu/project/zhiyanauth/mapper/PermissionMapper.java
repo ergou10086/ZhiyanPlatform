@@ -20,18 +20,12 @@ public interface PermissionMapper {
 
     /**
      * 将Permission实体转换为PermissionDTO
-     *
-     * @param permission 权限实体
-     * @return PermissionDTO
      */
     @Named("toDTO")
     PermissionDTO toDTO(Permission permission);
 
     /**
      * 将Permission实体列表转换为PermissionDTO列表
-     *
-     * @param permissions 权限实体列表
-     * @return PermissionDTO列表
      */
     @IterableMapping(qualifiedByName = "toDTO")
     List<PermissionDTO> toDTOList(List<Permission> permissions);
@@ -49,9 +43,6 @@ public interface PermissionMapper {
 
     /**
      * 更新Permission实体的信息
-     *
-     * @param permission 目标权限实体
-     * @param permissionDTO 更新数据
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "rolePermissions", ignore = true)
@@ -60,19 +51,13 @@ public interface PermissionMapper {
 
     /**
      * 创建简化的PermissionDTO
-     * 只包含基础信息
-     *
-     * @param permission 权限实体
-     * @return 简化的PermissionDTO
+     * 只包含基础信息，用于列表展示
      */
     @Named("toSimpleDTO")
     PermissionDTO toSimpleDTO(Permission permission);
 
     /**
      * 提取权限名称列表
-     *
-     * @param permissions 权限实体列表
-     * @return 权限名称列表
      */
     default List<String> extractPermissionNames(List<Permission> permissions) {
         if (permissions == null || permissions.isEmpty()) {
@@ -85,9 +70,6 @@ public interface PermissionMapper {
 
     /**
      * 从RolePermission关联中提取权限名称列表
-     *
-     * @param rolePermissions 角色权限关联列表
-     * @return 权限名称列表
      */
     default List<String> extractPermissionNamesFromRolePermissions(List<RolePermission> rolePermissions) {
         if (rolePermissions == null || rolePermissions.isEmpty()) {
@@ -98,5 +80,6 @@ public interface PermissionMapper {
                 .distinct()
                 .collect(Collectors.toList());
     }
-}
 
+
+}

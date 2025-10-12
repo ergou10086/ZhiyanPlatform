@@ -1,17 +1,20 @@
-package hbnu.project.zhiyanauth.response;
+package hbnu.project.zhiyanauth.model.response;
+
+import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * 角色信息响应体
+ * 角色详情响应体
  *
  * @author Tokito
  */
 @Data
 @Builder
-public class RoleInfoResponse {
+public class RoleDetailResponse {
 
     /**
      * 角色ID
@@ -47,6 +50,11 @@ public class RoleInfoResponse {
      * 该角色的用户数量
      */
     private Long userCount;
+
+    /**
+     * 角色拥有的权限列表
+     */
+    private List<PermissionDTO> permissions;
 
     /**
      * 创建时间

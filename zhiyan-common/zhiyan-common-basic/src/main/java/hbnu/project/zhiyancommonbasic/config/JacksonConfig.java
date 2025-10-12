@@ -34,6 +34,7 @@ public class JacksonConfig {
      */
     @Bean("globalLongToStringObjectMapper")
     @Primary
+    @ConditionalOnMissingBean(ObjectMapper.class)
     @ConditionalOnProperty(name = "zhiyan.jackson.long-to-string-global", havingValue = "true", matchIfMissing = true)
     public ObjectMapper globalLongToStringObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -59,7 +60,7 @@ public class JacksonConfig {
      * @return 默认的ObjectMapper
      */
     @Bean("defaultObjectMapper")
-    @Primary
+    @ConditionalOnMissingBean(ObjectMapper.class)
     @ConditionalOnProperty(name = "zhiyan.jackson.long-to-string-global", havingValue = "false")
     public ObjectMapper defaultObjectMapper() {
         return new ObjectMapper();

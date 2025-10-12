@@ -1,6 +1,6 @@
 package hbnu.project.zhiyanauth.service.impl;
 
-import hbnu.project.zhiyanauth.mapper.MapperManager;
+import hbnu.project.zhiyanauth.mapper.PermissionMapper;
 import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
 import hbnu.project.zhiyanauth.model.entity.Permission;
 import hbnu.project.zhiyanauth.repository.PermissionRepository;
@@ -10,6 +10,7 @@ import hbnu.project.zhiyancommonredis.service.RedisService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,10 @@ import java.util.stream.Collectors;
 public class PermissionServiceImpl implements PermissionService {
 
     private final PermissionRepository permissionRepository;
-    private final MapperManager mapperManager;
+
+    @Autowired
+    private PermissionMapper permissionMapper;
+
     private final RedisService redisService;
 
     // 缓存相关常量
@@ -170,7 +174,7 @@ public class PermissionServiceImpl implements PermissionService {
     public R<Page<PermissionDTO>> getAllPermissions(Pageable pageable) {
         try {
             Page<Permission> permissionPage = permissionRepository.findAll(pageable);
-            List<PermissionDTO> permissionDTOs = mapperManager.convertToPermissionDTOList(permissionPage.getContent());
+            List<PermissionDTO> permissionDTOs = permissionMapper.toDTOList(permissionPage.getContent());
             
             Page<PermissionDTO> result = new PageImpl<>(permissionDTOs, pageable, permissionPage.getTotalElements());
             
@@ -206,12 +210,12 @@ public class PermissionServiceImpl implements PermissionService {
             }
 
             // DTO转换为数据库实体（Permission）
-            Permission permission = mapperManager.convertFromPermissionDTO(permissionDTO);
+            Permission permission = permissionMapper.fromDTO(permissionDTO);
             // 保存实体到数据库，返回保存后的实体
             Permission savedPermission = permissionRepository.save(permission);
 
             // 实体转换为DTO，返回给前端
-            PermissionDTO result = mapperManager.convertToPermissionDTO(savedPermission);
+            PermissionDTO result = permissionMapper.toDTO(savedPermission);
             
             // 清理相关缓存
             clearPermissionCache(savedPermission.getId());
@@ -257,12 +261,12 @@ public class PermissionServiceImpl implements PermissionService {
             }
 
             // 更新实体信息：将DTO中的非空字段更新到现有实体
-            mapperManager.updatePermission(existingPermission, permissionDTO);
+            permissionMapper.updatePermission(existingPermission, permissionDTO);
             // 保存更新
             Permission updatedPermission = permissionRepository.save(existingPermission);
 
             // 实体转换为DTO返回
-            PermissionDTO result = mapperManager.convertToPermissionDTO(updatedPermission);
+            PermissionDTO result = permissionMapper.toDTO(updatedPermission);
             
             // 清理相关缓存
             clearPermissionCache(permissionId);

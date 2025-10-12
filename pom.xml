@@ -53,7 +53,7 @@
         <pagehelper.boot.version>2.0.0</pagehelper.boot.version>
         <knife4j.version>4.1.0</knife4j.version>
         <seata.version>2.0.0</seata.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <mapstruct-plus.version>1.5.0</mapstruct-plus.version>
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
@@ -240,11 +240,11 @@
                 <version>${seata.version}</version>
             </dependency>
 
-            <!--MapStruct-->
+            <!--MapStruct-Plus-->
             <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct</artifactId>
-                <version>${mapstruct.version}</version>
+                <groupId>io.github.linpeilie</groupId>
+                <artifactId>mapstruct-plus-spring-boot-starter</artifactId>
+                <version>${mapstruct-plus.version}</version>
             </dependency>
 
             <!--本项目自模块依赖-->

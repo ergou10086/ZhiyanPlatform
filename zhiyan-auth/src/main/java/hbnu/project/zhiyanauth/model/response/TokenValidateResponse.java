@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanauth.response;
+package hbnu.project.zhiyanauth.model.response;
 
 
 import lombok.Data;

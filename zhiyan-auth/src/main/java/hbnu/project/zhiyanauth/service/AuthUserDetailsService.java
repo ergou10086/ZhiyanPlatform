@@ -17,6 +17,8 @@ import java.util.*;
 
 /**
  * 认证模块用户详情服务实现
+ *
+ * @author yxy
  */
 @Slf4j
 @Service

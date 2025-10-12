@@ -1,13 +1,13 @@
-package hbnu.project.zhiyanapisystem.service.impl;
+package hbnu.project.zhiyanauth.service.impl;
 
 
-import hbnu.project.zhiyanapisystem.service.SysPasswordService;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
 import hbnu.project.zhiyanauth.model.form.ChangeEmailBody;
 import hbnu.project.zhiyanauth.model.form.ChangePasswordBody;
 import hbnu.project.zhiyanauth.repository.UserRepository;
+import hbnu.project.zhiyanauth.service.SysPasswordService;
 import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;

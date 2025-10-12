@@ -40,23 +40,12 @@
             <artifactId>zhiyan-common-basic</artifactId>
         </dependency>
 
-        <!-- zhiyan-common-basic核心模块 -->
+        <!-- zhiyan-common-redis核心模块 -->
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-redis</artifactId>
         </dependency>
 
-<!--        &lt;!&ndash;zhiyan-auth核心模块&ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>hbnu.project</groupId>-->
-<!--            <artifactId>zhiyan-auth</artifactId>-->
-<!--        </dependency>-->
-
-        <!-- zhiyan-common-redis模块 -->
-        <dependency>
-            <groupId>hbnu.project</groupId>
-            <artifactId>zhiyan-common-redis</artifactId>
-        </dependency>
     </dependencies>
 
 </project>
