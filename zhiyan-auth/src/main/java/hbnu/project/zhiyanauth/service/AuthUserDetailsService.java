@@ -10,6 +10,7 @@ import hbnu.project.zhiyanauth.repository.UserRepository;
 import hbnu.project.zhiyancommonsecurity.context.LoginUserBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class AuthUserDetailsService extends UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.debug("开始加载用户信息: {}", email);
 
         // 1. 查找用户基本信息
@@ -68,7 +69,7 @@ public class AuthUserDetailsService extends UserDetailsService {
     /**
      * 根据用户ID加载用户详情（业务特定方法）
      */
-    public org.springframework.security.core.userdetails.UserDetails loadUserById(Long userId) throws UsernameNotFoundException {
+    public UserDetails loadUserById(Long userId) throws UsernameNotFoundException {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
             log.warn("用户不存在: {}", userId);

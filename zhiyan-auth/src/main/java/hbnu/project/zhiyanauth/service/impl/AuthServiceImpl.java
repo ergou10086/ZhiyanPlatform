@@ -316,8 +316,8 @@ public class AuthServiceImpl implements AuthService {
 
             log.info("=== 生成的Token信息 ===");
             log.info("用户ID: {}", userId);
-            log.info("访问Token (前50字符): {}...", accessToken);
-            log.info("刷新Token (前50字符): {}...", refreshToken);
+            log.info("访问Token: {}", accessToken);
+            log.info("刷新Token: {}", refreshToken);
             // 构建令牌DTO对象
             TokenDTO tokenDTO = new TokenDTO();
             tokenDTO.setAccessToken(accessToken);
@@ -339,9 +339,11 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("生成令牌失败");
         }
     }
+
+
     /**
-     *刷新令牌
-     * 根据传入的refreshToken，生成新的访问令牌Access Token
+     * 刷新令牌
+     * 根据传入的refreshToken，生成新的访问令牌 Access Token
      */
     @Override
     public TokenDTO refreshToken(String refreshToken) {
@@ -567,6 +569,13 @@ public class AuthServiceImpl implements AuthService {
         log.info("处理重置密码请求 - 邮箱: {}", request.getEmail());
 
         try {
+            // 1. 查找用户
+            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+            if (userOpt.isEmpty()) {
+                return R.fail("该邮箱未注册");
+            }
+            User user = userOpt.get();
+
             // 1. 校验验证码
             R<Boolean> validResult = verificationCodeService.validateCode(
                     request.getEmail(), request.getVerificationCode(), VerificationCodeType.RESET_PASSWORD
@@ -584,13 +593,6 @@ public class AuthServiceImpl implements AuthService {
             if (!PasswordUtils.isValidPassword(request.getNewPassword())) {
                 return R.fail("密码必须为6-16位字母和数字组合");
             }
-
-            // 4. 查找用户
-            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
-            if (userOpt.isEmpty()) {
-                return R.fail("该邮箱未注册");
-            }
-            User user = userOpt.get();
 
             // 5. 更新用户密码
             user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));

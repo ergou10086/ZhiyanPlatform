@@ -188,6 +188,11 @@ public class JwtUtils {
                     .parseSignedClaims(token);
             return true;
 
+        } catch (ExpiredJwtException e) {
+            // 过期并不代表签名无效
+            return true;
+        } catch (JwtException e) {
+            return false;
         } catch (Exception e) {
             log.debug("JWT令牌验证失败: {}", e.getMessage());
             return false;

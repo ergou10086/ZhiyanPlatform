@@ -2,19 +2,13 @@ package hbnu.project.zhiyanauth.controller;
 
 import com.alibaba.nacos.api.model.v2.Result;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
-import hbnu.project.zhiyanauth.model.form.LoginBody;
-import hbnu.project.zhiyanauth.model.form.RegisterBody;
-import hbnu.project.zhiyanauth.model.form.ResetPasswordBody;
-import hbnu.project.zhiyanauth.model.form.VerificationCodeBody;
-import hbnu.project.zhiyanauth.model.response.TokenRefreshRespone;
+import hbnu.project.zhiyanauth.model.form.*;
+import hbnu.project.zhiyanauth.model.form.TokenRefreshBody;
 import hbnu.project.zhiyanauth.model.response.TokenValidateResponse;
 import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.model.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
-import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanauth.model.form.PermissionCheckBody;
-import hbnu.project.zhiyanauth.model.form.BatchPermissionCheckBody;
 import hbnu.project.zhiyanauth.model.response.PermissionCheckResponse;
 import hbnu.project.zhiyanauth.model.response.BatchPermissionCheckResponse;
 import hbnu.project.zhiyanauth.service.PermissionService;
@@ -23,7 +17,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -127,7 +120,7 @@ public class AuthController {
      //     */
     @PostMapping("/refresh")
     @Operation(summary = "刷新令牌", description = "使用Refresh Token获取新的Access Token")
-    public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshRespone request) {
+    public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshBody request) {
         log.info("令牌刷新请求 - refreshToken: {}", request.getRefreshToken());
         TokenDTO tokenDTO = authService.refreshToken(request.getRefreshToken());
         return R.ok(tokenDTO);
@@ -153,7 +146,7 @@ public class AuthController {
      */
     @PostMapping("/forgot-password")
     @Operation(summary = "忘记密码", description = "发送密码重置验证码到邮箱")
-    public R<Void> forgotPassword(@Valid @RequestBody ResetPasswordBody request) {
+    public R<Void> forgotPassword(@Valid @RequestBody ForgotPasswordBody request) {
         log.info("忘记密码请求: 邮箱={}", request.getEmail());
 
         // 调用 service

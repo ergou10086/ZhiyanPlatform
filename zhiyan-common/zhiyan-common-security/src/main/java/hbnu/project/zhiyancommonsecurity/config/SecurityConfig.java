@@ -112,8 +112,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                 // 配置授权规则
                 .authorizeHttpRequests(auth -> auth
                         // 公开接口
-                        .requestMatchers("/zhiyan/auth/login", "/zhiyan/auth/register", "/zhiyan/auth/refresh-token").permitAll()
-                        .requestMatchers("/zhiyan/auth/send-verfcode", "/zhiyan/auth/verify-code").permitAll()
+                        .requestMatchers("/zhiyan/auth/login","/zhiyan/auth/logout" ,"/zhiyan/auth/forgot-password","/zhiyan/auth/reset-password","/zhiyan/auth/register", "/zhiyan/auth/refresh-token").permitAll()
+                        .requestMatchers("/zhiyan/auth/send-verfcode","/zhiyan/auth/refresh", "/zhiyan/auth/verify-code").permitAll()
                         .requestMatchers("/error", "/favicon.ico").permitAll()
                         .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 其他请求需要认证

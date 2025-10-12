@@ -2,7 +2,11 @@ package hbnu.project.zhiyanauth.model.response;
 
 
 import lombok.Data;
-
+/**
+ * 令牌验证响应体
+ *
+ * @author yxy
+ */
 @Data
 public class TokenValidateResponse {
     /**
