@@ -46,13 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         }
         return null;
     }
+
+
     /**
      * 处理每个请求的认证逻辑
-     * @param request
-     * @param response
-     * @param filterChain
-     * @throws ServletException
-     * @throws IOException
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -60,7 +57,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
             // 1. 从请求中获取JWT token
             String token = ServletRequestUtils.getStringParameter(request, "token");
 
-            // 2. 检查token是否存在且有效
+            // 从Authorization头提取token
+            if(StringUtils.isBlank(token)){
+                token = extractTokenFromHeader(request);
+            }
+
+
+            // 2. 检查token是否存在且有效2
             if(StringUtils.isNotBlank(token) && jwtUtils.validateToken(token)){
 
 //                // 3. 检查token是否在黑名单中

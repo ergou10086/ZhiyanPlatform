@@ -20,7 +20,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role{
+public class Role extends BaseAuditEntity{
 
     /**
      * 雪花id

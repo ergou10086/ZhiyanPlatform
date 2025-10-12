@@ -2,15 +2,18 @@ package hbnu.project.zhiyancommonbasic.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +33,13 @@ public class JwtUtils {
 
     @Value("${jwt.issuer:zhiyan-platform}")
     private String issuer;
+
+    /**
+     * 获取签名密钥
+     */
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     /**
      * 创建JWT令牌
@@ -55,12 +65,12 @@ public class JwtUtils {
         Date expireDate = new Date(now.getTime() + expireMinutes * 60 * 1000L);
 
         return Jwts.builder()
-                .setSubject(subject)
-                .setIssuer(issuer)
-                .setIssuedAt(now)
-                .setExpiration(expireDate)
-                .addClaims(claims)
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .subject(subject)
+                .issuer(issuer)
+                .issuedAt(now)
+                .expiration(expireDate)
+                .claims(claims)
+                .signWith(getSigningKey(), Jwts.SIG.HS512)
                 .compact();
     }
 
@@ -77,9 +87,10 @@ public class JwtUtils {
             }
 
             Claims claims = Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
             return claims.getSubject();
 
@@ -98,8 +109,11 @@ public class JwtUtils {
         } catch (IllegalArgumentException e) {
             log.debug("JWT令牌参数错误: {}", e.getMessage());
             return null;
+        } catch (JwtException e) {
+            log.debug("JWT令牌解析失败: {}", e.getMessage());
+            return null;
         } catch (Exception e) {
-            log.error("JWT令牌解析失败: {}", e.getMessage(), e);
+            log.error("JWT令牌解析异常: {}", e.getMessage(), e);
             return null;
         }
     }
@@ -117,9 +131,10 @@ public class JwtUtils {
             }
 
             return Jwts.parser()
-                    .setSigningKey(secret)
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
         } catch (Exception e) {
             log.debug("获取JWT Claims失败: {}", e.getMessage());
@@ -162,7 +177,21 @@ public class JwtUtils {
      * @return 是否有效
      */
     public boolean validateToken(String token) {
-        return parseToken(token) != null;
+        try {
+            if (StringUtils.isBlank(token)) {
+                return false;
+            }
+
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+
+        } catch (Exception e) {
+            log.debug("JWT令牌验证失败: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**

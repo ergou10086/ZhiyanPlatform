@@ -47,6 +47,21 @@ public class AuthController {
     private final PermissionService permissionService;
 
 
+
+    /**
+     * 发送验证码
+     */
+    @PostMapping("/send-verfcode")
+    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
+    public R<Void> sendVerificationCode(
+            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
+        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
+
+        // 直接调用 auth 模块的服务
+        return authService.sendVerificationCode(verificationCodeBody);
+    }
+
+
     /**
      * 用户注册
      */
@@ -168,19 +183,6 @@ public class AuthController {
         return R.ok(  null,"登出成功"); // 返回 R<Void>
     }
 
-
-    /**
-     * 发送验证码
-     */
-    @PostMapping("/send-verfcode")
-    @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
-    public R<Void> sendVerificationCode(
-            @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
-        log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
-
-        // 直接调用 auth 模块的服务
-        return authService.sendVerificationCode(verificationCodeBody);
-    }
 
 
 

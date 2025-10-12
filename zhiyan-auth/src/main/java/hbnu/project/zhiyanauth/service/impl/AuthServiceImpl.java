@@ -254,6 +254,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
+
+
     /**
      * 验证验证码
      * 检查用户输入的验证码是否与系统生成的一致
@@ -312,6 +314,10 @@ public class AuthServiceImpl implements AuthService {
             // 生成刷新令牌（长期有效，用于获取新的访问令牌）
             String refreshToken = jwtUtils.createToken(userId.toString(), refreshTokenExpireMinutes);
 
+            log.info("=== 生成的Token信息 ===");
+            log.info("用户ID: {}", userId);
+            log.info("访问Token (前50字符): {}...", accessToken);
+            log.info("刷新Token (前50字符): {}...", refreshToken);
             // 构建令牌DTO对象
             TokenDTO tokenDTO = new TokenDTO();
             tokenDTO.setAccessToken(accessToken);

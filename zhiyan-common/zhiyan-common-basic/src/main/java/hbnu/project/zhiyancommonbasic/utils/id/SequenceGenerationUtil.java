@@ -43,8 +43,8 @@ public class SequenceGenerationUtil {
     public static String getId(String type)
     {
         AtomicInteger atomicInt = commSeq;
-        if (uploadSeqType.equals(type))
-        {
+
+        if (uploadSeqType.equals(type)) {
             atomicInt = uploadSeq;
         }
         return getId(atomicInt, 3);
