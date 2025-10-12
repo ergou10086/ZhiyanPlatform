@@ -89,7 +89,7 @@ public class MapperManager {
         if (user == null) {
             return null;
         }
-        return userMapper.toLoginDTO(user);
+        return userMapper.toDTO(user);
     }
 
     /**
@@ -223,7 +223,7 @@ public class MapperManager {
         if (permissions == null || permissions.isEmpty()) {
             return new ArrayList<>();
         }
-        return permissionMapper.toSimpleDTOList(permissions);
+        return permissionMapper.toDTOList(permissions);
     }
 
     /**
@@ -278,7 +278,7 @@ public class MapperManager {
         if (user == null) {
             return null;
         }
-        return userMapper.toLoginDTO(user);
+        return userMapper.toDTO(user);
     }
 
     /**
