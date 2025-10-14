@@ -209,4 +209,5 @@ public class UserAuthenticationFilter implements GlobalFilter, Ordered {
         // 在CORS过滤器之后，日志过滤器之前执行
         return Ordered.HIGHEST_PRECEDENCE + 1;
     }
+
 }

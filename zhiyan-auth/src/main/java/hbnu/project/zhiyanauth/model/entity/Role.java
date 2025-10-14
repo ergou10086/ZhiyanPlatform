@@ -1,6 +1,7 @@
 package hbnu.project.zhiyanauth.model.entity;
 
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
+import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role extends BaseAuditEntity{
+public class Role extends BaseAuditEntity {
 
     /**
      * 雪花id

@@ -22,6 +22,7 @@ public class RememberMeToken {
     /**
      *  用户id
      */
+    @Column(name = "user_id")
     private Long userId;
 
     /**

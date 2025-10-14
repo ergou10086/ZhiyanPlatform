@@ -2,17 +2,14 @@ package hbnu.project.zhiyanauth.model.entity;
 
 import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
+import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -27,7 +24,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User extends BaseAuditEntity{
+public class User extends BaseAuditEntity {
 
     /**
      * 雪花id
