@@ -35,4 +35,9 @@ public class UserLoginResponse {
      * 是否记住我
      */
     private Boolean rememberMe; // 新增记住我状态
+
+    /**
+     * 记住我令牌
+     */
+    private String rememberMeToken;
 }

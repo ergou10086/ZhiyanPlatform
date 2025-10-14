@@ -7,8 +7,8 @@ import hbnu.project.zhiyancommonbasic.utils.StringUtils;
  *
  * @author ErgouTree
  */
-public class StrFormatter
-{
+public class StrFormatter {
+
     public static final String EMPTY_JSON = "{}";
     public static final char C_BACKSLASH = '\\';
     public static final char C_DELIM_START = '{';

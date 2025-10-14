@@ -2,6 +2,7 @@ package hbnu.project.zhiyanauth.service.impl;
 
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
+import hbnu.project.zhiyanauth.model.entity.RememberMeToken;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
@@ -14,6 +15,7 @@ import hbnu.project.zhiyanauth.model.response.TokenValidateResponse;
 import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.model.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
+import hbnu.project.zhiyanauth.service.CustomRememberMeService;
 import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonbasic.constants.CacheConstants;
 import hbnu.project.zhiyancommonbasic.constants.TokenConstants;
@@ -47,8 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private final RedisService redisService;
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
-
-
+    private final CustomRememberMeService customRememberMeService;
 
 
     /**
@@ -125,7 +126,10 @@ public class AuthServiceImpl implements AuthService {
             return R.fail("注册失败，请稍后重试");
         }
     }
+
+
     /**
+     * AuthServiceImpl
      * 用户登录
      *
      * @param loginBody 登录请求体
@@ -161,6 +165,12 @@ public class AuthServiceImpl implements AuthService {
             boolean rememberMe = loginBody.getRememberMe() != null ? loginBody.getRememberMe() : false;
             TokenDTO tokenDTO = generateTokens(user.getId(), rememberMe);
 
+            // 生成 RememberMeToken
+            String rememberMeToken = null;
+            if (rememberMe) {
+                rememberMeToken = customRememberMeService.createRememberMeToken(user.getId());
+            }
+
             // 5. 更新最后登录时间
             //user.setLastLoginTime(LocalDateTime.now());
             userRepository.save(user);
@@ -184,6 +194,7 @@ public class AuthServiceImpl implements AuthService {
                     .expiresIn(tokenDTO.getExpiresIn())
                     .tokenType(tokenDTO.getTokenType())
                     .rememberMe(rememberMe)
+                    .rememberMeToken(rememberMeToken)
                     .build();
 
             log.info("用户登录成功: 用户ID={}, 邮箱={}, 记住我={}",
@@ -195,8 +206,6 @@ public class AuthServiceImpl implements AuthService {
             return R.fail("登录失败，请稍后重试");
         }
     }
-
-
 
 
     /**
@@ -224,6 +233,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+
     /**
      * 邮箱格式验证
      */
@@ -234,6 +244,7 @@ public class AuthServiceImpl implements AuthService {
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         return email.matches(emailRegex);
     }
+
 
     /**
      * 发送验证码
@@ -255,8 +266,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-
-
     /**
      * 验证验证码
      * 检查用户输入的验证码是否与系统生成的一致
@@ -266,8 +275,6 @@ public class AuthServiceImpl implements AuthService {
      * @param type 验证码类型（字符串形式）
      * @return 验证结果，true表示验证通过，false表示失败
      */
-
-
     @Override
     public R<Boolean> verifyCode(String email, String code, String type) {
         try {
@@ -319,6 +326,7 @@ public class AuthServiceImpl implements AuthService {
             log.info("用户ID: {}", userId);
             log.info("访问Token: {}", accessToken);
             log.info("刷新Token: {}", refreshToken);
+
             // 构建令牌DTO对象
             TokenDTO tokenDTO = new TokenDTO();
             tokenDTO.setAccessToken(accessToken);

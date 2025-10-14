@@ -4,22 +4,25 @@ import com.alibaba.nacos.api.model.v2.Result;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.form.*;
 import hbnu.project.zhiyanauth.model.form.TokenRefreshBody;
-import hbnu.project.zhiyanauth.model.response.TokenValidateResponse;
-import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
-import hbnu.project.zhiyanauth.model.response.UserRegisterResponse;
+import hbnu.project.zhiyanauth.model.response.*;
+import hbnu.project.zhiyanauth.model.response.AutoLoginCheckResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanauth.model.response.PermissionCheckResponse;
-import hbnu.project.zhiyanauth.model.response.BatchPermissionCheckResponse;
 import hbnu.project.zhiyanauth.service.PermissionService;
+import hbnu.project.zhiyancommonbasic.utils.StringUtils;
+import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final PermissionService permissionService;
+    private final RememberMeService rememberMeService;
 
 
 
@@ -69,17 +73,85 @@ public class AuthController {
     }
 
     /**
+     *
      * 用户登录
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
     public R<UserLoginResponse> login(
-            @Valid @RequestBody LoginBody loginBody) {
+            @Valid @RequestBody LoginBody loginBody, HttpServletResponse response) {
         log.info("用户登录API请求: 邮箱={}", loginBody.getEmail());
+        R<UserLoginResponse> result = authService.login(loginBody);
+        if (R.isSuccess(result)&& Boolean.TRUE.equals(result.getData().getRememberMe())) {
+            Cookie cookie = new Cookie("remember_me_token", result.getData().getRememberMeToken());
+            cookie.setHttpOnly(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(30 * 24 * 60 * 60);
+            response.addCookie(cookie);
+        }
 
-        // 直接调用 auth 模块的服务
-        return authService.login(loginBody);
+        return result;
     }
+    /**
+     * 自动登录检查接口
+     * 前端可以在应用启动时调用此接口检查是否可以通过RememberMe自动登录
+     */
+    @GetMapping("/auto-login-check")
+    @Operation(summary = "自动登录检查", description = "检查是否存在有效的RememberMe token")
+    public R<AutoLoginCheckResponse> autoLoginCheck(
+            @CookieValue(value = "remember_me_token", required = false) String rememberMeToken) {
+
+        log.info("自动登录检查请求: token存在={}", StringUtils.isNotBlank(rememberMeToken));
+
+        if (StringUtils.isBlank(rememberMeToken)) {
+            return R.ok(AutoLoginCheckResponse.noToken(), "无有效的RememberMe token");
+        }
+
+        Optional<Long> userIdOpt = rememberMeService.validateRememberMeToken(rememberMeToken);
+        if (userIdOpt.isPresent()) {
+            // token有效，可以自动登录
+            Long userId = userIdOpt.get();
+            log.info("自动登录检查成功: 用户ID={}", userId);
+            return R.ok(AutoLoginCheckResponse.valid(userId), "存在有效的RememberMe token");
+        } else {
+            // token无效
+            log.info("自动登录检查失败: token已过期或无效");
+            return R.ok(AutoLoginCheckResponse.invalid(), "RememberMe token已过期");
+        }
+    }
+
+    /**
+     * 清除RememberMe token
+     */
+    @PostMapping("/clear-remember-me")
+    @Operation(summary = "清除记住我", description = "清除RememberMe token")
+    public R<Void> clearRememberMe(
+            @CookieValue(value = "remember_me_token", required = false) String rememberMeToken,
+            HttpServletResponse response) {
+
+        log.info("清除RememberMe token请求");
+
+        if (StringUtils.isNotBlank(rememberMeToken)) {
+            // 从数据库中删除token
+            rememberMeService.deleteRememberMeToken(rememberMeToken);
+            log.info("从数据库中删除RememberMe token");
+        }
+
+        // 清除Cookie
+        Cookie cookie = new Cookie("remember_me_token", null);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        log.info("清除RememberMe token成功");
+        return R.ok(null, "清除成功");
+    }
+
+
+
+
+
 
     /**
      * 验证验证码
@@ -173,10 +245,8 @@ public class AuthController {
     @Operation(summary = "用户登出", description = "用户登出，使令牌失效")
     public R<String> logout(@RequestHeader("Authorization") String tokenHeader) {
         authService.logout(tokenHeader);
-        return R.ok(  null,"登出成功"); // 返回 R<Void>
+        return R.ok(null, "登出成功"); // 返回 R<Void>
     }
-
-
 
 
 

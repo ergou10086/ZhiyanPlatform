@@ -21,6 +21,12 @@ public class R<T> implements Serializable
     /** 失败 */
     public static final int FAIL = GeneralConstants.FAIL;
 
+    /** 未认证 **/
+    public static final int UNAUTHORIZED = GeneralConstants.UNAUTHORIZED;
+
+    /**被拒绝**/
+    public static final int FORBIDDEN = GeneralConstants.FORBIDDEN;
+
     @Schema(description = "响应码", example = "200")
     private int code;
 

@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanauth.model.entity;
+package hbnu.project.zhiyancommonbasic.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

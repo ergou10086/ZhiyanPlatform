@@ -2,6 +2,7 @@ package hbnu.project.zhiyanauth.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
+import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class) // 启用 JPA 审计
-public class Permission extends BaseAuditEntity{
+public class Permission extends BaseAuditEntity {
 
     /**
      * 雪花id

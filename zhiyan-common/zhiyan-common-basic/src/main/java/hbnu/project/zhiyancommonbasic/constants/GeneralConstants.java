@@ -42,6 +42,16 @@ public class GeneralConstants {
     public static final Integer FAIL = 500;
 
     /**
+     * 未认证
+     */
+    public static final Integer UNAUTHORIZED = 401;
+
+    /**
+     * 被拒绝
+     */
+    public static final Integer FORBIDDEN = 403;
+
+    /**
      * 登录成功状态
      */
     public static final String LOGIN_SUCCESS_STATUS = "0";

@@ -2,6 +2,10 @@ package hbnu.project.zhiyancommonsecurity.config;
 
 import hbnu.project.zhiyancommonsecurity.filter.JwtAuthenticationFilter;
 import hbnu.project.zhiyancommonsecurity.interceptor.HeaderInterceptor;
+
+import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
+
+import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +27,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * Spring Security安全配置
+ * 集成JWT + RememberMe + 自动续签机制
+ * 集成JWT + RememberMe + 自动续签机制
  * @author ErgouTree
  */
 @Configuration
@@ -32,8 +38,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class SecurityConfig implements WebMvcConfigurer {
 
     private final UserDetailsService userDetailsService;
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+
+
+
 
     /**
      * 密码编码器Bean
@@ -44,7 +53,6 @@ public class SecurityConfig implements WebMvcConfigurer {
         return new BCryptPasswordEncoder();
     }
 
-
     /**
      * 认证管理器
      */
@@ -52,7 +60,6 @@ public class SecurityConfig implements WebMvcConfigurer {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
 
     /**
      * 认证提供者配置
@@ -65,32 +72,24 @@ public class SecurityConfig implements WebMvcConfigurer {
         return authProvider;
     }
 
-
     /**
      * 请求头拦截器Bean
-     *
-     * @return HeaderInterceptor实例
      */
     @Bean
     public HeaderInterceptor headerInterceptor() {
         return new HeaderInterceptor();
     }
 
-
     /**
      * 注册拦截器
-     *
-     * @param registry 拦截器注册器
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(headerInterceptor())
-                // 拦截所有请求
                 .addPathPatterns("/**")
-                // 排除不需要拦截的路径
                 .excludePathPatterns(
-                        "/error", 
-                        "/favicon.ico", 
+                        "/error",
+                        "/favicon.ico",
                         "/actuator/**",
                         "/swagger-ui/**",
                         "/swagger-resources/**",
@@ -98,43 +97,59 @@ public class SecurityConfig implements WebMvcConfigurer {
                 );
     }
 
-
     /**
      * 安全过滤器链配置
+     * 集成JWT、RememberMe自动续签机制
+     * 集成JWT、RememberMe自动续签机制
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 禁用CSRF
+                // 关闭CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-                // 设置会话创建策略为无状态
+                // 无状态会话
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 配置授权规则
+                // 授权配置
                 .authorizeHttpRequests(auth -> auth
-                        // 公开接口
-                        .requestMatchers("/zhiyan/auth/login","/zhiyan/auth/logout" ,"/zhiyan/auth/forgot-password","/zhiyan/auth/reset-password","/zhiyan/auth/register", "/zhiyan/auth/refresh-token").permitAll()
-                        .requestMatchers("/zhiyan/auth/send-verfcode","/zhiyan/auth/refresh", "/zhiyan/auth/verify-code").permitAll()
-                        .requestMatchers("/error", "/favicon.ico").permitAll()
+                        .requestMatchers(
+                                "/zhiyan/auth/login",
+                                "/zhiyan/auth/logout",
+                                "/zhiyan/auth/register",
+                                "/zhiyan/auth/refresh-token",
+                                "/zhiyan/auth/refresh",
+                                "/zhiyan/auth/send-verfcode",
+                                "/zhiyan/auth/verify-code",
+                                "/zhiyan/auth/forgot-password",
+                                "/zhiyan/auth/reset-password",
+                                "/zhiyan/auth/auto-login-check",
+                                "/zhiyan/auth/clear-remember-me"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/error",
+                                "/favicon.ico",
+                                "/actuator/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
                         // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/permissions/**").permitAll()
                         // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/roles/**").permitAll()
                         // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/users/**").permitAll()
-                        .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // 其他请求需要认证
                         .anyRequest().authenticated()
                 )
-                // 配置认证提供者
+                // 认证提供者
                 .authenticationProvider(authenticationProvider())
+                // 添加JWT认证过滤器
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 添加RememberMe自动登录支持（交给自定义逻辑处理）
+                .rememberMe(remember -> remember.disable());
 
-                // TODO:配置登录
-
-                // TODO:配置登出
-
-                // 添加JWT过滤器
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
 }

@@ -22,9 +22,9 @@ public class TokenConstants {
     public static final int DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES = 30;
 
     /**
-     * 刷新令牌默认过期时间（分钟）- 7天
+     * 刷新令牌默认过期时间（分钟）- 3天
      */
-    public static final int DEFAULT_REFRESH_TOKEN_EXPIRE_MINUTES = 10080;
+    public static final int DEFAULT_REFRESH_TOKEN_EXPIRE_MINUTES = 4320;
 
     /**
      * 记住我情况下刷新令牌过期时间（分钟）- 30天
