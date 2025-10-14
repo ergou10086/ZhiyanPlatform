@@ -51,3 +51,14 @@ CREATE TABLE role_permissions (
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 ) COMMENT '角色与权限的多对多关联表（角色继承权限，关联关系随角色/权限删除而自动删除）';
+
+-- RememberMe Token表
+CREATE TABLE remember_me_tokens (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Token唯一标识',
+    user_id BIGINT NOT NULL COMMENT '用户ID（关联users表）',
+    token VARCHAR(128) UNIQUE NOT NULL COMMENT 'RememberMe Token值',
+    expiry_time TIMESTAMP NOT NULL COMMENT 'Token过期时间',
+    created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Token创建时间',
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE COMMENT '用户删除时级联删除Token'
+) COMMENT 'RememberMe自动登录Token表';
+

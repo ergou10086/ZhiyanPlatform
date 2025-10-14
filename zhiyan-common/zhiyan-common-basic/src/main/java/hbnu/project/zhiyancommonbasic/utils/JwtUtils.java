@@ -118,6 +118,7 @@ public class JwtUtils {
         }
     }
 
+
     /**
      * 获取JWT令牌的Claims
      *
@@ -141,6 +142,7 @@ public class JwtUtils {
             return null;
         }
     }
+
 
     /**
      * 获取JWT令牌剩余有效时间（秒）
@@ -169,6 +171,7 @@ public class JwtUtils {
             return null;
         }
     }
+
 
     /**
      * 验证JWT令牌是否有效
@@ -199,6 +202,7 @@ public class JwtUtils {
         }
     }
 
+
     /**
      * 从JWT令牌中获取过期时间
      *
@@ -210,6 +214,7 @@ public class JwtUtils {
         return claims != null ? claims.getExpiration() : null;
     }
 
+
     /**
      * 从JWT令牌中获取签发时间
      *
@@ -220,6 +225,7 @@ public class JwtUtils {
         Claims claims = getClaims(token);
         return claims != null ? claims.getIssuedAt() : null;
     }
+
 
     /**
      * 检查JWT令牌是否即将过期
