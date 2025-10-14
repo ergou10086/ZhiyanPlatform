@@ -115,6 +115,12 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .requestMatchers("/zhiyan/auth/login","/zhiyan/auth/logout" ,"/zhiyan/auth/forgot-password","/zhiyan/auth/reset-password","/zhiyan/auth/register", "/zhiyan/auth/refresh-token").permitAll()
                         .requestMatchers("/zhiyan/auth/send-verfcode","/zhiyan/auth/refresh", "/zhiyan/auth/verify-code").permitAll()
                         .requestMatchers("/error", "/favicon.ico").permitAll()
+                        // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
+                        .requestMatchers("/auth/permissions/**").permitAll()
+                        // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
+                        .requestMatchers("/auth/roles/**").permitAll()
+                        // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
+                        .requestMatchers("/auth/users/**").permitAll()
                         .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 其他请求需要认证
                         .anyRequest().authenticated()

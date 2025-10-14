@@ -10,6 +10,7 @@ import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonredis.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -37,10 +38,18 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     private static final String RATE_LIMIT_PREFIX = "rate_limit:verification_code:";
     private static final String USED_CODE_PREFIX = "used_verification_code:";
 
-    // 验证码配置
-    private static final int CODE_LENGTH = 6;
-    private static final int CODE_EXPIRE_MINUTES = 10;
-    private static final int RATE_LIMIT_MINUTES = 1;
+    // 验证码配置（从配置文件读取）
+    @Value("${app.verification-code.length:6}")
+    private int CODE_LENGTH;
+
+    @Value("${app.verification-code.expire-minutes:10}")
+    private int CODE_EXPIRE_MINUTES;
+
+    @Value("${app.verification-code.rate-limit-minutes:1}")
+    private double RATE_LIMIT_MINUTES;
+
+    @Value("${app.verification-code.enable-email-sending:true}")
+    private boolean ENABLE_EMAIL_SENDING;
 
     /**
      * 生成并发送验证码
@@ -61,6 +70,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
             // 生成验证码
             String code = VerificationCodeGenerator.generateNumericCode(CODE_LENGTH);
 
+            log.info("验证码:", code);
             // 存入Redis缓存
             String redisKey = buildRedisKey(email, type);
             redisService.setCacheObject(redisKey, code, (long) CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
@@ -76,18 +86,33 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
                     .build();
             verificationCodeRepository.save(verificationCode);
 
-            // 发送验证码邮件
-            boolean emailSent = mailService.sendVerificationCode(email, code, type);
-            if (!emailSent) {
-                log.warn("验证码邮件发送失败,但已保存到数据库 - 邮箱: {}, 类型: {}", email, type);
-                return R.fail("邮件发送失败,请稍后重试");
+            // ========== 在控制台打印验证码（方便测试） ==========
+            log.info("╔══════════════════════════════════════════════════════════╗");
+            log.info("║              📧 验证码已生成（测试模式）                  ║");
+            log.info("╠══════════════════════════════════════════════════════════╣");
+            log.info("║  邮箱: {}", String.format("%-48s", email) + "║");
+            log.info("║  类型: {}", String.format("%-48s", type) + "║");
+            log.info("║  验证码: 【{}】", String.format("%-44s", code) + "║");
+            log.info("║  有效期: {} 分钟", String.format("%-44s", CODE_EXPIRE_MINUTES) + "║");
+            log.info("╚══════════════════════════════════════════════════════════╝");
+
+            // 发送验证码邮件（如果启用）
+            if (ENABLE_EMAIL_SENDING) {
+                boolean emailSent = mailService.sendVerificationCode(email, code, type);
+                if (!emailSent) {
+                    log.warn("验证码邮件发送失败,但已保存到数据库 - 邮箱: {}, 类型: {}", email, type);
+                    // 注意：即使邮件发送失败，验证码已经打印在控制台了，仍然可以使用
+                }
+            } else {
+                log.info("📧 邮件发送已禁用，请在控制台查看验证码");
             }
 
-            // 设置频率限制
+            // 设置频率限制（转换分钟为秒）
             String rateLimitKey = buildRateLimitKey(email, type);
-            redisService.setCacheObject(rateLimitKey, "1", (long) RATE_LIMIT_MINUTES, TimeUnit.MINUTES);
+            long rateLimitSeconds = (long) (RATE_LIMIT_MINUTES * 60);
+            redisService.setCacheObject(rateLimitKey, "1", rateLimitSeconds, TimeUnit.SECONDS);
 
-            log.info("验证码发送成功 - 邮箱: {}, 类型: {}", email, type);
+            log.info("✅ 验证码发送成功 - 邮箱: {}, 类型: {}", email, type);
             return R.ok(null, "验证码发送成功");
 
         } catch (Exception e) {

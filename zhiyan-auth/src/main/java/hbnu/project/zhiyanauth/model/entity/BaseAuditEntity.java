@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,6 +30,7 @@ public abstract class BaseAuditEntity {
     /**
      * 数据创建时间（由审计自动填充）
      */
+    @JsonIgnore
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false,
             columnDefinition = "DATETIME COMMENT '创建时间'")
@@ -37,6 +39,7 @@ public abstract class BaseAuditEntity {
     /**
      * 数据最后修改时间（由审计自动更新）
      */
+    @JsonIgnore
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false,
             columnDefinition = "DATETIME COMMENT '更新时间'")

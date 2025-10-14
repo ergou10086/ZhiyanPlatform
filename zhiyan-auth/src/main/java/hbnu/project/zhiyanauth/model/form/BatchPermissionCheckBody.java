@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 批量权限校验请求体
  *
- * @author ErgouTree
+ * @author  Tokito
  */
 @Data
 @Builder

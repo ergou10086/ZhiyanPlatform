@@ -2,8 +2,6 @@ package hbnu.project.zhiyanauth.model.response;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 /**
  * 角色信息响应体
  *
@@ -47,16 +45,6 @@ public class RoleInfoResponse {
      * 该角色的用户数量
      */
     private Long userCount;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createdAt;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updatedAt;
 
     /**
      * 创建人

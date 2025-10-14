@@ -44,6 +44,16 @@ public class RoleDTO {
     private List<String> permissions;
 
     /**
+     * 角色类型
+     */
+    private String roleType;
+
+    /**
+     * 是否为系统默认角色
+     */
+    private String isSystemDefault;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createdAt;
@@ -62,4 +72,6 @@ public class RoleDTO {
      * 更新人
      */
     private String updatedBy;
+
+
 }

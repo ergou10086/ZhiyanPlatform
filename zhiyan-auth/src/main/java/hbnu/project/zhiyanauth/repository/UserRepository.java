@@ -56,7 +56,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByIdAndIsDeletedFalse(Long id);
 
     /**
-     * 查询用户及其角色和权限
+     * 查询用户及其角色信息（不包含权限，避免MultipleBagFetchException）
+     * 权限需要单独查询
      *
      * @param userId 用户ID
      * @return 用户对象（可能为空）
@@ -64,10 +65,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT DISTINCT u FROM User u " +
             "LEFT JOIN FETCH u.userRoles ur " +
             "LEFT JOIN FETCH ur.role r " +
-            "LEFT JOIN FETCH r.rolePermissions rp " +
-            "LEFT JOIN FETCH rp.permission p " +
             "WHERE u.id = :userId AND u.isDeleted = false")
     Optional<User> findByIdWithRolesAndPermissions(@Param("userId") Long userId);
+
+    /**
+     * 查询用户基本信息（不包含关联数据）
+     *
+     * @param userId 用户ID
+     * @return 用户对象（可能为空）
+     */
+    @Query("SELECT u FROM User u WHERE u.id = :userId AND u.isDeleted = false")
+    Optional<User> findByIdBasic(@Param("userId") Long userId);
 
     /**
      * 分页查询未删除的用户

@@ -2,8 +2,10 @@ package hbnu.project.zhiyanauth.service.impl;
 
 import hbnu.project.zhiyanauth.mapper.UserMapper;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
+import hbnu.project.zhiyanauth.model.entity.Permission;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
+import hbnu.project.zhiyanauth.repository.PermissionRepository;
 import hbnu.project.zhiyanauth.repository.UserRepository;
 import hbnu.project.zhiyanauth.service.UserService;
 import hbnu.project.zhiyancommonbasic.domain.R;
@@ -32,6 +34,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PermissionRepository permissionRepository;
     private final UserMapper userMapper;
 
 
@@ -49,7 +52,17 @@ public class UserServiceImpl implements UserService {
                 return R.fail("用户不存在");
             }
 
-            UserDTO userDTO = userMapper.toDTOWithRolesAndPermissions(optionalUser.get());
+            User user = optionalUser.get();
+            UserDTO userDTO = userMapper.toDTOWithRoles(user);
+            
+            // 单独查询权限
+            List<Permission> permissions = permissionRepository.findAllByUserId(userId);
+            List<String> permissionNames = permissions.stream()
+                    .map(Permission::getName)
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+            userDTO.setPermissions(permissionNames);
+
             return R.ok(userDTO);
 
         } catch (Exception e) {
@@ -191,14 +204,26 @@ public class UserServiceImpl implements UserService {
      * @return 用户详细信息
      */
     @Override
+    @Transactional(readOnly = true)
     public R<UserDTO> getUserWithRolesAndPermissions(Long userId) {
         try {
             Optional<User> optionalUser = userRepository.findByIdWithRolesAndPermissions(userId);
             if (optionalUser.isEmpty()) {
+                log.warn("用户不存在: userId={}", userId);
                 return R.fail("用户不存在");
             }
 
-            UserDTO userDTO = userMapper.toDTOWithRolesAndPermissions(optionalUser.get());
+            User user = optionalUser.get();
+            UserDTO userDTO = userMapper.toDTOWithRoles(user);
+            
+            // 单独查询权限
+            List<Permission> permissions = permissionRepository.findAllByUserId(userId);
+            List<String> permissionNames = permissions.stream()
+                    .map(Permission::getName)
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+            userDTO.setPermissions(permissionNames);
+
             return R.ok(userDTO);
 
         } catch (Exception e) {

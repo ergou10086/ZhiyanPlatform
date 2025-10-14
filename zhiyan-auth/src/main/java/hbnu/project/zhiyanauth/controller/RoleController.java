@@ -25,6 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -38,7 +40,7 @@ import java.util.stream.Collectors;
  * @author Tokito
  */
 @RestController
-@RequestMapping("/api/roles")
+@RequestMapping("/auth/roles")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "角色权限管理", description = "角色和权限管理相关接口")
@@ -50,8 +52,11 @@ public class RoleController {
 
     /**
      * 获取所有角色列表
+     * 需要权限：system:role:list
      */
     @GetMapping
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:list')")
     @Operation(summary = "获取角色列表", description = "获取系统中所有角色（分页）")
     public R<Page<RoleInfoResponse>> getAllRoles(
             @Parameter(description = "页码，从0开始")
@@ -85,8 +90,11 @@ public class RoleController {
 
     /**
      * 根据ID获取角色详情
+     * 需要权限：system:role:view
      */
     @GetMapping("/{roleId}")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:view')")
     @Operation(summary = "获取角色详情", description = "根据ID获取角色详细信息（包含权限列表）")
     public R<RoleDetailResponse> getRoleById(
             @Parameter(description = "角色ID", required = true)
@@ -144,8 +152,11 @@ public class RoleController {
 
     /**
      * 创建新角色
+     * 需要权限：system:role:create
      */
     @PostMapping
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:create')")
     @Operation(summary = "创建角色", description = "创建新的角色（可同时分配权限）")
     public R<RoleInfoResponse> createRole(
             @Valid @RequestBody CreateRoleBody request) {
@@ -183,8 +194,6 @@ public class RoleController {
                     .name(createdRole.getName())
                     .description(createdRole.getDescription())
                     .userCount(0L)
-                    .createdAt(createdRole.getCreatedAt())
-                    .updatedAt(createdRole.getUpdatedAt())
                     .createdBy(createdRole.getCreatedBy())
                     .updatedBy(createdRole.getUpdatedBy())
                     .build();
@@ -199,8 +208,11 @@ public class RoleController {
 
     /**
      * 更新角色信息
+     * 需要权限：system:role:update
      */
     @PutMapping("/{roleId}")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:update')")
     @Operation(summary = "更新角色", description = "更新角色基本信息（名称、描述）")
     public R<RoleInfoResponse> updateRole(
             @Parameter(description = "角色ID", required = true)
@@ -231,8 +243,6 @@ public class RoleController {
                     .name(updatedRole.getName())
                     .description(updatedRole.getDescription())
                     .userCount(userCount)
-                    .createdAt(updatedRole.getCreatedAt())
-                    .updatedAt(updatedRole.getUpdatedAt())
                     .createdBy(updatedRole.getCreatedBy())
                     .updatedBy(updatedRole.getUpdatedBy())
                     .build();
@@ -247,8 +257,11 @@ public class RoleController {
 
     /**
      * 删除角色
+     * 需要权限：system:role:delete
      */
     @DeleteMapping("/{roleId}")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:delete')")
     @Operation(summary = "删除角色", description = "删除指定角色（需检查是否有用户使用）")
     public R<Void> deleteRole(
             @Parameter(description = "角色ID", required = true)
@@ -262,8 +275,11 @@ public class RoleController {
 
     /**
      * 为角色分配权限
+     * 需要权限：system:permission:assign
      */
     @PostMapping("/{roleId}/permissions")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:permission:assign')")
     @Operation(summary = "为角色分配权限", description = "为指定角色分配权限（增量分配）")
     public R<Void> assignPermissions(
             @Parameter(description = "角色ID", required = true)
@@ -278,8 +294,11 @@ public class RoleController {
 
     /**
      * 移除角色的权限
+     * 需要权限：system:permission:assign
      */
     @DeleteMapping("/{roleId}/permissions")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:permission:assign')")
     @Operation(summary = "移除角色权限", description = "移除角色的指定权限")
     public R<Void> removePermissions(
             @Parameter(description = "角色ID", required = true)
@@ -294,8 +313,11 @@ public class RoleController {
 
     /**
      * 获取角色的权限列表
+     * 需要权限：system:role:view
      */
     @GetMapping("/{roleId}/permissions")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:view')")
     @Operation(summary = "获取角色权限", description = "获取指定角色的所有权限")
     public R<List<PermissionInfoResponse>> getRolePermissions(
             @Parameter(description = "角色ID", required = true)
@@ -320,8 +342,6 @@ public class RoleController {
                             .id(p.getId())
                             .name(p.getName())
                             .description(p.getDescription())
-                            .createdAt(p.getCreatedAt())
-                            .updatedAt(p.getUpdatedAt())
                             .build())
                     .collect(Collectors.toList());
 
@@ -335,8 +355,11 @@ public class RoleController {
 
     /**
      * 获取拥有指定角色的用户列表
+     * 需要权限：system:role:view
      */
     @GetMapping("/{roleId}/users")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:view')")
     @Operation(summary = "获取角色用户", description = "获取拥有指定角色的用户列表（分页）")
     public R<List<UserInfoResponse>> getRoleUsers(
             @Parameter(description = "角色ID", required = true)
@@ -384,8 +407,11 @@ public class RoleController {
 
     /**
      * 为用户分配角色
+     * 需要权限：system:role:assign
      */
     @PostMapping("/assign-user-role")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:assign')")
     @Operation(summary = "为用户分配角色", description = "为指定用户分配角色")
     public R<Void> assignUserRole(
             @Valid @RequestBody AssignUserRoleBody request) {
@@ -398,8 +424,11 @@ public class RoleController {
 
     /**
      * 移除用户角色
+     * 需要权限：system:role:assign
      */
     @DeleteMapping("/remove-user-role")
+    // TODO: 临时注释权限检查，开发完成后需要恢复
+    // @PreAuthorize("hasAuthority('system:role:assign')")
     @Operation(summary = "移除用户角色", description = "移除用户的指定角色")
     public R<Void> removeUserRole(
             @Valid @RequestBody RemoveUserRoleBody request) {
@@ -421,8 +450,6 @@ public class RoleController {
                 .name(roleDTO.getName())
                 .description(roleDTO.getDescription())
                 .userCount(userCount)
-                .createdAt(roleDTO.getCreatedAt())
-                .updatedAt(roleDTO.getUpdatedAt())
                 .createdBy(roleDTO.getCreatedBy())
                 .updatedBy(roleDTO.getUpdatedBy())
                 .build();

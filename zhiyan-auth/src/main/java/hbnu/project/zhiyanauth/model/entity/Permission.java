@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
@@ -48,6 +49,7 @@ public class Permission extends BaseAuditEntity{
     /**
      * 角色权限关联（一对多）
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RolePermission> rolePermissions;
 

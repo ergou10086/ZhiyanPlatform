@@ -40,6 +40,15 @@ public interface UserMapper {
     UserDTO toDTOWithRolesAndPermissions(User user);
 
     /**
+     * 将User实体转换为包含角色的UserDTO，权限单独设置
+     * 避免懒加载问题
+     */
+    @Named("toDTOWithRoles")
+    @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
+    @Mapping(target = "permissions", ignore = true)
+    UserDTO toDTOWithRoles(User user);
+
+    /**
      * 从UserRole关联中提取角色名称列表
      */
     default List<String> extractRoleNames(List<UserRole> userRoles) {
@@ -88,17 +97,22 @@ public interface UserMapper {
 
     /**
      * 从UserProfileUpdateBody更新User实体
+     * 允许更新姓名、职称、机构、头像等字段
      *
      * @param user 目标用户实体
      * @param updateBody 更新表单
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "name", ignore = true)
     @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "isLocked", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "userRoles", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateUserProfile(@MappingTarget User user, UserProfileUpdateBody updateBody);
 

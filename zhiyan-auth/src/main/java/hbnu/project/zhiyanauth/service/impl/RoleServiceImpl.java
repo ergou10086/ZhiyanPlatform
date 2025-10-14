@@ -245,8 +245,21 @@ public class RoleServiceImpl implements RoleService {
                 return R.fail("角色名称已存在: " + roleDTO.getName());
             }
 
-            // 转换为实体并保存
+            // 转换为实体并设置必需字段
             Role role = roleMapper.fromDTO(roleDTO);
+
+            // 设置必需的默认值
+            if (role.getId() == null) {
+                role.setId(SnowflakeIdUtil.nextId());
+            }
+            if (role.getRoleType() == null) {
+                role.setRoleType("SYSTEM"); // 默认为系统角色
+            }
+            if (role.getIsSystemDefault() == null) {
+                // 所有角色都设为系统默认角色
+                role.setIsSystemDefault(true);
+            }
+
             Role savedRole = roleRepository.save(role);
 
             // 实体转换为DTO，返回给前端

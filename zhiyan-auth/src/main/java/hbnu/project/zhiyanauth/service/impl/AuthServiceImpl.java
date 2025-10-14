@@ -93,7 +93,8 @@ public class AuthServiceImpl implements AuthService {
                     .title(request.getTitle())
                     .institution(request.getInstitution())
                     .status(UserStatus.ACTIVE)
-
+                    .isDeleted(false)
+                    .isLocked(false)
                     .build();
 
             User savedUser = userRepository.save(user);

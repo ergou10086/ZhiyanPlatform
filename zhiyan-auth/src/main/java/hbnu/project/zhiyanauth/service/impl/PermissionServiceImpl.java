@@ -74,7 +74,7 @@ public class PermissionServiceImpl implements PermissionService {
                 userPermissions = permissions.stream()
                         .map(Permission::getName)
                         .collect(Collectors.toSet());
-                
+
                 // 缓存用户权限
                 cacheUserPermissions(userId, userPermissions);
             }
@@ -82,7 +82,7 @@ public class PermissionServiceImpl implements PermissionService {
             // 判断用户权限集合中是否包含目标权限
             boolean hasPermission = userPermissions.contains(permission);
             log.debug("检查用户[{}]是否拥有权限[{}]: {}", userId, permission, hasPermission);
-            
+
             return R.ok(hasPermission);
         } catch (Exception e) {
             log.error("检查用户权限失败: userId={}, permission={}", userId, permission, e);
@@ -113,7 +113,7 @@ public class PermissionServiceImpl implements PermissionService {
                 userPermissions = permissions.stream()
                         .map(Permission::getName)
                         .collect(Collectors.toSet());
-                
+
                 // 缓存用户权限
                 cacheUserPermissions(userId, userPermissions);
             }
@@ -149,7 +149,7 @@ public class PermissionServiceImpl implements PermissionService {
             }
 
             Set<String> userPermissions = userPermissionsResult.getData();
-            
+
             // 检查是否拥有任一权限
             boolean hasAny = permissions.stream()
                     .anyMatch(userPermissions::contains);
@@ -175,11 +175,11 @@ public class PermissionServiceImpl implements PermissionService {
         try {
             Page<Permission> permissionPage = permissionRepository.findAll(pageable);
             List<PermissionDTO> permissionDTOs = permissionMapper.toDTOList(permissionPage.getContent());
-            
+
             Page<PermissionDTO> result = new PageImpl<>(permissionDTOs, pageable, permissionPage.getTotalElements());
-            
-            log.debug("获取权限列表，页码: {}, 大小: {}, 总数: {}", 
-                     pageable.getPageNumber(), pageable.getPageSize(), permissionPage.getTotalElements());
+
+            log.debug("获取权限列表，页码: {}, 大小: {}, 总数: {}",
+                    pageable.getPageNumber(), pageable.getPageSize(), permissionPage.getTotalElements());
             return R.ok(result);
         } catch (Exception e) {
             log.error("获取权限列表失败", e);
@@ -216,10 +216,10 @@ public class PermissionServiceImpl implements PermissionService {
 
             // 实体转换为DTO，返回给前端
             PermissionDTO result = permissionMapper.toDTO(savedPermission);
-            
+
             // 清理相关缓存
             clearPermissionCache(savedPermission.getId());
-            
+
             log.info("创建权限成功: {}", savedPermission.getName());
             return R.ok(result, "权限创建成功");
         } catch (Exception e) {
@@ -253,8 +253,8 @@ public class PermissionServiceImpl implements PermissionService {
             }
 
             // 如果修改了名称，检查新名称是否已存在
-            if (StringUtils.hasText(permissionDTO.getName()) && 
-                !permissionDTO.getName().equals(existingPermission.getName())) {
+            if (StringUtils.hasText(permissionDTO.getName()) &&
+                    !permissionDTO.getName().equals(existingPermission.getName())) {
                 if (permissionRepository.existsByName(permissionDTO.getName())) {
                     return R.fail("权限名称已存在: " + permissionDTO.getName());
                 }
@@ -267,11 +267,11 @@ public class PermissionServiceImpl implements PermissionService {
 
             // 实体转换为DTO返回
             PermissionDTO result = permissionMapper.toDTO(updatedPermission);
-            
+
             // 清理相关缓存
             clearPermissionCache(permissionId);
             clearAllUserPermissionsCache();
-            
+
             log.info("更新权限成功: id={}, name={}", permissionId, updatedPermission.getName());
             return R.ok(result, "权限更新成功");
         } catch (Exception e) {
@@ -309,11 +309,11 @@ public class PermissionServiceImpl implements PermissionService {
             }
 
             permissionRepository.delete(permission);
-            
+
             // 清理相关缓存
             clearPermissionCache(permissionId);
             clearAllUserPermissionsCache();
-            
+
             log.info("删除权限成功: id={}, name={}", permissionId, permission.getName());
             return R.ok(null, "权限删除成功");
         } catch (Exception e) {
@@ -340,14 +340,14 @@ public class PermissionServiceImpl implements PermissionService {
             // 先从缓存查找
             String cacheKey = PERMISSION_CACHE_PREFIX + permissionId;
             Permission cachedPermission = redisService.getCacheObject(cacheKey);
-            
+
             if (cachedPermission != null) {
                 return cachedPermission;
             }
 
             // 缓存未命中，从数据库查询
             Permission permission = permissionRepository.findById(permissionId).orElse(null);
-            
+
             if (permission != null) {
                 // 查询到权限实体时，存入缓存
                 redisService.setCacheObject(cacheKey, permission, CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
