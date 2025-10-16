@@ -16,6 +16,10 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-basic</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

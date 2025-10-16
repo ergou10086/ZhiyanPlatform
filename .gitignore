@@ -20,4 +20,7 @@ bin/
 *.tar.gz
 
 
-resources/
+# 日志文件
+logs/
+*.log
+*.log.*
