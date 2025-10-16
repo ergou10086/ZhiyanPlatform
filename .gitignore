@@ -24,4 +24,7 @@ resources/bootstrap-dev.yml
 resources/application.yml
 resources/bootstrap.yml
 
+*-dev.yml
+*-dev.yaml
+
 logs/
