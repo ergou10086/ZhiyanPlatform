@@ -19,8 +19,10 @@ bin/
 *.zip
 *.tar.gz
 
+resources/application-dev.yml
+resources/bootstrap-dev.yml
+resources/application.yml
+resources/bootstrap.yml
 
 # 日志文件
 logs/
-*.log
-*.log.*
