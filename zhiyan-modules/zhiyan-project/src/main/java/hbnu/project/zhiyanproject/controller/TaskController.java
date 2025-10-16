@@ -29,7 +29,7 @@ import java.time.LocalDate;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/api/projects/tasks")
 @RequiredArgsConstructor
 @Tag(name = "任务管理", description = "任务管理相关接口")
 public class TaskController {
@@ -41,7 +41,7 @@ public class TaskController {
      * 权限要求：项目成员
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DEVELOPER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
     @Operation(summary = "创建任务", description = "在项目中创建新任务")
     public R<Tasks> createTask(
             @Parameter(description = "项目ID") @RequestParam Long projectId,
@@ -62,7 +62,7 @@ public class TaskController {
      * 权限要求：项目成员
      */
     @PutMapping("/{taskId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DEVELOPER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
     @Operation(summary = "更新任务", description = "更新任务信息")
     public R<Tasks> updateTask(
             @Parameter(description = "任务ID") @PathVariable Long taskId,
@@ -84,7 +84,7 @@ public class TaskController {
      * 权限要求：任务创建者或项目拥有者
      */
     @DeleteMapping("/{taskId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DEVELOPER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
     @Operation(summary = "删除任务", description = "软删除任务")
     public R<Void> deleteTask(@PathVariable Long taskId) {
         Long userId = SecurityUtils.getUserId();
@@ -163,6 +163,7 @@ public class TaskController {
     /**
      * 获取当前用户创建的任务
      * 权限要求：已登录用户
+     * 待验证
      */
     @GetMapping("/my-created")
     @PreAuthorize("isAuthenticated()")
@@ -193,45 +194,15 @@ public class TaskController {
         return taskService.getUserCreatedTasks(userId, pageable);
     }
 
-    /**
-     * 获取分配给当前用户的任务
-     * 权限要求：已登录用户
-     */
-    @GetMapping("/my-assigned")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取我的任务", description = "获取分配给当前用户的所有任务")
-    public R<Page<Tasks>> getMyAssignedTasks(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
-        Long userId = SecurityUtils.getUserId();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        
-        return taskService.getUserAssignedTasks(userId, pageable);
-    }
 
-    /**
-     * 获取分配给用户的任务
-     * 权限要求：已登录用户
-     */
-    @GetMapping("/user/{userId}/assigned")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取用户任务", description = "获取分配给指定用户的任务")
-    public R<Page<Tasks>> getUserAssignedTasks(
-            @PathVariable Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return taskService.getUserAssignedTasks(userId, pageable);
-    }
+
 
     /**
      * 更新任务状态
      * 权限要求：项目成员
      */
     @PatchMapping("/{taskId}/status")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DEVELOPER')")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
     @Operation(summary = "更新任务状态", description = "更新任务的状态")
     public R<Tasks> updateTaskStatus(
             @PathVariable Long taskId,
@@ -243,29 +214,15 @@ public class TaskController {
         return taskService.updateTaskStatus(taskId, status);
     }
 
-    /**
-     * 分配任务
-     * 权限要求：项目成员
-     */
-    @PostMapping("/{taskId}/assign")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'DEVELOPER')")
-    @Operation(summary = "分配任务", description = "将任务分配给指定用户")
-    public R<Tasks> assignTask(
-            @PathVariable Long taskId,
-            @RequestParam String assigneeIds) {
-        
-        Long userId = SecurityUtils.getUserId();
-        log.info("用户[{}]分配任务[{}]给: {}", userId, taskId, assigneeIds);
-        
-        return taskService.assignTask(taskId, assigneeIds, userId);
-    }
+
+
 
     /**
      * 搜索任务
      * 权限要求：已登录用户
      */
     @GetMapping("/project/{projectId}/search")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
     @Operation(summary = "搜索任务", description = "根据关键字搜索项目任务")
     public R<Page<Tasks>> searchTasks(
             @PathVariable Long projectId,
@@ -280,9 +237,9 @@ public class TaskController {
     /**
      * 统计项目任务数量
      * 权限要求：已登录用户
-     */
+
     @GetMapping("/project/{projectId}/count")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
     @Operation(summary = "统计项目任务", description = "统计项目中的任务数量")
     public R<Long> countProjectTasks(@PathVariable Long projectId) {
         return taskService.countProjectTasks(projectId);
@@ -291,7 +248,7 @@ public class TaskController {
     /**
      * 统计项目中指定状态的任务数量
      * 权限要求：已登录用户
-     */
+
     @GetMapping("/project/{projectId}/count/status/{status}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "按状态统计任务", description = "统计项目中指定状态的任务数量")
@@ -300,4 +257,56 @@ public class TaskController {
             @PathVariable TaskStatus status) {
         return taskService.countTasksByStatus(projectId, status);
     }
+            */
+
+    /**
+     * 获取分配给当前用户的任务
+     * 权限要求：已登录用户
+
+     @GetMapping("/my-assigned")
+     @PreAuthorize("isAuthenticated()")
+     @Operation(summary = "获取我的任务", description = "获取分配给当前用户的所有任务")
+     public R<Page<Tasks>> getMyAssignedTasks(
+     @RequestParam(defaultValue = "0") int page,
+     @RequestParam(defaultValue = "10") int size) {
+
+     Long userId = SecurityUtils.getUserId();
+     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+     return taskService.getUserAssignedTasks(userId, pageable);
+     }
+
+     /**
+      * 获取分配给用户的任务
+      * 权限要求：已登录用户
+
+     @GetMapping("/user/{userId}/assigned")
+     @PreAuthorize("isAuthenticated()")
+     @Operation(summary = "获取用户任务", description = "获取分配给指定用户的任务")
+     public R<Page<Tasks>> getUserAssignedTasks(
+     @PathVariable Long userId,
+     @RequestParam(defaultValue = "0") int page,
+     @RequestParam(defaultValue = "10") int size) {
+
+     Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+     return taskService.getUserAssignedTasks(userId, pageable);
+     }
+
+     /**
+      * 分配任务
+      * 权限要求：项目成员
+
+     @PostMapping("/{taskId}/assign")
+     @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+     @Operation(summary = "分配任务", description = "将任务分配给指定用户")
+     public R<Tasks> assignTask(
+     @PathVariable Long taskId,
+     @RequestParam String assigneeIds) {
+
+     Long userId = SecurityUtils.getUserId();
+     log.info("用户[{}]分配任务[{}]给: {}", userId, taskId, assigneeIds);
+
+     return taskService.assignTask(taskId, assigneeIds, userId);
+     }*/
+
 }

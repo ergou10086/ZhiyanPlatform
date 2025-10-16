@@ -45,6 +45,11 @@ public abstract class BaseAuditEntity {
             columnDefinition = "DATETIME COMMENT '更新时间'")
     private LocalDateTime updatedAt;
 
+    /**
+     * 数据创建人（由审计自动填充）
+     */
+    @LastModifiedBy
+    private String createdBy;
 
     /**
      * 数据最后修改人（由审计自动更新）

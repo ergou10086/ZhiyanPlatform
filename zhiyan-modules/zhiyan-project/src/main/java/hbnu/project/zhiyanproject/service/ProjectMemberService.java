@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanproject.service;
 
+import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 
@@ -32,6 +33,16 @@ public interface ProjectMemberService {
      * 获取项目所有成员
      */
     List<ProjectMember> getProjectMembers(Long projectId);
+
+    /**
+     * 获取项目成员详细信息（用于前端展示）
+     */
+    List<ProjectMemberDetailDTO> getProjectMembersDetail(Long projectId, Long currentUserId);
+
+    /**
+     * 根据项目名称获取项目所有成员
+     */
+    List<ProjectMember> getProjectMembersByName(String projectName);
 
     /**
      * 获取用户参与的所有项目

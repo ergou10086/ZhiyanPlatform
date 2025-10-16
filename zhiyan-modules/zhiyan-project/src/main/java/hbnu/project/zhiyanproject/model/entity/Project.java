@@ -83,10 +83,14 @@ public class Project extends BaseAuditEntity {
      */
     @CreatedBy
     @LongToString
-    @Column(name = "created_by", nullable = false, columnDefinition = "BIGINT COMMENT '创建人ID（逻辑关联users表）'")
-    private Long createdBy;
+    @Column(name = "creator_id", nullable = false, columnDefinition = "BIGINT COMMENT '创建人ID（逻辑关联users表）'")
+    private Long creatorId;
 
-
+    /**
+     * 是否已删除（软删除标记）
+     */
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")
+    private Boolean isDeleted = false;
 
     // 在 Project.java 中添加以下内容
 
@@ -97,20 +101,11 @@ public class Project extends BaseAuditEntity {
     private List<ProjectMember> members = new ArrayList<>();
 
     /**
-     * 获取项目负责人列表
+     * 获取项目拥有者列表
      */
-    public List<ProjectMember> getLeaders() {
+    public List<ProjectMember> getOwners() {
         return members.stream()
-                .filter(member -> member.getProjectRole() == ProjectMemberRole.LEADER)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 获取项目维护者列表
-     */
-    public List<ProjectMember> getMaintainers() {
-        return members.stream()
-                .filter(member -> member.getProjectRole() == ProjectMemberRole.MAINTAINER)
+                .filter(member -> member.getProjectRole() == ProjectMemberRole.OWNER)
                 .collect(Collectors.toList());
     }
 
@@ -121,6 +116,15 @@ public class Project extends BaseAuditEntity {
         return members.stream()
                 .filter(member -> member.getProjectRole() == ProjectMemberRole.MEMBER)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * 检查用户是否为项目拥有者
+     */
+    public boolean isOwner(Long userId) {
+        return members.stream()
+                .anyMatch(member -> member.getUserId().equals(userId) 
+                        && member.getProjectRole() == ProjectMemberRole.OWNER);
     }
 
     /**

@@ -99,4 +99,10 @@ public class Tasks extends BaseAuditEntity {
     @LongToString
     @Column(name = "created_by", nullable = false, columnDefinition = "BIGINT COMMENT '创建人ID（逻辑关联用户服务的用户ID）'")
     private Long createdBy;
+
+    /**
+     * 是否已删除（软删除标记）
+     */
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")
+    private Boolean isDeleted = false;
 }

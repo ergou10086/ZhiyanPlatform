@@ -65,8 +65,9 @@ public class ProjectMember {
      * 项目内角色
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "project_role", nullable = false, columnDefinition = "ENUM('LEADER','MAINTAINER','MEMBER') COMMENT '项目内角色（负责人/维护者/普通成员）'")
+    @Column(name = "project_role", nullable = false, columnDefinition = "ENUM('OWNER','MEMBER') COMMENT '项目内角色（创建者/普通成员）'")
     private ProjectMemberRole projectRole;
+
 
     /**
      * 权限覆盖（JSON格式，用于临时修改成员在项目内的权限）

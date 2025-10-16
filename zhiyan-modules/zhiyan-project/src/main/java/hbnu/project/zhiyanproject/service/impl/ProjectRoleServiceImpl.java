@@ -2,467 +2,339 @@ package hbnu.project.zhiyanproject.service.impl;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
+import hbnu.project.zhiyanproject.model.entity.Project;
+import hbnu.project.zhiyanproject.model.entity.ProjectMember;
+import hbnu.project.zhiyanproject.model.entity.ProjectRole;
+import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
+import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
+import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
+import hbnu.project.zhiyanproject.repository.ProjectRepository;
+import hbnu.project.zhiyanproject.repository.ProjectRoleRepository;
+import hbnu.project.zhiyanproject.service.ProjectRoleService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class ProjectRoleServiceImpl {
-    // ========== 项目角色专用方法 ==========
+/**
+ * 项目角色服务实现类
+ *
+ * @author Tokito
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ProjectRoleServiceImpl implements ProjectRoleService {
+
+    private final ProjectRoleRepository projectRoleRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final ProjectRepository projectRepository;
 
     @Override
     @Transactional
-    public R<RoleDTO> createProjectRole(ProjectRole projectRole, String customRoleName, Long projectId) {
+    public R<ProjectRole> createProjectRole(Long projectId, ProjectMemberRole roleEnum, String customRoleName) {
         try {
-            String finalRoleName = StringUtils.hasText(customRoleName) ? customRoleName : projectRole.getRoleName();
+            // 验证项目是否存在
+            Project project = projectRepository.findById(projectId).orElse(null);
+            if (project == null) {
+                return R.fail("项目不存在: " + projectId);
+            }
 
-            // 检查角色名称是否已存在
-            if (roleRepository.existsByName(finalRoleName)) {
-                return R.fail("角色名称已存在: " + finalRoleName);
+            // 确定角色名称
+            String roleName = StringUtils.hasText(customRoleName) ? customRoleName : roleEnum.getRoleName();
+
+            // 检查角色名称在项目中是否已存在
+            if (projectRoleRepository.existsByProjectIdAndName(projectId, roleName)) {
+                return R.fail("角色名称在该项目中已存在: " + roleName);
             }
 
             // 创建项目角色
-            Role role = Role.builder()
+            ProjectRole projectRole = ProjectRole.builder()
                     .id(SnowflakeIdUtil.nextId())
-                    .name(finalRoleName)
-                    .description(projectRole.getDescription())
+                    .name(roleName)
+                    .description(roleEnum.getDescription())
+                    .roleType("PROJECT")
+                    .projectId(projectId)
+                    .roleEnum(roleEnum)
+                    .isSystemDefault(false)
                     .build();
 
-            role = roleRepository.save(role);
+            projectRole = projectRoleRepository.save(projectRole);
 
-            // 应用项目角色权限
-            int assignedCount = assignProjectRolePermissions(role, projectRole);
-
-            RoleDTO roleDTO = roleMapper.toDTO(role);
-
-            log.info("成功创建项目角色: {} -> {}, 项目ID: {}, 分配权限: {}",
-                    projectRole.getRoleName(), finalRoleName, projectId, assignedCount);
-
-            return R.ok(roleDTO, String.format("成功创建项目角色 '%s' 并分配 %d 个权限",
-                    finalRoleName, assignedCount));
+            log.info("成功创建项目角色: {} -> {}, 项目ID: {}", roleEnum.getRoleName(), roleName, projectId);
+            return R.ok(projectRole, "项目角色创建成功");
         } catch (Exception e) {
-            log.error("创建项目角色失败: projectRole={}, customRoleName={}, projectId={}",
-                    projectRole, customRoleName, projectId, e);
+            log.error("创建项目角色失败: projectId={}, roleEnum={}, customRoleName={}", projectId, roleEnum, customRoleName, e);
             return R.fail("项目角色创建失败: " + e.getMessage());
         }
     }
 
     @Override
     @Transactional
-    public R<Integer> applyProjectRole(Long roleId, ProjectRole projectRole, boolean resetMode, Long projectId) {
+    public R<Void> deleteProjectRole(Long roleId) {
         try {
-            Role role = findById(roleId);
-            if (role == null) {
-                return R.fail("角色不存在");
+            ProjectRole projectRole = projectRoleRepository.findById(roleId).orElse(null);
+            if (projectRole == null) {
+                return R.fail("项目角色不存在");
             }
 
-            int assignedCount;
-            if (resetMode) {
-                // 重置模式：清空现有权限后重新分配
-                clearRolePermissions(roleId);
-                assignedCount = assignProjectRolePermissions(role, projectRole);
-            } else {
-                // 增量模式：在现有权限基础上添加
-                assignedCount = assignProjectRolePermissions(role, projectRole);
+            // 检查是否有成员使用该角色
+            long memberCount = projectMemberRepository.countByProjectRoleId(roleId);
+            if (memberCount > 0) {
+                return R.fail("该角色正在被 " + memberCount + " 个成员使用，无法删除");
             }
 
-            // 清理相关缓存
-            clearRolePermissionsCache(roleId);
-            clearAllUserPermissionsCache();
-
-            String mode = resetMode ? "重置" : "增量";
-            return R.ok(assignedCount, String.format("成功以%s模式为角色 '%s' 应用项目角色 '%s'，分配 %d 个权限",
-                    mode, role.getName(), projectRole.getRoleName(), assignedCount));
+            projectRoleRepository.delete(projectRole);
+            log.info("成功删除项目角色: {}", projectRole.getName());
+            return R.ok(null, "项目角色删除成功");
         } catch (Exception e) {
-            log.error("应用项目角色失败: roleId={}, projectRole={}, resetMode={}, projectId={}",
-                    roleId, projectRole, resetMode, projectId, e);
-            return R.fail("项目角色应用失败: " + e.getMessage());
+            log.error("删除项目角色失败: roleId={}", roleId, e);
+            return R.fail("项目角色删除失败: " + e.getMessage());
         }
     }
 
     @Override
     @Transactional
-    public R<Void> assignProjectRoleToUser(Long userId, Long projectId, ProjectRole projectRole) {
+    public R<ProjectRole> updateProjectRole(Long roleId, String name, String description) {
         try {
-            // 验证用户是否存在
-            User user = userRepository.findById(userId).orElse(null);
-            if (user == null) {
-                return R.fail("用户不存在: " + userId);
+            ProjectRole projectRole = projectRoleRepository.findById(roleId).orElse(null);
+            if (projectRole == null) {
+                return R.fail("项目角色不存在");
             }
 
-            // 查找或创建项目角色
-            Role projectRoleEntity = findOrCreateProjectRole(projectRole, projectId);
-            if (projectRoleEntity == null) {
-                return R.fail("项目角色创建失败");
+            // 检查新名称是否在项目中已存在（排除当前角色）
+            if (StringUtils.hasText(name) && !name.equals(projectRole.getName())) {
+                if (projectRoleRepository.existsByProjectIdAndNameAndIdNot(projectRole.getProjectId(), name, roleId)) {
+                    return R.fail("角色名称在该项目中已存在: " + name);
+                }
+                projectRole.setName(name);
             }
 
-            // 检查用户是否已有该角色
-            UserRole existingUserRole = userRoleRepository.findByUserIdAndRoleId(userId, projectRoleEntity.getId()).orElse(null);
-            if (existingUserRole != null) {
-                return R.ok(null, "用户已拥有该角色");
+            if (StringUtils.hasText(description)) {
+                projectRole.setDescription(description);
             }
 
-            // 创建用户角色关联
-            UserRole userRole = UserRole.builder()
+            projectRole = projectRoleRepository.save(projectRole);
+            log.info("成功更新项目角色: {}", projectRole.getName());
+            return R.ok(projectRole, "项目角色更新成功");
+        } catch (Exception e) {
+            log.error("更新项目角色失败: roleId={}, name={}, description={}", roleId, name, description, e);
+            return R.fail("项目角色更新失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<ProjectRole> getProjectRoleById(Long roleId) {
+        try {
+            ProjectRole projectRole = projectRoleRepository.findById(roleId).orElse(null);
+            if (projectRole == null) {
+                return R.fail("项目角色不存在");
+            }
+            return R.ok(projectRole);
+        } catch (Exception e) {
+            log.error("查询项目角色失败: roleId={}", roleId, e);
+            return R.fail("查询项目角色失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<Page<ProjectRole>> getProjectRolesByProjectId(Long projectId, Pageable pageable) {
+        try {
+            Page<ProjectRole> rolePage = projectRoleRepository.findByProjectId(projectId, pageable);
+            log.debug("获取项目[{}]角色列表，页码: {}, 大小: {}, 总数: {}",
+                    projectId, pageable.getPageNumber(), pageable.getPageSize(), rolePage.getTotalElements());
+            return R.ok(rolePage);
+        } catch (Exception e) {
+            log.error("获取项目角色列表失败: projectId={}", projectId, e);
+            return R.fail("获取项目角色列表失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public R<Void> assignRoleToUser(Long userId, Long projectId, ProjectMemberRole roleEnum) {
+        try {
+            // 检查用户是否已经是项目成员
+            ProjectMember existingMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+            if (existingMember != null) {
+                // 更新现有成员的角色
+                existingMember.setProjectRole(roleEnum);
+                projectMemberRepository.save(existingMember);
+                log.info("更新用户[{}]在项目[{}]中的角色为[{}]", userId, projectId, roleEnum.getRoleName());
+                return R.ok(null, "用户角色更新成功");
+            }
+
+            // 创建新的项目成员记录
+            ProjectMember projectMember = ProjectMember.builder()
                     .id(SnowflakeIdUtil.nextId())
-                    .user(user)
-                    .role(projectRoleEntity)
+                    .projectId(projectId)
+                    .userId(userId)
+                    .projectRole(roleEnum)
+                    .joinedAt(LocalDateTime.now())
                     .build();
 
-            userRoleRepository.save(userRole);
-
-            // 清理相关缓存
-            clearUserRolesCache(userId);
-            clearUserPermissionsCache(userId);
-            clearUserProjectRolesCache(userId, projectId);
-
-            log.info("为用户[{}]在项目[{}]中分配角色[{}]成功", userId, projectId, projectRole.getRoleName());
+            projectMemberRepository.save(projectMember);
+            log.info("为用户[{}]在项目[{}]中分配角色[{}]成功", userId, projectId, roleEnum.getRoleName());
             return R.ok(null, "项目角色分配成功");
         } catch (Exception e) {
-            log.error("为用户分配项目角色失败: userId={}, projectId={}, projectRole={}",
-                    userId, projectId, projectRole, e);
-            return R.fail("项目角色分配失败");
+            log.error("为用户分配项目角色失败: userId={}, projectId={}, roleEnum={}", userId, projectId, roleEnum, e);
+            return R.fail("项目角色分配失败: " + e.getMessage());
         }
     }
 
     @Override
     @Transactional
-    public R<Void> removeUserFromProject(Long userId, Long projectId) {
+    public R<Void> removeUserRole(Long userId, Long projectId) {
         try {
-            // 查找用户在项目中的所有角色
-            List<UserRole> userRoles = userRoleRepository.findByUserId(userId);
-            List<Long> projectRoleIds = userRoles.stream()
-                    .filter(ur -> isProjectRole(ur.getRole()))
-                    .map(ur -> ur.getRole().getId())
-                    .collect(Collectors.toList());
-
-            if (projectRoleIds.isEmpty()) {
-                return R.ok(null, "用户在该项目中无角色");
+            ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+            if (projectMember == null) {
+                return R.ok(null, "用户不是该项目的成员");
             }
 
-            // 删除用户项目角色关联
-            int deletedCount = 0;
-            for (Long roleId : projectRoleIds) {
-                deletedCount += userRoleRepository.deleteByUserIdAndRoleId(userId, roleId);
-            }
-
-            // 清理相关缓存
-            clearUserRolesCache(userId);
-            clearUserPermissionsCache(userId);
-            clearUserProjectRolesCache(userId, projectId);
-
-            log.info("移除用户[{}]在项目[{}]中的角色成功，删除了{}条记录", userId, projectId, deletedCount);
+            projectMemberRepository.delete(projectMember);
+            log.info("移除用户[{}]在项目[{}]中的角色成功", userId, projectId);
             return R.ok(null, "用户项目角色移除成功");
         } catch (Exception e) {
             log.error("移除用户项目角色失败: userId={}, projectId={}", userId, projectId, e);
-            return R.fail("用户项目角色移除失败");
+            return R.fail("用户项目角色移除失败: " + e.getMessage());
         }
     }
 
     @Override
-    public R<Set<String>> getUserProjectRoles(Long userId, Long projectId) {
+    public R<ProjectMemberRole> getUserRoleInProject(Long userId, Long projectId) {
         try {
-            if (userId == null || projectId == null) {
-                return R.fail("用户ID和项目ID不能为空");
+            ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+            if (projectMember == null) {
+                return R.fail("用户不是该项目的成员");
             }
-
-            // 先从缓存获取
-            String cacheKey = USER_PROJECT_ROLES_CACHE_PREFIX + userId + ":" + projectId;
-            Set<String> userProjectRoles = redisService.getCacheObject(cacheKey);
-
-            if (userProjectRoles == null) {
-                // 缓存未命中，从数据库查询
-                List<Role> roles = roleRepository.findAllByUserId(userId);
-                userProjectRoles = roles.stream()
-                        .filter(this::isProjectRole)
-                        .map(Role::getName)
-                        .collect(Collectors.toSet());
-
-                // 缓存用户项目角色
-                cacheUserProjectRoles(userId, projectId, userProjectRoles);
-            }
-
-            log.debug("获取用户[{}]在项目[{}]中的角色列表，共{}个角色", userId, projectId, userProjectRoles.size());
-            return R.ok(userProjectRoles);
+            return R.ok(projectMember.getProjectRole());
         } catch (Exception e) {
             log.error("获取用户项目角色失败: userId={}, projectId={}", userId, projectId, e);
-            return R.fail("获取用户项目角色失败");
-        }
-    }
-
-    // ========== 角色类型查询方法 ==========
-
-    @Override
-    public R<Page<RoleDTO>> getRolesByType(String roleType, Pageable pageable) {
-        try {
-            // 这里需要根据角色类型进行查询，可能需要扩展Repository
-            // 暂时返回所有角色，后续可以根据实际需求实现
-            Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
-
-            Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
-
-            log.debug("获取{}角色列表，页码: {}, 大小: {}, 总数: {}",
-                    roleType, pageable.getPageNumber(), pageable.getPageSize(), rolePage.getTotalElements());
-            return R.ok(result);
-        } catch (Exception e) {
-            log.error("获取{}角色列表失败", roleType, e);
-            return R.fail("获取角色列表失败");
+            return R.fail("获取用户项目角色失败: " + e.getMessage());
         }
     }
 
     @Override
-    public R<Page<RoleDTO>> getProjectRoles(Long projectId, Pageable pageable) {
+    public R<Set<ProjectPermission>> getUserPermissionsInProject(Long userId, Long projectId) {
         try {
-            // 这里需要根据项目ID查询项目角色，可能需要扩展Repository
-            // 暂时返回所有角色，后续可以根据实际需求实现
-            Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
-
-            Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
-
-            log.debug("获取项目[{}]角色列表，页码: {}, 大小: {}, 总数: {}",
-                    projectId, pageable.getPageNumber(), pageable.getPageSize(), rolePage.getTotalElements());
-            return R.ok(result);
-        } catch (Exception e) {
-            log.error("获取项目角色列表失败: projectId={}", projectId, e);
-            return R.fail("获取项目角色列表失败");
-        }
-    }
-
-    @Override
-    public R<Page<RoleDTO>> getSystemRoles(Pageable pageable) {
-        try {
-            // 这里需要查询系统角色，可能需要扩展Repository
-            // 暂时返回所有角色，后续可以根据实际需求实现
-            Page<Role> rolePage = roleRepository.findAll(pageable);
-            List<RoleDTO> roleDTOs = roleMapper.toDTOList(rolePage.getContent());
-
-            Page<RoleDTO> result = new PageImpl<>(roleDTOs, pageable, rolePage.getTotalElements());
-
-            log.debug("获取系统角色列表，页码: {}, 大小: {}, 总数: {}",
-                    pageable.getPageNumber(), pageable.getPageSize(), rolePage.getTotalElements());
-            return R.ok(result);
-        } catch (Exception e) {
-            log.error("获取系统角色列表失败", e);
-            return R.fail("获取系统角色列表失败");
-        }
-    }
-
-    /**
-     * 移除角色的权限模块
-     */
-    @Override
-    @Transactional
-    public R<Integer> removePermissionModule(Long roleId, PermissionModule permissionModule) {
-        try {
-            Role role = findById(roleId);
-            if (role == null) {
-                return R.fail("角色不存在");
+            ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+            if (projectMember == null) {
+                return R.fail("用户不是该项目的成员");
             }
 
-            int removedCount = permissionAssignmentUtil.removePermissionModule(role, permissionModule);
-
-            // 清理相关缓存
-            clearRolePermissionsCache(roleId);
-            clearAllUserPermissionsCache();
-
-            return R.ok(removedCount, String.format("成功从角色 '%s' 移除权限模块 '%s'，共移除 %d 个权限",
-                    role.getName(), permissionModule.getModuleName(), removedCount));
+            Set<ProjectPermission> permissions = new HashSet<>(projectMember.getProjectRole().getPermissions());
+            log.debug("获取用户[{}]在项目[{}]中的权限列表，共{}个权限", userId, projectId, permissions.size());
+            return R.ok(permissions);
         } catch (Exception e) {
-            log.error("移除角色权限模块失败: roleId={}, module={}", roleId, permissionModule, e);
-            return R.fail("权限模块移除失败: " + e.getMessage());
+            log.error("获取用户项目权限失败: userId={}, projectId={}", userId, projectId, e);
+            return R.fail("获取用户项目权限失败: " + e.getMessage());
         }
     }
 
-
-    /**
-     * 获取角色权限统计信息
-     */
     @Override
-    public R<PermissionAssignmentUtil.PermissionStatistics> getRolePermissionStatistics(Long roleId) {
+    public R<Boolean> hasPermission(Long userId, Long projectId, ProjectPermission permission) {
         try {
-            Role role = findById(roleId);
-            if (role == null) {
-                return R.fail("角色不存在");
+            ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+            if (projectMember == null) {
+                return R.ok(false);
             }
 
-            PermissionAssignmentUtil.PermissionStatistics statistics =
-                    permissionAssignmentUtil.getPermissionStatistics(role);
-
-            return R.ok(statistics, "成功获取角色权限统计信息");
+            boolean hasPermission = projectMember.getProjectRole().hasPermission(permission);
+            return R.ok(hasPermission);
         } catch (Exception e) {
-            log.error("获取角色权限统计失败: roleId={}", roleId, e);
-            return R.fail("获取权限统计失败: " + e.getMessage());
+            log.error("检查用户项目权限失败: userId={}, projectId={}, permission={}", userId, projectId, permission, e);
+            return R.fail("检查用户项目权限失败: " + e.getMessage());
         }
     }
 
-
-    /**
-     * 初始化系统权限数据
-     */
     @Override
-    @Transactional
-    public R<Void> initializeSystemPermissions() {
+    public R<Boolean> hasPermission(Long userId, Long projectId, String permissionCode) {
         try {
-            permissionAssignmentUtil.initializeSystemPermissions();
-            return R.ok(null, "系统权限初始化完成");
-        } catch (Exception e) {
-            log.error("初始化系统权限失败", e);
-            return R.fail("系统权限初始化失败: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 清空角色权限
-     */
-    private void clearRolePermissions(Long roleId) {
-        try {
-            rolePermissionRepository.deleteByRoleId(roleId);
-        } catch (Exception e) {
-            log.warn("清空角色权限失败: roleId={}", roleId, e);
-        }
-    }
-
-    /**
-     * 分配系统角色权限
-     */
-    private int assignSystemRolePermissions(Role role, SysRole sysRole) {
-        try {
-            // 获取系统角色的权限列表
-            List<SystemPermission> permissions = sysRole.getPermissions();
-            if (permissions == null || permissions.isEmpty()) {
-                return 0;
+            ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+            if (projectMember == null) {
+                return R.ok(false);
             }
 
-            // 查找权限实体
-            List<Permission> permissionEntities = permissionRepository.findByNameIn(
-                    permissions.stream()
-                            .map(SystemPermission::getPermission)
-                            .collect(Collectors.toList())
-            );
+            boolean hasPermission = projectMember.getProjectRole().hasPermission(permissionCode);
+            return R.ok(hasPermission);
+        } catch (Exception e) {
+            log.error("检查用户项目权限失败: userId={}, projectId={}, permissionCode={}", userId, projectId, permissionCode, e);
+            return R.fail("检查用户项目权限失败: " + e.getMessage());
+        }
+    }
 
-            // 创建角色权限关联
-            List<RolePermission> rolePermissions = permissionEntities.stream()
-                    .map(permission -> RolePermission.builder()
-                            .id(SnowflakeIdUtil.nextId())
-                            .role(role)
-                            .permission(permission)
-                            .build())
+    @Override
+    public R<Page<Object>> getProjectMembersWithRoles(Long projectId, Pageable pageable) {
+        try {
+            Page<ProjectMember> memberPage = projectMemberRepository.findByProjectId(projectId, pageable);
+            
+            List<Object> memberRoleList = memberPage.getContent().stream()
+                    .map(member -> {
+                        Map<String, Object> memberInfo = new HashMap<>();
+                        memberInfo.put("userId", member.getUserId());
+                        memberInfo.put("projectRole", member.getProjectRole());
+                        memberInfo.put("roleName", member.getProjectRole().getRoleName());
+                        memberInfo.put("joinedAt", member.getJoinedAt());
+                        memberInfo.put("permissions", member.getProjectRole().getPermissions());
+                        return memberInfo;
+                    })
                     .collect(Collectors.toList());
 
-            rolePermissionRepository.saveAll(rolePermissions);
-            return rolePermissions.size();
+            Page<Object> result = new PageImpl<>(memberRoleList, pageable, memberPage.getTotalElements());
+            log.debug("获取项目[{}]成员角色列表，页码: {}, 大小: {}, 总数: {}",
+                    projectId, pageable.getPageNumber(), pageable.getPageSize(), memberPage.getTotalElements());
+            return R.ok(result);
         } catch (Exception e) {
-            log.error("分配系统角色权限失败: roleId={}, sysRole={}", role.getId(), sysRole, e);
-            return 0;
+            log.error("获取项目成员角色列表失败: projectId={}", projectId, e);
+            return R.fail("获取项目成员角色列表失败: " + e.getMessage());
         }
     }
 
-    /**
-     * 分配项目角色权限
-     */
-    private int assignProjectRolePermissions(Role role, ProjectRole projectRole) {
+    @Override
+    @Transactional
+    public R<List<ProjectRole>> initializeDefaultRoles(Long projectId) {
         try {
-            // 获取项目角色的权限列表
-            List<SystemPermission> permissions = projectRole.getPermissions();
-            if (permissions == null || permissions.isEmpty()) {
-                return 0;
+            // 验证项目是否存在
+            Project project = projectRepository.findById(projectId).orElse(null);
+            if (project == null) {
+                return R.fail("项目不存在: " + projectId);
             }
 
-            // 查找权限实体
-            List<Permission> permissionEntities = permissionRepository.findByNameIn(
-                    permissions.stream()
-                            .map(SystemPermission::getPermission)
-                            .collect(Collectors.toList())
-            );
+            List<ProjectRole> defaultRoles = new ArrayList<>();
 
-            // 创建角色权限关联
-            List<RolePermission> rolePermissions = permissionEntities.stream()
-                    .map(permission -> RolePermission.builder()
+            // 为每个角色枚举创建默认角色
+            for (ProjectMemberRole roleEnum : ProjectMemberRole.values()) {
+                String roleName = roleEnum.getRoleName();
+                
+                // 检查角色是否已存在
+                if (!projectRoleRepository.existsByProjectIdAndName(projectId, roleName)) {
+                    ProjectRole projectRole = ProjectRole.builder()
                             .id(SnowflakeIdUtil.nextId())
-                            .role(role)
-                            .permission(permission)
-                            .build())
-                    .collect(Collectors.toList());
+                            .name(roleName)
+                            .description(roleEnum.getDescription())
+                            .roleType("PROJECT")
+                            .projectId(projectId)
+                            .roleEnum(roleEnum)
+                            .isSystemDefault(true)
+                            .build();
 
-            rolePermissionRepository.saveAll(rolePermissions);
-            return rolePermissions.size();
-        } catch (Exception e) {
-            log.error("分配项目角色权限失败: roleId={}, projectRole={}", role.getId(), projectRole, e);
-            return 0;
-        }
-    }
-
-    /**
-     * 查找或创建项目角色
-     */
-    private Role findOrCreateProjectRole(ProjectRole projectRole, Long projectId) {
-        try {
-            // 构建项目角色名称（包含项目ID）
-            String projectRoleName = projectRole.getRoleName() + "_" + projectId;
-
-            // 查找是否已存在
-            Role existingRole = roleRepository.findByName(projectRoleName).orElse(null);
-            if (existingRole != null) {
-                return existingRole;
+                    defaultRoles.add(projectRoleRepository.save(projectRole));
+                }
             }
 
-            // 创建新的项目角色
-            Role role = Role.builder()
-                    .id(SnowflakeIdUtil.nextId())
-                    .name(projectRoleName)
-                    .description(projectRole.getDescription())
-                    .roleType("PROJECT")
-                    .projectId(projectId)
-                    .build();
-
-            role = roleRepository.save(role);
-
-            // 分配权限
-            assignProjectRolePermissions(role, projectRole);
-
-            return role;
+            log.info("为项目[{}]初始化了{}个默认角色", projectId, defaultRoles.size());
+            return R.ok(defaultRoles, "项目默认角色初始化成功");
         } catch (Exception e) {
-            log.error("查找或创建项目角色失败: projectRole={}, projectId={}", projectRole, projectId, e);
-            return null;
-        }
-    }
-
-    /**
-     * 判断是否为项目角色
-     */
-    private boolean isProjectRole(Role role) {
-        return role != null && "PROJECT".equals(role.getRoleType());  // 改为字符串比较
-    }
-
-    /**
-     * 缓存用户项目角色
-     */
-    private void cacheUserProjectRoles(Long userId, Long projectId, Set<String> roles) {
-        try {
-            String cacheKey = USER_PROJECT_ROLES_CACHE_PREFIX + userId + ":" + projectId;
-            redisService.setCacheObject(cacheKey, roles, CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            log.warn("缓存用户项目角色失败: userId={}, projectId={}", userId, projectId, e);
-        }
-    }
-
-    /**
-     * 清理用户项目角色缓存
-     */
-    private void clearUserProjectRolesCache(Long userId, Long projectId) {
-        try {
-            String cacheKey = USER_PROJECT_ROLES_CACHE_PREFIX + userId + ":" + projectId;
-            redisService.deleteObject(cacheKey);
-        } catch (Exception e) {
-            log.warn("清理用户项目角色缓存失败: userId={}, projectId={}", userId, projectId, e);
+            log.error("初始化项目默认角色失败: projectId={}", projectId, e);
+            return R.fail("初始化项目默认角色失败: " + e.getMessage());
         }
     }
 }
