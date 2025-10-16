@@ -27,4 +27,5 @@ resources/bootstrap.yml
 *-dev.yml
 *-dev.yaml
 
+# 日志文件
 logs/

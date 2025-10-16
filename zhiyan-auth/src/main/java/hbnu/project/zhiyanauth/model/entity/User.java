@@ -6,6 +6,7 @@ import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -79,6 +80,7 @@ public class User extends BaseAuditEntity {
     /**
      * 账号是否锁定
      */
+    @Builder.Default
     @Column(name = "is_locked", nullable = false,
             columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否锁定（禁止登录）'")
     private Boolean isLocked = false;
@@ -86,6 +88,7 @@ public class User extends BaseAuditEntity {
     /**
      * 软删除标记
      */
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false,
             columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '软删除标记'")
     private Boolean isDeleted = false;
@@ -93,6 +96,7 @@ public class User extends BaseAuditEntity {
     /**
      * 用户状态
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20,
             columnDefinition = "VARCHAR(20) COMMENT '用户状态（枚举：ACTIVE/LOCKED/DISABLED/DELETED）'")
