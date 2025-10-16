@@ -14,7 +14,9 @@ import org.springframework.context.annotation.ComponentScan;
 public class ZhiyanGatewayApplication {
 
     public static void main(String[] args) {
+
         SpringApplication.run(ZhiyanGatewayApplication.class, args);
+        System.out.println("666，开了是吧（指的是网关模块）");
     }
 
 }

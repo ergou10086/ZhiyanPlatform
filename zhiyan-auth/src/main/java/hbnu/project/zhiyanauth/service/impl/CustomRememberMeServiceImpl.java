@@ -6,6 +6,7 @@ import hbnu.project.zhiyanauth.service.CustomRememberMeService;
 import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.UUID;
 /**
  * RememberMe服务实现类
  * 处理RememberMe token的创建、验证和刷新
+ * @author yxy
  */
 @Slf4j
 @Service
@@ -24,7 +26,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomRememberMeServiceImpl implements RememberMeService, CustomRememberMeService {
 
-    private final RememberMeTokenRepository rememberMeTokenRepository;
+    @Autowired
+    private RememberMeTokenRepository rememberMeTokenRepository;
+
+
     private static final int REMEMBER_ME_DAYS = 30;
 
     /**
@@ -91,6 +96,7 @@ public class CustomRememberMeServiceImpl implements RememberMeService, CustomRem
      * 删除用户的RememberMe token
      */
     @Transactional
+    @Override
     public void deleteRememberMeToken(Long userId) {
         rememberMeTokenRepository.deleteByUserId(userId);
         log.debug("删除用户 {} 的RememberMe token", userId);
@@ -101,6 +107,7 @@ public class CustomRememberMeServiceImpl implements RememberMeService, CustomRem
      * 删除指定的RememberMe token
      */
     @Transactional
+    @Override
     public void deleteRememberMeToken(String token) {
         rememberMeTokenRepository.findByToken(token).ifPresent(entity -> {
             rememberMeTokenRepository.delete(entity);
@@ -112,6 +119,7 @@ public class CustomRememberMeServiceImpl implements RememberMeService, CustomRem
      * 清理过期的RememberMe token
      */
     @Transactional
+    @Override
     public void cleanExpiredTokens() {
         int deletedCount = rememberMeTokenRepository.deleteByExpiryTimeBefore(LocalDateTime.now());
         if (deletedCount > 0) {

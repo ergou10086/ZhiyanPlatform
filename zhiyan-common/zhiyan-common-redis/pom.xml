@@ -31,6 +31,24 @@
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
+            <!-- 排除JPA相关依赖 -->
+            <exclusions>
+                <!-- 排除 Spring Data JPA -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-jpa</artifactId>
+                </exclusion>
+                <!-- 排除 Hibernate Core（JPA实现） -->
+                <exclusion>
+                    <groupId>org.hibernate.orm</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
+                <!-- 排除 Jakarta Persistence API -->
+                <exclusion>
+                    <groupId>jakarta.persistence</groupId>
+                    <artifactId>jakarta.persistence-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

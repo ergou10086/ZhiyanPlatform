@@ -1,7 +1,4 @@
 # redis-config.yml
-server:
-  port: 8082  # 修改端口，避免与其他服务冲突
-
 spring:
   data:
     redis:
