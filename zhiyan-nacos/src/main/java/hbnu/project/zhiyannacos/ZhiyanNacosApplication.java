@@ -13,6 +13,7 @@ public class ZhiyanNacosApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ZhiyanNacosApplication.class, args);
+        System.out.println("666，开了是吧（指的是Nacos模块），是个人物");
     }
 
 }

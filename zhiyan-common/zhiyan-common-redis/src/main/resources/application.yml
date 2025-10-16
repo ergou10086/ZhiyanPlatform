@@ -1,22 +1,17 @@
-# redis-config.yml
+# 主配置文件 - 通用配置
+
 spring:
-  data:
-    redis:
-      # Redis 服务器地址
-      host: 127.0.0.1
-      # Redis 服务器连接端口
-      port: 6379
-      # Redis 服务器连接密码（如果没有密码请删除此行）
-      password:
-      # 连接超时时间（毫秒）
-      timeout: 5000
-      lettuce:
-        pool:
-          # 连接池最大连接数（使用负值表示没有限制）
-          max-active: 8
-          # 连接池最大阻塞等待时间（使用负值表示没有限制）
-          max-wait: -1
-          # 连接池中的最大空闲连接
-          max-idle: 8
-          # 连接池中的最小空闲连接
-          min-idle: 0
+  profiles:
+    # 默认使用prod环境，可通过环境变量覆盖
+    active: ${SPRING_PROFILES_ACTIVE:prod}
+
+# 通用配置
+app:
+  name: 智研平台Redis公共模块
+  version: 0.0.1-SNAPSHOT
+
+# 通用日志配置
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
