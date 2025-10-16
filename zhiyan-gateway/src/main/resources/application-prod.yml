@@ -77,4 +77,7 @@ management:
     health:
       # 健康检查端点根据授权显示详细信息
       show-details: when-authorized
+      redis:
+        enable: false
+
 

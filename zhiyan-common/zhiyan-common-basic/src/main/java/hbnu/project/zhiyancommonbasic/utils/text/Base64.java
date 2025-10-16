@@ -5,8 +5,8 @@ package hbnu.project.zhiyancommonbasic.utils.text;
  *
  * @author ErgouTree
  */
-public final class Base64
-{
+public final class Base64 {
+
     static private final int     BASELENGTH           = 128;
     static private final int     LOOKUPLENGTH         = 64;
     static private final int     TWENTYFOURBITGROUP   = 24;

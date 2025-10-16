@@ -1,13 +1,10 @@
-
-
-package hbnu.project.zhiyanauth.service;
+package hbnu.project.zhiyanauth.service.impl;
 
 import hbnu.project.zhiyancommonsecurity.service.UserDetailsService;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.PermissionModule;
 import hbnu.project.zhiyanauth.model.enums.SysRole;
 import hbnu.project.zhiyanauth.repository.UserRepository;
-import hbnu.project.zhiyancommonsecurity.context.LoginUserBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
