@@ -19,5 +19,9 @@ bin/
 *.zip
 *.tar.gz
 
+resources/application-dev.yml
+resources/bootstrap-dev.yml
+resources/application.yml
+resources/bootstrap.yml
 
-resources/
+logs/
