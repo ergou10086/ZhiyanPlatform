@@ -66,9 +66,11 @@ CREATE TABLE tasks (
     created_by BIGINT NOT NULL COMMENT '创建人ID（逻辑关联用户服务的用户ID）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    worktime DECIMAL(10, 2) COMMENT '预估工时（单位：小时，支持小数，例如2.5表示2.5小时）',
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否已删除（软删除标记，FALSE为未删除，TRUE为已删除）',
     -- 保留服务内部的外键约束（项目服务内的表关联）
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,  -- '项目删除时级联删除任务（服务内部约束）'
     -- 新增索引
-    INDEX idx_assignee_id (assignee_id(255)) COMMENT '优化JSON字段查询（前缀索引）',
+    INDEX idx_assignee_ids ((CAST(assignee_id AS UNSIGNED ARRAY))) COMMENT '为负责人ID数组创建多值索引',
     INDEX idx_created_by (created_by) COMMENT '优化按创建人查询'
 ) COMMENT '项目任务表（与用户服务松耦合，通过ID逻辑关联用户）';

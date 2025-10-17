@@ -40,7 +40,8 @@ spring:
 logging:
   level:
     root: INFO
-    org.springframework.cloud: DEBUG  # 可以看到配置加载日志，排查问题
-    com.alibaba.nacos: DEBUG          # Nacos 客户端日志
+    org.springframework.cloud: INFO   # 关闭配置加载的详细日志
+    com.alibaba.nacos: WARN           # 关闭 Nacos 客户端频繁日志
+    com.alibaba.nacos.shaded.io.grpc: WARN  # 关闭 gRPC 调试日志
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [BOOTSTRAP] %-5level %logger{36} - %msg%n"

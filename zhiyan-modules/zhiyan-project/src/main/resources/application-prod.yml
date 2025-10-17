@@ -1,12 +1,12 @@
 # 生产环境（服务器环境）
 
-# zhiyan-auth
+# zhiyan-project
 server:
-  port: 8091
+  port: 8092
 
 spring:
   application:
-    name: zhiyan-auth
+    name: zhiyan-project
 
   cloud:
     nacos:
@@ -45,37 +45,18 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:mysql://10.7.10.98:3306/zhiyan_userauth_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://10.7.10.98:3306/zhiyan_projectteam_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 连接池
     hikari:
-      pool-name: AuthServiceHikariPool
+      pool-name: ProjectServiceHikariPool
       minimum-idle: 5
       maximum-pool-size: 20
       idle-timeout: 300000
       max-lifetime: 1200000
       connection-timeout: 20000
-
-  # 邮件配置 - 网易163邮箱
-  mail:
-    host: smtp.163.com
-    port: 465
-    username: 18833121375@163.com
-    password: BBgBLZe89LzSCkwp
-    properties:
-      mail:
-        smtp:
-          auth: true
-          ssl:
-            enable: true
-            required: true
-          # 163邮箱需要SSL连接
-          socketFactory:
-            class: javax.net.ssl.SSLSocketFactory
-            port: 465
-    default-encoding: UTF-8
 
   # Jackson配置
   jackson:
@@ -86,41 +67,22 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
 
-  # JPA配置 - 新增配置解决方言问题
+  # JPA配置
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     open-in-view: false
-
-# 验证码配置
-app:
-  verification-code:
-    length: 6
-    expire-minutes: 10
-    rate-limit-minutes: 1
-    enable-database-storage: true
-    enable-email-sending: true
-    enable-cleanup-task: true
-    max-retry-attempts: 3
-  name: 智研平台
-
-# JWT配置
-jwt:
-  secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
-  issuer: "zhiyan-platform"
-  access-token-expire-minutes: 120
-  refresh-token-expire-minutes: 10080
 
 # Actuator配置
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,env
+        include: health,info,metrics,prometheus
       base-path: /actuator
   endpoint:
     health:
@@ -143,11 +105,10 @@ management:
 logging:
   level:
     root: INFO
-    hbnu.project.zhiyan: DEBUG
-    org.springframework.security: DEBUG
+    hbnu.project.zhiyan: INFO
+    org.springframework.security: WARN
     org.springframework.web: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.SQL: WARN
     com.zaxxer.hikari: INFO
     # 关闭特定框架的冗余日志
     org.springframework.data.redis.repository: WARN
@@ -161,14 +122,15 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: logs/zhiyan-auth-service.log
+    name: logs/zhiyan-project-service.log
   logback:
     rollingpolicy:
-      max-file-size: 50MB
+      max-file-size: 100MB
       max-history: 30
 
+# Swagger配置
+swagger:
+  enabled: false
+  title: "智研平台的项目管理模块"
+  description: "项目、任务、团队成员管理"
 
-  swagger:
-    enabled: true
-    title: "zhiyan平台的认证模块"
-    description: "用户的认证和权限管理"

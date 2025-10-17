@@ -13,7 +13,8 @@ import java.util.Map;
  * RSA加密解密工具类
  * 支持公钥加密/私钥解密、私钥签名/公钥验签、分段加解密
  *
- * @author ErgouTree
+ * @author yui
+ * @rewrite ErgouTree
  */
 public class RSAUtils {
 

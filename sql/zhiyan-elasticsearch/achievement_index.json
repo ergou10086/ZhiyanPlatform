@@ -1,0 +1,20 @@
+{
+  "mappings": {
+    "properties": {
+      "id": { "type": "long" },
+      "project_id": { "type": "long" },
+      "type": { "type": "keyword" },
+      "title": {
+        "type": "text",
+        "analyzer": "ik_max_word",
+        "search_analyzer": "ik_smart"
+      },
+      "abstract": { "type": "text", "analyzer": "ik_max_word" },
+      "tags": { "type": "keyword" },
+      "creator_name": { "type": "keyword" },
+      "status": { "type": "keyword" },
+      "detail_data": { "type": "object", "enabled": false },
+      "published_at": { "type": "date" }
+    }
+  }
+}

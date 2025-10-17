@@ -8,6 +8,7 @@ import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
@@ -19,6 +20,7 @@ import java.time.LocalDate;
  *
  * @author ErgouTree
  */
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "tasks", indexes = {
         @Index(name = "idx_created_by", columnList = "created_by")
@@ -64,6 +66,12 @@ public class Tasks extends BaseAuditEntity {
      */
     @Column(name = "description", columnDefinition = "TEXT COMMENT '任务描述'")
     private String description;
+
+    /**
+     * 工时
+     */
+    @Column(name = "worktime", columnDefinition = "工时")
+    private String worktime;
 
     /**
      * 任务状态
