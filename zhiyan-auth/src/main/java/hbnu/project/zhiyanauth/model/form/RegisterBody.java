@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.model.form;
 
+import hbnu.project.zhiyancommonsecurity.xss.Xss;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -25,6 +26,7 @@ public class RegisterBody {
      */
     @NotBlank(message = "姓名不能为空")
     @Size(max = 100, message = "姓名长度不能超过100个字符")
+    @Xss(message = "姓名不能包含HTML标签或脚本")
     private String name;
 
     /**
@@ -59,12 +61,14 @@ public class RegisterBody {
      * 用户职称/职位（可选）
      */
     @Size(max = 100, message = "职称/职位长度不能超过100个字符")
+    @Xss(message = "职称/职位不能包含HTML标签或脚本")
     private String title;
 
     /**
      * 所属机构（可选）
      */
     @Size(max = 200, message = "所属机构长度不能超过200个字符")
+    @Xss(message = "所属机构不能包含HTML标签或脚本")
     private String institution;
 
 

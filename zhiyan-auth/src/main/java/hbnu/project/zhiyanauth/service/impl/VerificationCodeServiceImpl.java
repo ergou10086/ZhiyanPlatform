@@ -121,6 +121,13 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         }
     }
 
+    /**
+     * 验证验证码
+     * @param email 邮箱地址
+     * @param code 验证码
+     * @param type 验证码类型
+     * @return R响应体
+     */
     @Override
     public R<Boolean> validateCode(String email, String code, VerificationCodeType type) {
         try {
@@ -197,16 +204,42 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         redisService.deleteObject(redisKey);
     }
 
-    @Scheduled(cron = "0 0 * * * ?")
+    /**
+     * 定时清理过期验证码
+     * 每天凌晨2点执行
+     */
+    @Scheduled(cron = "0 0 2 * * ?")
     @ConditionalOnProperty(name = "app.verification-code.enable-cleanup-task", havingValue = "true", matchIfMissing = true)
     public void scheduledCleanupExpiredCodes() {
-        log.debug("开始执行定时清理过期验证码任务");
+        log.info("========== 开始执行定时清理过期验证码任务 ==========");
         try {
+            // 1. 清理数据库中的过期验证码
             cleanExpiredCodes();
+
+            // 2. 清理数据库中24小时前已使用的验证码
+            cleanUsedCodes();
+
+            // 3. 清理 Redis 中的过期键
             cleanupRedisExpiredKeys();
-            log.debug("定时清理过期验证码任务执行完成");
+
+            log.info("========== 定时清理过期验证码任务执行完成 ==========");
         } catch (Exception e) {
             log.error("定时清理过期验证码任务执行失败", e);
+        }
+    }
+
+
+    /**
+     * 清理24小时前已使用的验证码
+     */
+    @Transactional
+    public void cleanUsedCodes() {
+        try {
+            LocalDateTime cutoffTime = LocalDateTime.now().minusHours(24);
+            int deletedCount = verificationCodeRepository.deleteUsedCodesBeforeTime(cutoffTime);
+            log.info("清理已使用验证码完成，删除数量: {}", deletedCount);
+        } catch (Exception e) {
+            log.error("清理已使用验证码失败: {}", e.getMessage(), e);
         }
     }
 

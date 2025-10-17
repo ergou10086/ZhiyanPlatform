@@ -3,7 +3,7 @@ package hbnu.project.zhiyancommonbasic.utils.file;
 /**
  * 媒体类型工具类
  * 
- * @author ruoyi
+ * @author ErgouTree
  */
 public class MimeTypeUtils
 {
@@ -38,8 +38,7 @@ public class MimeTypeUtils
             // pdf
             "pdf" };
 
-    public static String getExtension(String prefix)
-    {
+    public static String getExtension(String prefix) {
         switch (prefix)
         {
             case IMAGE_PNG:

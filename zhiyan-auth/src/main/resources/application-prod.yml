@@ -151,6 +151,12 @@ logging:
     com.zaxxer.hikari: INFO
     # 关闭特定框架的冗余日志
     org.springframework.data.redis.repository: WARN
+    # 关闭 Nacos 客户端的频繁日志
+    com.alibaba.nacos.client: WARN
+    com.alibaba.nacos.shaded.io.grpc: WARN
+    org.springframework.cloud.alibaba.nacos: WARN
+    # 关闭 Sentinel 控制台输出
+    com.alibaba.csp.sentinel: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
@@ -166,3 +172,18 @@ logging:
     enabled: true
     title: "zhiyan平台的认证模块"
     description: "用户的认证和权限管理"
+
+
+# 自定义security配置
+security:
+  # Xss攻击过滤路径
+  xss:
+    enabled: true
+    exclude-urls:
+      - /actuator/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /error
+      - /favicon.ico
+      - /zhiyan/auth/send-verfcode
+      - /zhiyan/auth/verify-code

@@ -3,6 +3,7 @@ package hbnu.project.zhiyanauth.repository;
 import hbnu.project.zhiyanauth.model.entity.VerificationCode;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -47,4 +48,15 @@ public interface VerificationCodeRepository extends JpaRepository<VerificationCo
      */
     @Query("DELETE FROM VerificationCode vc WHERE vc.expiresAt < :now")
     int deleteExpiredCodes(@Param("now") LocalDateTime now);
+
+
+    /**
+     * 删除指定时间之前已使用的验证码
+     *
+     * @param cutoffTime 截止时间
+     * @return 删除的记录数
+     */
+    @Modifying
+    @Query("DELETE FROM VerificationCode vc WHERE vc.isUsed = true AND vc.createdAt < :cutoffTime")
+    int deleteUsedCodesBeforeTime(@Param("cutoffTime") LocalDateTime cutoffTime);
 }

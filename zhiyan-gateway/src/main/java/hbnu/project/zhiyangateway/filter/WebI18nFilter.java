@@ -15,7 +15,7 @@ import java.util.Locale;
 /**
  * 全局国际化处理
  *
- * @author ErgouTree
+ * @author worst galgame player
  */
 @Slf4j
 @Component

@@ -21,7 +21,7 @@
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
-        <!-- SpringCloud Alibaba Nacos -->
+        <!-- SpringCloud Alibaba Nacos 服务发现-->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
@@ -75,22 +75,58 @@
             <artifactId>jjwt</artifactId>
         </dependency>
 
-        <!--zhiyan-common-basic模块-->
+        <!--zhiyan-common-basic模块 - 排除不兼容的依赖-->
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
+            <exclusions>
+                <!-- 排除 JPA，Gateway 不需要数据库 -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-jpa</artifactId>
+                </exclusion>
+                <!-- 排除 Redis，Gateway 不需要 Redis -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-redis</artifactId>
+                </exclusion>
+                <!-- 排除 Spring Web MVC -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
-        <!--zhiyan-common-redis模块-->
-        <dependency>
-            <groupId>hbnu.project</groupId>
-            <artifactId>zhiyan-common-redis</artifactId>
-        </dependency>
+<!--        &lt;!&ndash;zhiyan-common-redis模块 - 排除不兼容的依赖&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>hbnu.project</groupId>-->
+<!--            <artifactId>zhiyan-common-redis</artifactId>-->
+<!--            <exclusions>-->
+<!--                &lt;!&ndash; Gateway 不需要 Redis &ndash;&gt;-->
+<!--                <exclusion>-->
+<!--                    <groupId>org.springframework.boot</groupId>-->
+<!--                    <artifactId>spring-boot-starter-data-redis</artifactId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
+<!--        </dependency>-->
 
-        <!--zhiyan-common-security模块-->
+        <!--zhiyan-common-security模块 - 排除传统 Security-->
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-security</artifactId>
+            <exclusions>
+                <!-- 排除传统的 Spring Security（MVC）-->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-security</artifactId>
+                </exclusion>
+                <!-- 排除 Spring Web MVC -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

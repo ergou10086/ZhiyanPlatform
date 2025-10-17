@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
  * 全局日志过滤器
  * <p>
  * 用于打印请求执行参数与响应时间等等
+ * 用于请求溯源与审计，便于事后审计和攻击追踪。
  *
  * @author asddjv
  */

@@ -18,11 +18,18 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = { XssValidator.class })
 public @interface Xss
 {
-    String message()
+    /**
+     * 校验失败时的错误消息
+     */
+    String message() default "输入内容包含非法字符，不允许包含HTML标签或脚本";
 
-    default "不允许任何脚本运行";
-
+    /**
+     * 分组校验
+     */
     Class<?>[] groups() default {};
 
+    /**
+     * 负载
+     */
     Class<? extends Payload>[] payload() default {};
 }
