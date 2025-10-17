@@ -2,6 +2,7 @@ package hbnu.project.zhiyanproject.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
+import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -32,12 +33,11 @@ import java.time.LocalDateTime;
 public class ProjectMember {
 
     /**
-     * 成员记录唯一标识
+     * 雪花id
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @LongToString
-    @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '成员记录唯一标识'")
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '成员记录唯一标识（雪花ID）'")
     private Long id;
 
     /**
@@ -84,10 +84,13 @@ public class ProjectMember {
     private LocalDateTime joinedAt;
 
     /**
-     * 在保存前设置加入时间
+     * 在保存前设置加入时间和生成雪花ID
      */
     @PrePersist
     protected void onCreate() {
+        if (this.id == null) {
+            this.id = SnowflakeIdUtil.nextId();
+        }
         if (joinedAt == null) {
             joinedAt = LocalDateTime.now();
         }

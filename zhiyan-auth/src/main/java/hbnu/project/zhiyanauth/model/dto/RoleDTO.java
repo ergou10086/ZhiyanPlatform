@@ -51,7 +51,7 @@ public class RoleDTO {
     /**
      * 是否为系统默认角色
      */
-    private String isSystemDefault;
+    private Boolean isSystemDefault;
 
     /**
      * 创建时间

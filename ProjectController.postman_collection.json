@@ -1,0 +1,413 @@
+{
+  "info": {
+    "name": "智研平台 - 项目管理接口",
+    "description": "项目管理相关接口，包括项目CRUD、查询、统计等功能",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "智研平台"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. 创建项目",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects?name=AI研究项目&description=深度学习研究&visibility=PUBLIC&startDate=2025-01-01&endDate=2025-12-31",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects"],
+          "query": [
+            {
+              "key": "name",
+              "value": "AI研究项目",
+              "description": "项目名称（必填）"
+            },
+            {
+              "key": "description",
+              "value": "深度学习研究",
+              "description": "项目描述"
+            },
+            {
+              "key": "visibility",
+              "value": "PUBLIC",
+              "description": "可见性(PUBLIC/PRIVATE)"
+            },
+            {
+              "key": "startDate",
+              "value": "2025-01-01",
+              "description": "开始日期(YYYY-MM-DD)"
+            },
+            {
+              "key": "endDate",
+              "value": "2025-12-31",
+              "description": "结束日期(YYYY-MM-DD)"
+            }
+          ]
+        },
+        "description": "创建新项目，创建者自动成为项目拥有者"
+      },
+      "response": []
+    },
+    {
+      "name": "2. 更新项目",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/{{project_id}}?name=AI高级研究&status=ONGOING",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "{{project_id}}"],
+          "query": [
+            {
+              "key": "name",
+              "value": "AI高级研究",
+              "description": "项目名称"
+            },
+            {
+              "key": "description",
+              "value": "",
+              "description": "项目描述",
+              "disabled": true
+            },
+            {
+              "key": "visibility",
+              "value": "",
+              "description": "可见性(PUBLIC/PRIVATE)",
+              "disabled": true
+            },
+            {
+              "key": "status",
+              "value": "ONGOING",
+              "description": "项目状态(PLANNING/ONGOING/COMPLETED/ARCHIVED)"
+            },
+            {
+              "key": "startDate",
+              "value": "",
+              "description": "开始日期",
+              "disabled": true
+            },
+            {
+              "key": "endDate",
+              "value": "",
+              "description": "结束日期",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "更新项目信息，需要是项目成员"
+      },
+      "response": []
+    },
+    {
+      "name": "3. 删除项目",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/{{project_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "{{project_id}}"]
+        },
+        "description": "软删除项目，只有项目拥有者可以删除"
+      },
+      "response": []
+    },
+    {
+      "name": "4. 获取项目详情",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/{{project_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "{{project_id}}"]
+        },
+        "description": "根据ID获取项目详细信息"
+      },
+      "response": []
+    },
+    {
+      "name": "5. 获取所有项目（分页）",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects?page=0&size=10&sortBy=createdAt&direction=DESC",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0",
+              "description": "页码"
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "description": "每页大小"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt",
+              "description": "排序字段"
+            },
+            {
+              "key": "direction",
+              "value": "DESC",
+              "description": "排序方向(ASC/DESC)"
+            }
+          ]
+        },
+        "description": "分页获取所有项目（需要OWNER角色）"
+      },
+      "response": []
+    },
+    {
+      "name": "6. 获取我创建的项目",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/my-created?page=0&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "my-created"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "获取当前用户创建的所有项目"
+      },
+      "response": []
+    },
+    {
+      "name": "7. 获取指定用户创建的项目",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/creator/{{user_id}}?page=0&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "creator", "{{user_id}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "根据创建者ID获取项目列表"
+      },
+      "response": []
+    },
+    {
+      "name": "8. 按状态获取项目",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/status/ONGOING?page=0&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "status", "ONGOING"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "根据项目状态筛选项目 (PLANNING/ONGOING/COMPLETED/ARCHIVED)"
+      },
+      "response": []
+    },
+    {
+      "name": "9. 获取我参与的项目",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/my-projects?page=0&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "my-projects"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "获取当前用户参与的所有项目"
+      },
+      "response": []
+    },
+    {
+      "name": "10. 搜索项目",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/search?keyword=AI&page=0&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "search"],
+          "query": [
+            {
+              "key": "keyword",
+              "value": "AI",
+              "description": "搜索关键词（必填）"
+            },
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "根据关键字搜索项目"
+      },
+      "response": []
+    },
+    {
+      "name": "11. 获取公开的活跃项目 🌟无需认证",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/public/active?page=0&size=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "public", "active"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "获取所有公开的活跃项目（项目广场），无需登录"
+      },
+      "response": []
+    },
+    {
+      "name": "12. 更新项目状态",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/{{project_id}}/status?status=COMPLETED",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "{{project_id}}", "status"],
+          "query": [
+            {
+              "key": "status",
+              "value": "COMPLETED",
+              "description": "新状态(PLANNING/ONGOING/COMPLETED/ARCHIVED)"
+            }
+          ]
+        },
+        "description": "更新项目的状态"
+      },
+      "response": []
+    },
+    {
+      "name": "13. 归档项目",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/{{project_id}}/archive",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "{{project_id}}", "archive"]
+        },
+        "description": "将项目归档"
+      },
+      "response": []
+    },
+    {
+      "name": "14. 统计我创建的项目数量",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/count/my-created",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "count", "my-created"]
+        },
+        "description": "统计当前用户创建的项目数量"
+      },
+      "response": []
+    },
+    {
+      "name": "15. 统计我参与的项目数量",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/projects/count/my-participated",
+          "host": ["{{base_url}}"],
+          "path": ["api", "projects", "count", "my-participated"]
+        },
+        "description": "统计当前用户参与的项目数量"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "1234567890123456789",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1001",
+      "type": "string"
+    }
+  ]
+}
+

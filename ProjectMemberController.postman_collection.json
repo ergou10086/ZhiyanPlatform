@@ -1,0 +1,261 @@
+{
+  "info": {
+    "name": "智研平台 - 项目成员管理接口",
+    "description": "项目成员管理相关接口，包括成员邀请、移除、角色管理等功能（采用直接邀请方式，无需申请审批）",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "智研平台"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "成员管理",
+      "item": [
+        {
+          "name": "1. 邀请成员加入项目",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1002,\n  \"role\": \"MEMBER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/invite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "invite"]
+            },
+            "description": "项目负责人直接将用户添加到项目中（无需对方同意）\n\n请求体字段：\n- userId: 被邀请用户ID（必填）\n- role: 角色(OWNER/MEMBER)，默认MEMBER"
+          },
+          "response": []
+        },
+        {
+          "name": "2. 移除项目成员",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/members/{{member_user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "members", "{{member_user_id}}"]
+            },
+            "description": "项目负责人移除项目成员"
+          },
+          "response": []
+        },
+        {
+          "name": "3. 更新成员角色",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/members/{{member_user_id}}/role?newRole=OWNER",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "members", "{{member_user_id}}", "role"],
+              "query": [
+                {
+                  "key": "newRole",
+                  "value": "OWNER",
+                  "description": "新角色(OWNER/MEMBER)"
+                }
+              ]
+            },
+            "description": "项目负责人修改成员的项目角色"
+          },
+          "response": []
+        },
+        {
+          "name": "4. 退出项目",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/leave",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "leave"]
+            },
+            "description": "成员主动退出项目"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "成员查询",
+      "item": [
+        {
+          "name": "5. 获取项目成员列表",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "页码"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "每页大小"
+                }
+              ]
+            },
+            "description": "获取项目的所有成员详细信息"
+          },
+          "response": []
+        },
+        {
+          "name": "6. 获取我参与的项目",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/my-projects?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "my-projects"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "获取当前用户参与的所有项目"
+          },
+          "response": []
+        },
+        {
+          "name": "7. 按角色获取成员",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/role/OWNER",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "role", "OWNER"]
+            },
+            "description": "获取项目中指定角色的所有成员 (OWNER/MEMBER)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "权限检查",
+      "item": [
+        {
+          "name": "8. 检查成员身份",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/check-membership",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "check-membership"]
+            },
+            "description": "检查当前用户是否为项目成员"
+          },
+          "response": []
+        },
+        {
+          "name": "9. 检查负责人身份",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/check-owner",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "check-owner"]
+            },
+            "description": "检查当前用户是否为项目负责人"
+          },
+          "response": []
+        },
+        {
+          "name": "10. 获取我的角色",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/my-role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "my-role"]
+            },
+            "description": "获取当前用户在项目中的角色"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "统计",
+      "item": [
+        {
+          "name": "11. 获取成员数量",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/members/projects/{{project_id}}/count",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "members", "projects", "{{project_id}}", "count"]
+            },
+            "description": "获取项目的成员总数"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "1234567890123456789",
+      "type": "string"
+    },
+    {
+      "key": "member_user_id",
+      "value": "1002",
+      "type": "string",
+      "description": "要操作的成员用户ID"
+    }
+  ]
+}
+
