@@ -172,3 +172,18 @@ logging:
     enabled: true
     title: "zhiyan平台的认证模块"
     description: "用户的认证和权限管理"
+
+
+# 自定义security配置
+security:
+  # Xss攻击过滤路径
+  xss:
+    enabled: true
+    exclude-urls:
+      - /actuator/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /error
+      - /favicon.ico
+      - /zhiyan/auth/send-verfcode
+      - /zhiyan/auth/verify-code

@@ -8,7 +8,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 /**
  * 健康检查配置注入
  *
- * @author Lion Li
+ * @author ErgouTree
  */
 public class ActuatorEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
 
