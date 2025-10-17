@@ -1,0 +1,67 @@
+# 日志配置
+logging:
+  config: classpath:log4j2-spring.xml
+  level:
+    root: info
+    hbnu.project: debug
+
+
+spring:
+  application:
+    name: zhiyan-common-basic
+
+  # Nacos服务注册与发现配置
+  cloud:
+    nacos:
+      # 禁用 Nacos 服务发现
+      discovery:
+        enable: false
+
+      # 启用 Nacos 配置中心
+      config:
+        # Nacos配置中心地址
+        server-addr: 127.0.0.1:8848
+        # 配置文件命名空间，建议与服务发现保持一致
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        # 配置文件分组
+        group: DEFAULT_GROUP
+        # 配置文件类型
+        file-extension: yaml
+        # 配置文件前缀，默认使用spring.application.name
+        prefix: ${spring.application.name}
+
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+    default-property-inclusion: non_null
+
+# 自定义配置
+zhiyan:
+  jackson:
+    # 全局Long转String配置，默认开启
+    # 设置为false时，只有使用@LongToString注解的字段才会转换
+    long-to-string-global: true
+
+
+# Actuator监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: false
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
