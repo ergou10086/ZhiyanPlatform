@@ -408,6 +408,27 @@ public class UserController {
     }
 
     /**
+     * 根据姓名查询用户信息（服务间调用接口）
+     * 路径: GET /api/users/name
+     * 用于其他微服务通过Feign调用查询用户
+     * 无需权限校验（内部调用）
+     */
+    @GetMapping("/name")
+    @Operation(summary = "根据姓名查询用户", description = "根据姓名查询用户基本信息（服务间调用）")
+    public R<UserDTO> getUserByName(
+            @Parameter(description = "用户姓名", required = true)
+            @RequestParam("name") String name) {
+        log.info("根据姓名查询用户: name={}", name);
+
+        try {
+            return userService.getUserByName(name);
+        } catch (Exception e) {
+            log.error("根据姓名查询用户失败: name={}", name, e);
+            return R.fail("查询用户失败");
+        }
+    }
+
+    /**
      * 批量根据ID查询用户信息（服务间调用接口）
      * 路径: POST /api/users/batch-query
      * 用于其他微服务批量查询成员信息

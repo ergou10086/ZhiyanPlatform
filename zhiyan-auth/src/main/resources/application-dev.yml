@@ -43,7 +43,7 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:mysql://localhost:3306/zhiyan?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://localhost:3306/zhiyan_userauth_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
     username: root
     password: YzBdPnDl1212
     driver-class-name: com.mysql.cj.jdbc.Driver

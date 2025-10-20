@@ -145,7 +145,7 @@ public class ProjectMemberController {
             @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
             @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
         
-        Long currentUserId = SecurityUtils.getUserId();
+        final Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]查看项目[{}]的成员列表", currentUserId, projectId);
 
         try {
@@ -153,8 +153,9 @@ public class ProjectMemberController {
             Page<ProjectMemberDetailDTO> members = projectMemberService.getProjectMembers(projectId, pageable);
 
             // 标记当前用户
+            final Long userId = currentUserId;
             members.forEach(member -> {
-                if (member.getUserId().equals(currentUserId)) {
+                if (member.getUserId().equals(userId)) {
                     member.setIsCurrentUser(true);
                 }
             });

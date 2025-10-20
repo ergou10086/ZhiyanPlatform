@@ -27,9 +27,20 @@ import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import hbnu.project.zhiyancommonsecurity.context.LoginUserBody;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final CustomRememberMeService customRememberMeService;
+    private final AuthenticationManager authenticationManager;
 
 
     /**
@@ -129,8 +141,8 @@ public class AuthServiceImpl implements AuthService {
 
 
     /**
-     * AuthServiceImpl
-     * 用户登录
+     * 用户登录（使用 Spring Security 标准认证流程）
+     * 会自动调用 AuthUserDetailsService.loadUserByUsername() 进行用户信息加载和密码验证
      *
      * @param loginBody 登录请求体
      * @return 登录结果
@@ -140,53 +152,43 @@ public class AuthServiceImpl implements AuthService {
         log.info("处理用户登录: 邮箱={}", loginBody.getEmail());
 
         try {
-            // 1. 根据邮箱查询用户
-            Optional<User> userOptional = userRepository.findByEmail(loginBody.getEmail());
-            if (userOptional.isEmpty()) {
-                log.warn("登录失败: 用户不存在 - 邮箱: {}", loginBody.getEmail());
-                return R.fail("邮箱或密码错误");
-            }
-
-            User user = userOptional.get();
-
-
-            // 1. 检查用户状态（用枚举）
-            if (user.getStatus() != UserStatus.ACTIVE) {
-                return R.fail("账户不可用：" + user.getStatus().getDescription());
-            }
-
-            // 3. 校验密码
-            if (!passwordEncoder.matches(loginBody.getPassword(), user.getPasswordHash())) {
-                log.warn("登录失败: 密码错误 - 邮箱: {}", loginBody.getEmail());
-                return R.fail("邮箱或密码错误");
-            }
-
-            // 4. 生成JWT令牌
+            // 使用 Spring Security 的标准认证流程
+            // 这会自动调用 AuthUserDetailsService.loadUserByUsername() 加载用户信息
+            // 并自动进行密码验证、账户状态检查等操作
+            UsernamePasswordAuthenticationToken authRequest = 
+                new UsernamePasswordAuthenticationToken(
+                    loginBody.getEmail(), 
+                    loginBody.getPassword()
+                );
+            
+            // 执行认证（内部会调用 loadUserByUsername 和密码验证）
+            Authentication authentication = authenticationManager.authenticate(authRequest);
+            
+            // 认证成功，获取用户详情
+            LoginUserBody loginUser = (LoginUserBody) authentication.getPrincipal();
+            
+            // 生成 JWT Token
             boolean rememberMe = loginBody.getRememberMe() != null ? loginBody.getRememberMe() : false;
-            TokenDTO tokenDTO = generateTokens(user.getId(), rememberMe);
+            TokenDTO tokenDTO = generateTokens(loginUser.getUserId(), rememberMe);
 
-            // 生成 RememberMeToken
+            // 生成 RememberMeToken（如果需要）
             String rememberMeToken = null;
             if (rememberMe) {
-                rememberMeToken = customRememberMeService.createRememberMeToken(user.getId());
+                rememberMeToken = customRememberMeService.createRememberMeToken(loginUser.getUserId());
             }
 
-            // 5. 更新最后登录时间
-            //user.setLastLoginTime(LocalDateTime.now());
-            userRepository.save(user);
-
-            // 6. 构建用户信息DTO
+            // 构建响应 DTO
             UserDTO userDTO = UserDTO.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .name(user.getName())
-                    .avatarUrl(user.getAvatarUrl())
-                    .title(user.getTitle())
-                    .institution(user.getInstitution())
-
+                    .id(loginUser.getUserId())
+                    .email(loginUser.getEmail())
+                    .name(loginUser.getName())
+                    .avatarUrl(loginUser.getAvatarUrl())
+                    .title(loginUser.getTitle())
+                    .institution(loginUser.getInstitution())
+                    .roles(loginUser.getRoles())
+                    .permissions(new ArrayList<>(loginUser.getPermissions()))
                     .build();
 
-            // 7. 构建登录响应
             UserLoginResponse response = UserLoginResponse.builder()
                     .user(userDTO)
                     .accessToken(tokenDTO.getAccessToken())
@@ -197,12 +199,32 @@ public class AuthServiceImpl implements AuthService {
                     .rememberMeToken(rememberMeToken)
                     .build();
 
-            log.info("用户登录成功: 用户ID={}, 邮箱={}, 记住我={}",
-                    user.getId(), user.getEmail(), rememberMe);
-            return R.ok(response);
+            log.info("用户登录成功 - 用户ID: {}, 邮箱: {}, 记住我: {}", 
+                    loginUser.getUserId(), loginUser.getEmail(), rememberMe);
+            return R.ok(response, "登录成功");
 
+        } catch (BadCredentialsException e) {
+            // 用户名或密码错误
+            log.warn("登录失败: 邮箱或密码错误 - 邮箱: {}", loginBody.getEmail());
+            return R.fail("邮箱或密码错误");
+            
+        } catch (LockedException e) {
+            // 账户被锁定
+            log.warn("登录失败: 账户已被锁定 - 邮箱: {}", loginBody.getEmail());
+            return R.fail("账户已被锁定，请联系管理员");
+            
+        } catch (DisabledException e) {
+            // 账户被禁用
+            log.warn("登录失败: 账户已被禁用 - 邮箱: {}", loginBody.getEmail());
+            return R.fail("账户已被禁用");
+            
+        } catch (AuthenticationException e) {
+            // 其他认证异常
+            log.error("登录失败: 认证异常 - 邮箱: {}, 错误: {}", loginBody.getEmail(), e.getMessage());
+            return R.fail("登录失败：" + e.getMessage());
+            
         } catch (Exception e) {
-            log.error("用户登录失败 - 邮箱: {}, 错误: {}", loginBody.getEmail(), e.getMessage(), e);
+            log.error("登录异常 - 邮箱: {}, 错误: {}", loginBody.getEmail(), e.getMessage(), e);
             return R.fail("登录失败，请稍后重试");
         }
     }
@@ -309,6 +331,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenDTO generateTokens(Long userId, boolean rememberMe) {
         try {
+            // 查询用户信息以获取 email
+            Optional<User> userOptional = userRepository.findById(userId);
+            if (userOptional.isEmpty()) {
+                throw new RuntimeException("用户不存在，无法生成令牌");
+            }
+            String email = userOptional.get().getEmail();
+            
             // 根据记住我选项确定过期时间（分钟）
             // 访问令牌过期时间：默认较短，记住我时较长
             int accessTokenExpireMinutes = rememberMe ? 
@@ -316,11 +345,16 @@ public class AuthServiceImpl implements AuthService {
             int refreshTokenExpireMinutes = rememberMe ? 
                 TokenConstants.REMEMBER_ME_REFRESH_TOKEN_EXPIRE_MINUTES : TokenConstants.DEFAULT_REFRESH_TOKEN_EXPIRE_MINUTES;
             
-            // 生成访问令牌
-            String accessToken = jwtUtils.createToken(userId.toString(), accessTokenExpireMinutes);
+            // 创建自定义 claims，包含 userId 和 email
+            Map<String, Object> claims = new HashMap<>();
+            claims.put(TokenConstants.JWT_CLAIM_USER_ID, userId);
+            claims.put(TokenConstants.JWT_CLAIM_EMAIL, email);
+            
+            // 生成访问令牌（subject 使用 userId，claims 包含 email）
+            String accessToken = jwtUtils.createToken(userId.toString(), accessTokenExpireMinutes, claims);
 
             // 生成刷新令牌（长期有效，用于获取新的访问令牌）
-            String refreshToken = jwtUtils.createToken(userId.toString(), refreshTokenExpireMinutes);
+            String refreshToken = jwtUtils.createToken(userId.toString(), refreshTokenExpireMinutes, claims);
 
             log.info("=== 生成的Token信息 ===");
             log.info("用户ID: {}", userId);

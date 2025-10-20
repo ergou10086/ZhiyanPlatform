@@ -16,7 +16,7 @@ import java.util.Map;
  *
  * @author Tokito
  */
-@FeignClient(name = "zhiyan-auth-service", path = "/auth/users")
+@FeignClient(name = "zhiyan-auth-service", path = "/zhiyan/users")
 public interface AuthServiceClient {
 
     /**
@@ -27,6 +27,15 @@ public interface AuthServiceClient {
      */
     @GetMapping("/email")
     R<UserDTO> getUserByEmail(@RequestParam("email") String email);
+
+    /**
+     * 根据姓名查询用户信息
+     *
+     * @param name 用户姓名
+     * @return 用户信息
+     */
+    @GetMapping("/name")
+    R<UserDTO> getUserByName(@RequestParam("name") String name);
 
     /**
      * 根据用户ID查询用户信息

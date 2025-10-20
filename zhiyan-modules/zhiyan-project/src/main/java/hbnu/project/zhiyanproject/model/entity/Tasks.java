@@ -100,13 +100,6 @@ public class Tasks extends BaseAuditEntity {
     @Column(name = "due_date", columnDefinition = "DATE COMMENT '任务截止日期'")
     private LocalDate dueDate;
 
-    /**
-     * 创建人ID（逻辑关联用户服务的用户ID）
-     */
-    @CreatedBy
-    @LongToString
-    @Column(name = "created_by", nullable = false, columnDefinition = "BIGINT COMMENT '创建人ID（逻辑关联用户服务的用户ID）'")
-    private Long createdBy;
 
     /**
      * 是否已删除（软删除标记）

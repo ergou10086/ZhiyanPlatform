@@ -50,6 +50,15 @@ public interface UserService {
     R<UserDTO> getUserByEmail(String email);
 
     /**
+     * 根据姓名查询用户信息（服务间调用接口）
+     * 供其他微服务通过Feign调用
+     * 
+     * @param name 用户姓名
+     * @return 用户信息
+     */
+    R<UserDTO> getUserByName(String name);
+
+    /**
      * 批量根据用户ID查询用户信息（服务间调用接口）
      * 用于项目服务批量查询成员信息等场景
      * 

@@ -2,10 +2,6 @@ package hbnu.project.zhiyancommonsecurity.config;
 
 import hbnu.project.zhiyancommonsecurity.filter.JwtAuthenticationFilter;
 import hbnu.project.zhiyancommonsecurity.interceptor.HeaderInterceptor;
-
-import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
-
-import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,10 +35,6 @@ public class SecurityConfig implements WebMvcConfigurer {
 
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-
-
-
 
     /**
      * 密码编码器Bean
@@ -125,7 +117,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/zhiyan/auth/clear-remember-me",
                                 "/zhiyan/auth/check-email"
                         ).permitAll()
-                        
+
                         // 系统基础接口 - 无需登录
                         .requestMatchers(
                                 "/error",
@@ -138,6 +130,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         // 用户服务内部接口 - 无需登录（供服务间调用）
                         .requestMatchers(
                                 "/zhiyan/users/email",              // 根据邮箱查询用户
+                                "/zhiyan/users/name",               // 根据姓名查询用户
                                 "/zhiyan/users/batch-query",        // 批量查询用户
                                 "/zhiyan/users/*/has-permission",   // 检查用户权限
                                 "/zhiyan/users/*/has-permissions",  // 批量检查权限
@@ -159,7 +152,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(
                                 "/api/projects/public/**"            // 公开项目列表、项目广场等
                         ).permitAll()
-                        
+
                         // 其他所有接口需要认证，具体权限由 @PreAuthorize 注解控制
                         .anyRequest().authenticated()
                 )
@@ -170,9 +163,6 @@ public class SecurityConfig implements WebMvcConfigurer {
                 // 添加RememberMe自动登录支持（交给自定义逻辑处理）
                 .rememberMe(remember -> remember.disable());
 
-
         return http.build();
     }
-
-
 }

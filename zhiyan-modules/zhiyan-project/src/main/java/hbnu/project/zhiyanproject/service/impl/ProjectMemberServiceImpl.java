@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -100,7 +101,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
         // 4. 不能移除项目负责人
         if (member.getProjectRole() == ProjectMemberRole.OWNER) {
-            throw new IllegalArgumentException("不能移除项目负责人"));
+            throw new IllegalArgumentException("不能移除项目负责人");
         }
 
         // 5. 移除成员
@@ -173,18 +174,20 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .map(ProjectMember::getUserId)
                 .collect(Collectors.toList());
 
-        Map<Long, UserDTO> userMap;
+        Map<Long, UserDTO> userMap = new HashMap<>();
         try {
             R<Map<Long, UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
-            userMap = userResponse.isSuccess() ? userResponse.getData() : Map.of();
+            if (R.isSuccess(userResponse) && userResponse.getData() != null) {
+                userMap = userResponse.getData();
+            }
         } catch (Exception e) {
             log.error("批量查询用户信息失败", e);
-            userMap = Map.of();
         }
+        final Map<Long, UserDTO> finalUserMap = userMap;
 
         // 4. 转换为DTO
         return members.map(member -> {
-            UserDTO user = userMap.get(member.getUserId());
+            UserDTO user = finalUserMap.get(member.getUserId());
             return ProjectMemberDetailDTO.builder()
                     .id(member.getId())
                     .projectId(member.getProjectId())
@@ -231,5 +234,10 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     public long getMemberCount(Long projectId) {
         return projectMemberRepository.countByProjectId(projectId);
+    }
+
+    @Override
+    public ProjectMember addMember(Long projectId, Long creatorId, Enum roleEnum) {
+        return null;
     }
 }

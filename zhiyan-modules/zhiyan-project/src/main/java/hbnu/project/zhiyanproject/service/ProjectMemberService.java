@@ -124,4 +124,12 @@ public interface ProjectMemberService {
      * @return 成员数量
      */
     long getMemberCount(Long projectId);
+
+    /**
+     * 添加项目成员
+     *
+     * @param projectId 项目ID
+     * @return 成员ID集合
+     */
+    ProjectMember addMember(Long projectId, Long creatorId, Enum roleEnum);
 }

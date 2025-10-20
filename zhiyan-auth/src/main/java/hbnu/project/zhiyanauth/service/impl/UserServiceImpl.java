@@ -146,6 +146,38 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * 根据姓名查询用户信息（服务间调用接口）
+     * 供其他微服务通过Feign调用
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public R<UserDTO> getUserByName(String name) {
+        try {
+            log.debug("根据姓名查询用户 - name: {}", name);
+            
+            if (StringUtils.isBlank(name)) {
+                return R.fail("姓名不能为空");
+            }
+
+            Optional<User> optionalUser = userRepository.findByNameAndIsDeletedFalse(name);
+            if (optionalUser.isEmpty()) {
+                log.warn("用户不存在 - name: {}", name);
+                return R.fail("用户不存在");
+            }
+
+            User user = optionalUser.get();
+            UserDTO userDTO = userMapper.toDTO(user);
+            
+            log.debug("成功查询到用户 - name: {}, userId: {}", name, user.getId());
+            return R.ok(userDTO);
+
+        } catch (Exception e) {
+            log.error("根据姓名查询用户异常 - name: {}, 错误: {}", name, e.getMessage(), e);
+            return R.fail("查询用户失败");
+        }
+    }
+
+    /**
      * 批量根据用户ID查询用户信息（服务间调用接口）
      * 用于项目服务批量查询成员信息等场景
      */

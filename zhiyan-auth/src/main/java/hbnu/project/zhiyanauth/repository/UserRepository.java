@@ -95,4 +95,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Page<User> findByNameContainingOrEmailContainingAndIsDeletedFalse(
             String nameKeyword, String emailKeyword, Pageable pageable);
+
+    /**
+     * 根据姓名查找未删除的用户
+     *
+     * @param name 用户姓名
+     * @return 用户对象（可能为空）
+     */
+    Optional<User> findByNameAndIsDeletedFalse(String name);
 }

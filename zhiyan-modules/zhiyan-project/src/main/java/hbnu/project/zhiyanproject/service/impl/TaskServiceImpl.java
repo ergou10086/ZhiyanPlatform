@@ -84,7 +84,7 @@ public class TaskServiceImpl implements TaskService {
                 .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.MEDIUM)
                 .assigneeId(assigneeIdsJson)
                 .dueDate(request.getDueDate())
-                .createdBy(creatorId)
+                .createdBy(authServiceClient.getUserById(creatorId).getData().getName())
                 .isDeleted(false)
                 .build();
 
@@ -408,7 +408,7 @@ public class TaskServiceImpl implements TaskService {
         // 查询创建人信息
         String creatorName = "未知用户";
         try {
-            R<UserDTO> response = authServiceClient.getUserById(task.getCreatedBy());
+            R<UserDTO> response = authServiceClient.getUserByName(task.getCreatedBy());
             if (R.isSuccess(response) && response.getData() != null) {
                 creatorName = response.getData().getName();
             }
