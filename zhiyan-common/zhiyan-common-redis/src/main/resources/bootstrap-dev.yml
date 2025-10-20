@@ -1,19 +1,34 @@
-# 引导配置，负责连接 Nacos 配置中心
+# 开发环境（本地环境）
 
+# bootstrap.yaml - 应用启动核心配置（优先加载）
 spring:
+  # 1. 应用基础信息
   application:
-    name: zhiyan-common-redis  # 应用名，与 Nacos 配置的 Data ID 前缀一致
+    name: zhiyan-common-redis
+
+  # 2. 配置中心核心配置（Nacos 连接信息，启动必需）
   cloud:
     nacos:
-      username: nacos  # Nacos 用户名
-      password: nacos  # Nacos 密码
-      config:  # 仅启用「配置中心」，不启用「服务发现」
-        server-addr: 127.0.0.1:8848  # Nacos 配置中心地址
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf        # 命名空间（与 Nacos 中配置一致）
-        group: DEFAULT_GROUP         # 配置分组（与 Nacos 中配置一致）
-        file-extension: yaml         # 配置文件格式（YAML）
-        username: nacos  # Nacos 用户名
-        password: nacos  # Nacos 密码
+      # Nacos 配置中心配置（优先初始化，用于拉取后续配置）
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        prefix: zhiyan-common-redis
+
+  # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
     import:
-      - optional:nacos:zhiyan-common-redis.yaml?refresh=true  # 导入 Nacos 中对应的配置（Data ID: zhiyan-common-redis.yaml）
+      - nacos:zhiyan-common-redis.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
+
+# 日志基础配置（启动阶段日志，避免日志配置加载延迟）
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud: DEBUG  # 可以看到配置加载日志，排查问题
+    com.alibaba.nacos: DEBUG          # Nacos 客户端日志
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [BOOTSTRAP] %-5level %logger{36} - %msg%n"
+
+

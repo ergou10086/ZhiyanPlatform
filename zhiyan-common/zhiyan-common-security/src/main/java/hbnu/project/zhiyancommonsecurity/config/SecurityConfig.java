@@ -122,11 +122,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/zhiyan/auth/forgot-password",
                                 "/zhiyan/auth/reset-password",
                                 "/zhiyan/auth/auto-login-check",
-                                "/zhiyan/auth/clear-remember-me",
-                                "/zhiyan/auth/check-email"
+                                "/zhiyan/auth/clear-remember-me"
                         ).permitAll()
-                        
-                        // 系统基础接口 - 无需登录
                         .requestMatchers(
                                 "/error",
                                 "/favicon.ico",
@@ -135,32 +132,12 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // 用户服务内部接口 - 无需登录（供服务间调用）
-                        .requestMatchers(
-                                "/zhiyan/users/email",              // 根据邮箱查询用户
-                                "/zhiyan/users/batch-query",        // 批量查询用户
-                                "/zhiyan/users/*/has-permission",   // 检查用户权限
-                                "/zhiyan/users/*/has-permissions",  // 批量检查权限
-                                "/zhiyan/users/*/has-role"          // 检查用户角色
-                        ).permitAll()
-
-                        // 权限校验接口 - 无需登录（供API网关和其他服务调用）
-                        .requestMatchers(
-                                "/zhiyan/auth/check-permission",    // 权限校验
-                                "/zhiyan/auth/check-permissions"    // 批量权限校验
-                        ).permitAll()
-
                         // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/permissions/**").permitAll()
-                        // TODO: 临时开放权限管理接口，用于初始化角色数据 - 开发完成后需要删除此行
+                        // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/roles/**").permitAll()
-
-                        // 项目服务公开接口 - 无需登录（供项目广场等公开展示使用）
-                        .requestMatchers(
-                                "/api/projects/public/**"            // 公开项目列表、项目广场等
-                        ).permitAll()
-                        
-                        // 其他所有接口需要认证，具体权限由 @PreAuthorize 注解控制
+                        // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
+                        .requestMatchers("/auth/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // 认证提供者

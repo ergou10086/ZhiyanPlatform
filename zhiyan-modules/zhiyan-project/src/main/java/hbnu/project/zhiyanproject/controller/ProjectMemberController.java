@@ -5,260 +5,198 @@ import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
-import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 项目成员控制器
- * 项目成员采用直接邀请方式，无需申请审批流程
+ * 基于角色的权限控制
  *
- * @author ErgouTree
+ * @author Tokito
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects/members")
+@RequestMapping("/api/projects/project-members")
 @RequiredArgsConstructor
-@Tag(name = "项目成员管理", description = "项目成员管理相关接口，包括成员邀请、角色管理等")
-@SecurityRequirement(name = "Bearer Authentication")
+@Tag(name = "项目成员管理", description = "项目成员管理相关接口")
 public class ProjectMemberController {
 
     private final ProjectMemberService projectMemberService;
 
-    // ==================== 成员管理相关接口 ====================
-
     /**
-     * 邀请成员加入项目（直接添加，无需对方同意）
-     * 业务场景：项目负责人通过用户ID直接将成员添加到项目中
+     * 添加项目成员
+     * 权限要求：项目拥有者
      */
-    @PostMapping("/projects/{projectId}/invite")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "邀请成员", description = "项目负责人直接将用户添加到项目中（无需对方同意）")
-    public R<ProjectMember> inviteMember(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @Valid @RequestBody InviteMemberRequest request) {
+    @PostMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @Operation(summary = "添加项目成员", description = "向项目中添加新成员（需要项目拥有者权限）")
+    public ProjectMember addMember(
+            @Parameter(description = "项目ID") @RequestParam Long projectId,
+            @Parameter(description = "用户ID") @RequestParam Long userId,
+            @Parameter(description = "角色") @RequestParam ProjectMemberRole role) {
 
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]邀请用户[{}]加入项目[{}]", currentUserId, request.getUserId(), projectId);
+        log.info("用户[{}]向项目[{}]添加成员: userId={}, role={}", currentUserId, projectId, userId, role);
 
-        try {
-            ProjectMember member = projectMemberService.inviteMember(projectId, request, currentUserId);
-            return R.ok(member, "成员已添加");
-        } catch (IllegalArgumentException e) {
-            log.warn("邀请成员失败: {}", e.getMessage());
-            return R.fail(e.getMessage());
-        }
+        return projectMemberService.addMember(projectId, userId, role);
     }
 
     /**
      * 移除项目成员
-     * 业务场景：项目负责人移除不合适的成员
+     * 权限要求：项目拥有者
      */
-    @DeleteMapping("/projects/{projectId}/members/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "移除成员", description = "项目负责人移除项目成员")
-    public R<Void> removeMember(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @PathVariable @Parameter(description = "用户ID") Long userId) {
+    @DeleteMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @Operation(summary = "移除项目成员", description = "从项目中移除成员（需要项目拥有者权限）")
+    public void removeMember(
+            @RequestParam Long projectId,
+            @RequestParam Long userId) {
 
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]从项目[{}]移除成员[{}]", currentUserId, projectId, userId);
+        log.info("用户[{}]从项目[{}]移除成员: userId={}", currentUserId, projectId, userId);
 
-        try {
-            projectMemberService.removeMember(projectId, userId, currentUserId);
-            return R.ok(null, "成员已移除");
-        } catch (IllegalArgumentException e) {
-            log.warn("移除成员失败: {}", e.getMessage());
-            return R.fail(e.getMessage());
-        }
+        projectMemberService.removeMember(projectId, userId);
     }
 
     /**
      * 更新成员角色
-     * 业务场景：项目负责人修改成员在项目中的角色
+     * 权限要求：项目拥有者
      */
-    @PutMapping("/projects/{projectId}/members/{userId}/role")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "更新成员角色", description = "项目负责人修改成员的项目角色")
-    public R<ProjectMember> updateMemberRole(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @PathVariable @Parameter(description = "用户ID") Long userId,
-            @RequestParam @Parameter(description = "新角色") ProjectMemberRole newRole) {
+    @PutMapping("/role")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @Operation(summary = "更新成员角色", description = "更新项目成员的角色（需要项目拥有者权限）")
+    public ProjectMember updateMemberRole(
+            @RequestParam Long projectId,
+            @RequestParam Long userId,
+            @RequestParam ProjectMemberRole newRole) {
 
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]修改项目[{}]成员[{}]的角色为: {}", currentUserId, projectId, userId, newRole);
+        log.info("用户[{}]更新项目[{}]成员[{}]角色为: {}", currentUserId, projectId, userId, newRole);
 
-        try {
-            ProjectMember member = projectMemberService.updateMemberRole(projectId, userId, newRole, currentUserId);
-            return R.ok(member, "角色已更新");
-        } catch (IllegalArgumentException e) {
-            log.warn("更新成员角色失败: {}", e.getMessage());
-            return R.fail(e.getMessage());
-        }
+        return projectMemberService.updateMemberRole(projectId, userId, newRole);
     }
 
     /**
-     * 退出项目
-     * 业务场景：成员主动退出项目
+     * 获取项目所有成员
+     * 权限要求：已登录用户
      */
-    @DeleteMapping("/projects/{projectId}/leave")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "退出项目", description = "成员主动退出项目")
-    public R<Void> leaveProject(@PathVariable @Parameter(description = "项目ID") Long projectId) {
-        Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]退出项目[{}]", currentUserId, projectId);
-
-        try {
-            projectMemberService.leaveProject(projectId, currentUserId);
-            return R.ok(null, "已退出项目");
-        } catch (IllegalArgumentException e) {
-            log.warn("退出项目失败: {}", e.getMessage());
-            return R.fail(e.getMessage());
-        }
+    @GetMapping("/project/{projectId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @Operation(summary = "获取项目成员", description = "获取项目的所有成员")
+    public List<ProjectMember> getProjectMembers(@PathVariable Long projectId) {
+        return projectMemberService.getProjectMembers(projectId);
     }
 
-    // ==================== 查询相关接口 ====================
-
     /**
-     * 获取项目成员列表（含详细信息）
-     * 业务场景：在项目详情页的"成员"标签页展示成员列表
+     * 获取项目成员详细信息（用于前端"查看所有成员"功能）
+     * 权限要求：已登录用户
      */
-    @GetMapping("/projects/{projectId}")
+    @GetMapping("/project/{projectId}/details")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取项目成员", description = "获取项目的所有成员详细信息")
-    public R<Page<ProjectMemberDetailDTO>> getProjectMembers(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
+    @Operation(summary = "获取项目成员详情", description = "获取项目所有成员的详细信息，用于前端展示")
+    public R<List<ProjectMemberDetailDTO>> getProjectMembersDetail(
+            @Parameter(description = "项目ID") @PathVariable Long projectId) {
         
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]查看项目[{}]的成员列表", currentUserId, projectId);
-
-        try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("joinedAt").ascending());
-            Page<ProjectMemberDetailDTO> members = projectMemberService.getProjectMembers(projectId, pageable);
-
-            // 标记当前用户
-            members.forEach(member -> {
-                if (member.getUserId().equals(currentUserId)) {
-                    member.setIsCurrentUser(true);
-                }
-            });
-
-            return R.ok(members, "获取成功");
-        } catch (Exception e) {
-            log.error("获取项目成员失败", e);
-            return R.fail("获取失败: " + e.getMessage());
-        }
+        log.info("用户[{}]查看项目[{}]的所有成员", currentUserId, projectId);
+        
+        List<ProjectMemberDetailDTO> members = projectMemberService.getProjectMembersDetail(projectId, currentUserId);
+        return R.ok(members, "获取成员列表成功");
     }
 
     /**
-     * 获取我参与的所有项目
-     * 业务场景：在"我的项目"页面展示用户参与的所有项目
+     * 获取当前用户参与的所有项目
+     * 权限要求：已登录用户
      */
     @GetMapping("/my-projects")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取我的项目", description = "获取当前用户参与的所有项目")
-    public R<Page<ProjectMember>> getMyProjects(
-            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
-
-        Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]查看自己参与的项目", currentUserId);
-
-        try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("joinedAt").descending());
-            Page<ProjectMember> projects = projectMemberService.getMyProjects(currentUserId, pageable);
-            return R.ok(projects, "获取成功");
-        } catch (Exception e) {
-            log.error("获取我的项目失败", e);
-            return R.fail("获取失败: " + e.getMessage());
-        }
+    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @Operation(summary = "获取我参与的项目", description = "获取当前用户参与的所有项目")
+    public List<ProjectMember> getMyProjects() {
+        Long userId = SecurityUtils.getUserId();
+        return projectMemberService.getUserProjects(userId);
     }
 
     /**
-     * 获取项目中指定角色的成员
-     * 业务场景：筛选项目中的负责人或特定角色成员
+     * 获取用户参与的所有项目
+     * 权限要求：已登录用户
      */
-    @GetMapping("/projects/{projectId}/role/{role}")
+    @GetMapping("/user/{userId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "按角色获取成员", description = "获取项目中指定角色的所有成员")
-    public R<List<ProjectMember>> getMembersByRole(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @PathVariable @Parameter(description = "角色") ProjectMemberRole role) {
-
-        log.info("查询项目[{}]中角色为[{}]的成员", projectId, role);
-
-        try {
-            List<ProjectMember> members = projectMemberService.getMembersByRole(projectId, role);
-            return R.ok(members, "获取成功");
-        } catch (Exception e) {
-            log.error("获取成员失败", e);
-            return R.fail("获取失败: " + e.getMessage());
-        }
+    @Operation(summary = "获取用户项目", description = "获取指定用户参与的所有项目")
+    public List<ProjectMember> getUserProjects(@PathVariable Long userId) {
+        return projectMemberService.getUserProjects(userId);
     }
 
     /**
-     * 检查用户是否为项目成员
+     * 检查当前用户是否为项目成员
+     * 权限要求：已登录用户
      */
-    @GetMapping("/projects/{projectId}/check-membership")
+    @GetMapping("/check/my-membership")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "检查成员身份", description = "检查当前用户是否为项目成员")
-    public R<Boolean> checkMembership(@PathVariable @Parameter(description = "项目ID") Long projectId) {
-        Long currentUserId = SecurityUtils.getUserId();
-        boolean isMember = projectMemberService.isMember(projectId, currentUserId);
-        return R.ok(isMember);
+    @Operation(summary = "检查我的成员身份", description = "检查当前用户是否为项目成员")
+    public boolean checkMyMembership(@RequestParam Long projectId) {
+        Long userId = SecurityUtils.getUserId();
+        return projectMemberService.isMember(projectId, userId);
     }
 
     /**
-     * 检查用户是否为项目负责人
+     * 获取当前用户在项目中的角色
+     * 权限要求：已登录用户
      */
-    @GetMapping("/projects/{projectId}/check-owner")
+    @GetMapping("/my-role")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "检查负责人身份", description = "检查当前用户是否为项目负责人")
-    public R<Boolean> checkOwner(@PathVariable @Parameter(description = "项目ID") Long projectId) {
-        Long currentUserId = SecurityUtils.getUserId();
-        boolean isOwner = projectMemberService.isOwner(projectId, currentUserId);
-        return R.ok(isOwner);
+    @Operation(summary = "获取我的角色", description = "获取当前用户在项目中的角色")
+    public Optional<ProjectMemberRole> getMyRole(@RequestParam Long projectId) {
+        Long userId = SecurityUtils.getUserId();
+        return projectMemberService.getUserRole(projectId, userId);
     }
 
     /**
      * 获取用户在项目中的角色
+     * 权限要求：已登录用户
      */
-    @GetMapping("/projects/{projectId}/my-role")
+    @GetMapping("/role")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取我的角色", description = "获取当前用户在项目中的角色")
-    public R<ProjectMemberRole> getMyRole(@PathVariable @Parameter(description = "项目ID") Long projectId) {
-        Long currentUserId = SecurityUtils.getUserId();
-        ProjectMemberRole role = projectMemberService.getUserRole(projectId, currentUserId);
-        if (role == null) {
-            return R.fail("您不是该项目的成员");
-        }
-        return R.ok(role);
+    @Operation(summary = "获取用户角色", description = "获取指定用户在项目中的角色")
+    public Optional<ProjectMemberRole> getUserRole(
+            @RequestParam Long projectId,
+            @RequestParam Long userId) {
+        return projectMemberService.getUserRole(projectId, userId);
     }
 
     /**
-     * 获取项目成员数量
+     * 获取项目中指定角色的成员
+     * 权限要求：已登录用户
      */
-    @GetMapping("/projects/{projectId}/count")
+    @GetMapping("/project/{projectId}/role/{role}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取成员数量", description = "获取项目的成员总数")
-    public R<Long> getMemberCount(@PathVariable @Parameter(description = "项目ID") Long projectId) {
-        long count = projectMemberService.getMemberCount(projectId);
-        return R.ok(count);
+    @Operation(summary = "按角色获取成员", description = "获取项目中指定角色的所有成员")
+    public List<ProjectMember> getMembersByRole(
+            @PathVariable Long projectId,
+            @PathVariable ProjectMemberRole role) {
+        return projectMemberService.getMembersByRole(projectId, role);
     }
+
+    /**
+     * 检查用户是否为项目成员
+     * 权限要求：已登录用户
+     *
+     @GetMapping("/check")
+     @PreAuthorize("isAuthenticated()")
+     @Operation(summary = "检查成员身份", description = "检查指定用户是否为项目成员")
+     public boolean isMember(
+     @RequestParam Long projectId,
+     @RequestParam Long userId) {
+     return projectMemberService.isMember(projectId, userId);
+     }
+     */
 }

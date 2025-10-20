@@ -1,3 +1,5 @@
+# 开发环境（本地环境）
+
 # 服务器配置
 server:
   # 网关服务监听端口
@@ -7,8 +9,7 @@ server:
 spring:
   main:
     web-application-type: reactive  # 关键配置：声明为响应式 Web 应用
-  config:
-    import: nacos:zhiyan-gateway.yaml
+  
   # 应用信息配置
   application:
     # 应用名称，用于服务注册与发现
@@ -18,6 +19,16 @@ spring:
   cloud:
     # Nacos配置中心与服务发现配置
     nacos:
+      # Nacos配置中心
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        import-check:
+          enabled: true
+
+      # Nacos服务发现
       discovery:
         # Nacos服务注册中心地址
         server-addr: 127.0.0.1:8848
@@ -35,14 +46,24 @@ spring:
           # 使用小写服务名，默认是大写
           lower-case-service-id: true
 
-
 # 日志配置
 logging:
   level:
+    root: INFO
+    hbnu.project: DEBUG
     # 配置Spring Cloud Gateway的日志级别为DEBUG
-    org.springframework.cloud.gateway: debug
+    org.springframework.cloud.gateway: DEBUG
     # 配置Netty HTTP客户端的日志级别为DEBUG
-    reactor.netty.http.client: debug
+    reactor.netty.http.client: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-gateway.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
 
 # 应用监控配置
 management:
@@ -51,7 +72,15 @@ management:
       exposure:
         # 暴露所有监控端点
         include: '*'
+      base-path: /actuator
   endpoint:
     health:
       # 健康检查端点显示详细信息
       show-details: always
+
+
+
+
+
+
+
