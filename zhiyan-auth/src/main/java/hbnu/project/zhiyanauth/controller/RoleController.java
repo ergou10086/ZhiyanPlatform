@@ -1,18 +1,9 @@
 package hbnu.project.zhiyanauth.controller;
 
-import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
 import hbnu.project.zhiyanauth.model.dto.RoleDTO;
-import hbnu.project.zhiyanauth.model.entity.Permission;
-import hbnu.project.zhiyanauth.model.entity.Role;
-import hbnu.project.zhiyanauth.model.entity.User;
-import hbnu.project.zhiyanauth.model.entity.UserRole;
 import hbnu.project.zhiyanauth.model.form.*;
-import hbnu.project.zhiyanauth.repository.RolePermissionRepository;
-import hbnu.project.zhiyanauth.repository.UserRoleRepository;
-import hbnu.project.zhiyanauth.model.response.PermissionInfoResponse;
 import hbnu.project.zhiyanauth.model.response.RoleDetailResponse;
 import hbnu.project.zhiyanauth.model.response.RoleInfoResponse;
-import hbnu.project.zhiyanauth.model.response.UserInfoResponse;
 import hbnu.project.zhiyanauth.service.RoleService;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,38 +17,44 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * 角色管理控制器
- * 角色CRUD，权限分配，用户角色关联管理，关系查询等角色管理功能
+ * 提供系统角色的管理、分配和查询功能
+ * 
+ * 职责说明：
+ * - 本控制器专注于系统角色管理（DEVELOPER、USER、GUEST）
+ * - 所有管理接口需要 DEVELOPER 角色权限
+ * - 查询接口根据需要设置不同的权限级别
+ * - 所有接口需要 JWT token 认证
  *
- * @author Tokito
+ * @author ErgouTree
+ * @version 3.0
+ * @rewrite Tokito
  */
 @RestController
 @RequestMapping("/auth/roles")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "角色权限管理", description = "角色和权限管理相关接口")
+@Tag(name = "角色管理", description = "系统角色管理相关接口")
 public class RoleController {
 
     private final RoleService roleService;
-    private final UserRoleRepository userRoleRepository;
-    private final RolePermissionRepository rolePermissionRepository;
+
+    // ==================== 角色信息查询接口 ====================
 
     /**
-     * 获取所有角色列表
-     * 需要权限：system:role:list
+     * 获取所有角色列表（分页）
+     * 路径: GET /auth/roles
+     * 角色: DEVELOPER（只有开发者可以查看所有角色）
      */
     @GetMapping
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:list')")
-    @Operation(summary = "获取角色列表", description = "获取系统中所有角色（分页）")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "获取角色列表", description = "分页查询所有系统角色（管理员功能）")
     public R<Page<RoleInfoResponse>> getAllRoles(
             @Parameter(description = "页码，从0开始")
             @RequestParam(defaultValue = "0") int page,
@@ -66,17 +63,16 @@ public class RoleController {
         log.info("获取角色列表: 页码={}, 每页数量={}", page, size);
 
         try {
-            // 1. 创建分页参数（按创建时间降序）
+            // 创建分页参数
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-            // 2. 调用服务层获取角色列表
+            // 调用服务层
             R<Page<RoleDTO>> result = roleService.getAllRoles(pageable);
-
             if (!R.isSuccess(result)) {
                 return R.fail(result.getMsg());
             }
 
-            // 3. 转换为Response对象
+            // 转换为Response对象
             Page<RoleDTO> rolePage = result.getData();
             Page<RoleInfoResponse> responsePage = rolePage.map(this::convertToRoleInfoResponse);
 
@@ -87,59 +83,48 @@ public class RoleController {
         }
     }
 
-
     /**
      * 根据ID获取角色详情
-     * 需要权限：system:role:view
+     * 路径: GET /auth/roles/{roleId}
+     * 角色: DEVELOPER（只有开发者可以查看角色详情）
      */
     @GetMapping("/{roleId}")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:view')")
+    @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取角色详情", description = "根据ID获取角色详细信息（包含权限列表）")
     public R<RoleDetailResponse> getRoleById(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId) {
-        log.info("获取角色详情: 角色ID={}", roleId);
+        log.info("获取角色详情: roleId={}", roleId);
 
         try {
-            // 1. 查询角色基本信息
-            Role role = roleService.findById(roleId);
-            if (role == null) {
-                return R.fail("角色不存在");
+            // 查询角色基本信息
+            R<RoleDTO> roleResult = roleService.getRoleById(roleId);
+            if (!R.isSuccess(roleResult)) {
+                return R.fail(roleResult.getMsg());
             }
 
-            // 2. 查询角色关联的权限列表
-            List<Permission> permissions = rolePermissionRepository.findByRoleId(roleId).stream()
-                    .map(rp -> rp.getPermission())
-                    .collect(Collectors.toList());
+            RoleDTO roleDTO = roleResult.getData();
 
-            List<PermissionDTO> permissionDTOs = permissions.stream()
-                    .map(p -> PermissionDTO.builder()
-                            .id(p.getId())
-                            .name(p.getName())
-                            .description(p.getDescription())
-                            .createdAt(p.getCreatedAt())
-                            .updatedAt(p.getUpdatedAt())
-                            .build())
-                    .collect(Collectors.toList());
+            // 查询角色权限
+            R<Set<String>> permissionsResult = roleService.getRolePermissions(roleId);
+            Set<String> permissions = R.isSuccess(permissionsResult) ? 
+                    permissionsResult.getData() : Set.of();
 
-            // 3. 查询拥有该角色的用户数量
-            long userCount = userRoleRepository.findByRoleId(roleId).size();
+            // 查询用户数量
+            R<Long> countResult = roleService.countRoleUsers(roleId);
+            Long userCount = R.isSuccess(countResult) ? countResult.getData() : 0L;
 
-            // 4. 构建详情响应
+            // 构建详情响应
             RoleDetailResponse response = RoleDetailResponse.builder()
-                    .id(role.getId())
-                    .name(role.getName())
-                    .description(role.getDescription())
-                    .roleType(role.getRoleType())
-                    .projectId(role.getProjectId())
-                    .isSystemDefault(role.getIsSystemDefault())
+                    .id(roleDTO.getId())
+                    .name(roleDTO.getName())
+                    .description(roleDTO.getDescription())
+                    .roleType(roleDTO.getRoleType())
+                    .isSystemDefault(roleDTO.getIsSystemDefault())
                     .userCount(userCount)
-                    .permissions(permissionDTOs)
-                    .createdAt(role.getCreatedAt())
-                    .updatedAt(role.getUpdatedAt())
-                    .createdBy(role.getCreatedBy())
-                    .updatedBy(role.getUpdatedBy())
+                    .permissions(permissions)
+                    .createdBy(roleDTO.getCreatedBy())
+                    .updatedBy(roleDTO.getUpdatedBy())
                     .build();
 
             return R.ok(response);
@@ -149,27 +134,28 @@ public class RoleController {
         }
     }
 
+    // ==================== 角色管理接口（CRUD） ====================
 
     /**
      * 创建新角色
-     * 需要权限：system:role:create
+     * 路径: POST /auth/roles
+     * 角色: DEVELOPER（只有开发者可以创建角色）
      */
     @PostMapping
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:create')")
-    @Operation(summary = "创建角色", description = "创建新的角色（可同时分配权限）")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "创建角色", description = "创建新的系统角色（管理员功能）")
     public R<RoleInfoResponse> createRole(
             @Valid @RequestBody CreateRoleBody request) {
-        log.info("创建角色: 角色名={}, 描述={}", request.getName(), request.getDescription());
+        log.info("创建角色: name={}", request.getName());
 
         try {
-            // 1. 构建RoleDTO
+            // 构建RoleDTO
             RoleDTO roleDTO = RoleDTO.builder()
                     .name(request.getName())
                     .description(request.getDescription())
                     .build();
 
-            // 2. 创建角色
+            // 创建角色
             R<RoleDTO> createResult = roleService.createRole(roleDTO);
             if (!R.isSuccess(createResult)) {
                 return R.fail(createResult.getMsg());
@@ -177,7 +163,7 @@ public class RoleController {
 
             RoleDTO createdRole = createResult.getData();
 
-            // 3. 如果指定了权限，则分配权限
+            // 如果指定了权限，则分配权限
             if (request.getPermissionIds() != null && !request.getPermissionIds().isEmpty()) {
                 R<Void> assignResult = roleService.assignPermissionsToRole(
                         createdRole.getId(),
@@ -188,15 +174,8 @@ public class RoleController {
                 }
             }
 
-            // 4. 查询用户数量（新创建的角色用户数为0）
-            RoleInfoResponse response = RoleInfoResponse.builder()
-                    .id(createdRole.getId())
-                    .name(createdRole.getName())
-                    .description(createdRole.getDescription())
-                    .userCount(0L)
-                    .createdBy(createdRole.getCreatedBy())
-                    .updatedBy(createdRole.getUpdatedBy())
-                    .build();
+            // 构建响应
+            RoleInfoResponse response = convertToRoleInfoResponse(createdRole);
 
             return R.ok(response, "角色创建成功");
         } catch (Exception e) {
@@ -205,47 +184,36 @@ public class RoleController {
         }
     }
 
-
     /**
      * 更新角色信息
-     * 需要权限：system:role:update
+     * 路径: PUT /auth/roles/{roleId}
+     * 角色: DEVELOPER（只有开发者可以更新角色）
      */
     @PutMapping("/{roleId}")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:update')")
-    @Operation(summary = "更新角色", description = "更新角色基本信息（名称、描述）")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "更新角色", description = "更新角色基本信息（管理员功能）")
     public R<RoleInfoResponse> updateRole(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
             @Valid @RequestBody UpdateRoleBody request) {
-        log.info("更新角色: 角色ID={}, 角色名={}", roleId, request.getName());
+        log.info("更新角色: roleId={}, name={}", roleId, request.getName());
 
         try {
-            // 1. 构建RoleDTO
+            // 构建RoleDTO
             RoleDTO roleDTO = RoleDTO.builder()
                     .name(request.getName())
                     .description(request.getDescription())
                     .build();
 
-            // 2. 调用服务层更新
+            // 更新角色
             R<RoleDTO> updateResult = roleService.updateRole(roleId, roleDTO);
             if (!R.isSuccess(updateResult)) {
                 return R.fail(updateResult.getMsg());
             }
 
-            // 3. 查询用户数量
-            long userCount = userRoleRepository.findByRoleId(roleId).size();
-
-            // 4. 构建响应
+            // 构建响应
             RoleDTO updatedRole = updateResult.getData();
-            RoleInfoResponse response = RoleInfoResponse.builder()
-                    .id(updatedRole.getId())
-                    .name(updatedRole.getName())
-                    .description(updatedRole.getDescription())
-                    .userCount(userCount)
-                    .createdBy(updatedRole.getCreatedBy())
-                    .updatedBy(updatedRole.getUpdatedBy())
-                    .build();
+            RoleInfoResponse response = convertToRoleInfoResponse(updatedRole);
 
             return R.ok(response, "角色更新成功");
         } catch (Exception e) {
@@ -254,196 +222,188 @@ public class RoleController {
         }
     }
 
-
     /**
      * 删除角色
-     * 需要权限：system:role:delete
+     * 路径: DELETE /auth/roles/{roleId}
+     * 角色: DEVELOPER（只有开发者可以删除角色）
      */
     @DeleteMapping("/{roleId}")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:delete')")
-    @Operation(summary = "删除角色", description = "删除指定角色（需检查是否有用户使用）")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "删除角色", description = "删除指定角色（管理员功能，系统默认角色不可删除）")
     public R<Void> deleteRole(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId) {
-        log.info("删除角色: 角色ID={}", roleId);
+        log.info("删除角色: roleId={}", roleId);
 
-        // 直接调用服务层，服务层已包含所有校验逻辑
         return roleService.deleteRole(roleId);
     }
 
+    // ==================== 用户角色管理接口 ====================
+
+    /**
+     * 为用户分配角色
+     * 路径: POST /auth/roles/assign-user
+     * 角色: DEVELOPER（只有开发者可以分配角色）
+     */
+    @PostMapping("/assign-user")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "为用户分配角色", description = "为指定用户分配一个或多个角色（管理员功能）")
+    public R<Void> assignRolesToUser(
+            @Valid @RequestBody AssignUserRoleBody request) {
+        log.info("为用户分配角色: userId={}, roleIds={}", request.getUserId(), request.getRoleIds());
+
+        return roleService.assignRolesToUser(request.getUserId(), request.getRoleIds());
+    }
+
+    /**
+     * 移除用户的角色
+     * 路径: POST /auth/roles/remove-user
+     * 角色: DEVELOPER（只有开发者可以移除角色）
+     */
+    @PostMapping("/remove-user")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "移除用户角色", description = "移除用户的指定角色（管理员功能）")
+    public R<Void> removeRolesFromUser(
+            @Valid @RequestBody RemoveUserRoleBody request) {
+        log.info("移除用户角色: userId={}, roleIds={}", request.getUserId(), request.getRoleIds());
+
+        return roleService.removeRolesFromUser(request.getUserId(), request.getRoleIds());
+    }
+
+    /**
+     * 获取用户的所有角色
+     * 路径: GET /auth/roles/user/{userId}
+     * 角色: DEVELOPER（只有开发者可以查看用户角色）
+     */
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "获取用户角色", description = "获取指定用户的所有角色（管理员功能）")
+    public R<Set<String>> getUserRoles(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable Long userId) {
+        log.info("获取用户角色: userId={}", userId);
+
+        return roleService.getUserRoles(userId);
+    }
+
+    // ==================== 角色权限管理接口 ====================
 
     /**
      * 为角色分配权限
-     * 需要权限：system:permission:assign
+     * 路径: POST /auth/roles/{roleId}/permissions
+     * 角色: DEVELOPER（只有开发者可以分配权限）
      */
     @PostMapping("/{roleId}/permissions")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:permission:assign')")
-    @Operation(summary = "为角色分配权限", description = "为指定角色分配权限（增量分配）")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "为角色分配权限", description = "为指定角色分配权限（管理员功能）")
     public R<Void> assignPermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
             @Valid @RequestBody AssignPermissionsBody request) {
-        log.info("为角色分配权限: 角色ID={}, 权限数量={}", roleId, request.getPermissionIds().size());
+        log.info("为角色分配权限: roleId={}, permissionIds数量={}", roleId, request.getPermissionIds().size());
 
-        // 直接调用服务层
         return roleService.assignPermissionsToRole(roleId, request.getPermissionIds());
     }
 
-
     /**
      * 移除角色的权限
-     * 需要权限：system:permission:assign
+     * 路径: DELETE /auth/roles/{roleId}/permissions
+     * 角色: DEVELOPER（只有开发者可以移除权限）
      */
     @DeleteMapping("/{roleId}/permissions")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:permission:assign')")
-    @Operation(summary = "移除角色权限", description = "移除角色的指定权限")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "移除角色权限", description = "移除角色的指定权限（管理员功能）")
     public R<Void> removePermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
             @Valid @RequestBody RemovePermissionsBody request) {
-        log.info("移除角色权限: 角色ID={}, 权限数量={}", roleId, request.getPermissionIds().size());
+        log.info("移除角色权限: roleId={}, permissionIds数量={}", roleId, request.getPermissionIds().size());
 
-        // 直接调用服务层
         return roleService.removePermissionsFromRole(roleId, request.getPermissionIds());
     }
 
-
     /**
-     * 获取角色的权限列表
-     * 需要权限：system:role:view
+     * 获取角色的所有权限
+     * 路径: GET /auth/roles/{roleId}/permissions
+     * 角色: DEVELOPER（只有开发者可以查看角色权限）
      */
     @GetMapping("/{roleId}/permissions")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:view')")
-    @Operation(summary = "获取角色权限", description = "获取指定角色的所有权限")
-    public R<List<PermissionInfoResponse>> getRolePermissions(
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "获取角色权限", description = "获取指定角色的所有权限（管理员功能）")
+    public R<Set<String>> getRolePermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId) {
-        log.info("获取角色权限: 角色ID={}", roleId);
+        log.info("获取角色权限: roleId={}", roleId);
 
-        try {
-            // 1. 校验角色是否存在
-            Role role = roleService.findById(roleId);
-            if (role == null) {
-                return R.fail("角色不存在");
-            }
-
-            // 2. 查询角色关联的所有权限
-            List<Permission> permissions = rolePermissionRepository.findByRoleId(roleId).stream()
-                    .map(rp -> rp.getPermission())
-                    .collect(Collectors.toList());
-
-            // 3. 转换为Response对象
-            List<PermissionInfoResponse> responses = permissions.stream()
-                    .map(p -> PermissionInfoResponse.builder()
-                            .id(p.getId())
-                            .name(p.getName())
-                            .description(p.getDescription())
-                            .build())
-                    .collect(Collectors.toList());
-
-            return R.ok(responses);
-        } catch (Exception e) {
-            log.error("获取角色权限失败: roleId={}", roleId, e);
-            return R.fail("获取角色权限失败");
-        }
+        return roleService.getRolePermissions(roleId);
     }
 
+    // ==================== 角色用户查询接口 ====================
 
     /**
      * 获取拥有指定角色的用户列表
-     * 需要权限：system:role:view
+     * 路径: GET /auth/roles/{roleId}/users
+     * 角色: DEVELOPER（只有开发者可以查看角色用户）
      */
     @GetMapping("/{roleId}/users")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:view')")
-    @Operation(summary = "获取角色用户", description = "获取拥有指定角色的用户列表（分页）")
-    public R<List<UserInfoResponse>> getRoleUsers(
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "获取角色用户", description = "获取拥有指定角色的用户ID列表（管理员功能）")
+    public R<Page<Long>> getRoleUsers(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
             @Parameter(description = "页码，从0开始")
             @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "每页数量")
             @RequestParam(defaultValue = "20") int size) {
-        log.info("获取角色用户: 角色ID={}, 页码={}, 每页数量={}", roleId, page, size);
+        log.info("获取角色用户: roleId={}, page={}, size={}", roleId, page, size);
 
         try {
-            // 1. 校验角色是否存在
-            Role role = roleService.findById(roleId);
-            if (role == null) {
-                return R.fail("角色不存在");
-            }
-
-            // 2. 查询拥有该角色的用户
-            List<User> users = userRoleRepository.findByRoleId(roleId).stream()
-                    .map(UserRole::getUser)
-                    .skip((long) page * size)
-                    .limit(size)
-                    .collect(Collectors.toList());
-
-            // 3. 转换为Response对象
-            List<UserInfoResponse> responses = users.stream()
-                    .map(u -> UserInfoResponse.builder()
-                            .id(u.getId())
-                            .email(u.getEmail())
-                            .name(u.getName())
-                            .avatarUrl(u.getAvatarUrl())
-                            .title(u.getTitle())
-                            .institution(u.getInstitution())
-                            .status(u.getStatus() != null ? u.getStatus().name() : null)
-                            .build())
-                    .collect(Collectors.toList());
-
-            return R.ok(responses);
+            Pageable pageable = PageRequest.of(page, size);
+            return roleService.getRoleUsers(roleId, pageable);
         } catch (Exception e) {
             log.error("获取角色用户失败: roleId={}", roleId, e);
             return R.fail("获取角色用户失败");
         }
     }
 
+    // ==================== 系统初始化接口 ====================
 
     /**
-     * 为用户分配角色
-     * 需要权限：system:role:assign
+     * 初始化系统默认角色
+     * 路径: POST /auth/roles/initialize
+     * 角色: DEVELOPER（只有开发者可以初始化系统角色）
      */
-    @PostMapping("/assign-user-role")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:assign')")
-    @Operation(summary = "为用户分配角色", description = "为指定用户分配角色")
-    public R<Void> assignUserRole(
-            @Valid @RequestBody AssignUserRoleBody request) {
-        log.info("为用户分配角色: 用户ID={}, 角色ID={}", request.getUserId(), request.getRoleId());
+    @PostMapping("/initialize")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "初始化系统角色", description = "创建DEVELOPER、USER、GUEST三个系统默认角色（管理员功能）")
+    public R<Void> initializeSystemRoles() {
+        log.info("初始化系统角色");
 
-        // 调用服务层，传入单个角色ID的列表
-        return roleService.assignRolesToUser(request.getUserId(), Arrays.asList(request.getRoleId()));
-    }
-
-
-    /**
-     * 移除用户角色
-     * 需要权限：system:role:assign
-     */
-    @DeleteMapping("/remove-user-role")
-    // TODO: 临时注释权限检查，开发完成后需要恢复
-    // @PreAuthorize("hasAuthority('system:role:assign')")
-    @Operation(summary = "移除用户角色", description = "移除用户的指定角色")
-    public R<Void> removeUserRole(
-            @Valid @RequestBody RemoveUserRoleBody request) {
-        log.info("移除用户角色: 用户ID={}, 角色ID={}", request.getUserId(), request.getRoleId());
-
-        // 调用服务层，传入单个角色ID的列表
-        return roleService.removeRolesFromUser(request.getUserId(), Arrays.asList(request.getRoleId()));
+        return roleService.initializeSystemRoles();
     }
 
     /**
-     * 辅助方法：将RoleDTO转换为RoleInfoResponse
+     * 检查系统角色是否已初始化
+     * 路径: GET /auth/roles/initialized
+     * 权限: 无需认证（用于系统启动检查）
+     */
+    @GetMapping("/initialized")
+    @Operation(summary = "检查系统角色初始化状态", description = "检查系统默认角色是否已创建")
+    public R<Boolean> isSystemRolesInitialized() {
+        log.info("检查系统角色初始化状态");
+
+        return roleService.isSystemRolesInitialized();
+    }
+
+    // ==================== 辅助方法 ====================
+
+    /**
+     * 将RoleDTO转换为RoleInfoResponse
      */
     private RoleInfoResponse convertToRoleInfoResponse(RoleDTO roleDTO) {
         // 查询用户数量
-        long userCount = userRoleRepository.findByRoleId(roleDTO.getId()).size();
+        R<Long> countResult = roleService.countRoleUsers(roleDTO.getId());
+        Long userCount = R.isSuccess(countResult) ? countResult.getData() : 0L;
 
         return RoleInfoResponse.builder()
                 .id(roleDTO.getId())
