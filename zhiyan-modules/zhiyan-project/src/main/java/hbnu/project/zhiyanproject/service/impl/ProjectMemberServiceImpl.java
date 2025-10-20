@@ -100,7 +100,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
         // 4. 不能移除项目负责人
         if (member.getProjectRole() == ProjectMemberRole.OWNER) {
-            throw new IllegalArgumentException("不能移除项目负责人"));
+            throw new IllegalArgumentException("不能移除项目负责人");
         }
 
         // 5. 移除成员
@@ -173,10 +173,10 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .map(ProjectMember::getUserId)
                 .collect(Collectors.toList());
 
-        Map<Long, UserDTO> userMap;
+        final Map<Long, UserDTO> userMap;
         try {
             R<Map<Long, UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
-            userMap = userResponse.isSuccess() ? userResponse.getData() : Map.of();
+            userMap = R.isSuccess(userResponse) ? userResponse.getData() : Map.of();
         } catch (Exception e) {
             log.error("批量查询用户信息失败", e);
             userMap = Map.of();

@@ -578,12 +578,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("处理重置密码请求 - 邮箱: {}", request.getEmail());
 
         try {
-            // 1. 查找用户
-            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
-            if (userOpt.isEmpty()) {
-                return R.fail("该邮箱未注册");
-            }
-            User user = userOpt.get();
+
 
             // 1. 校验验证码
             R<Boolean> validResult = verificationCodeService.validateCode(
@@ -593,6 +588,12 @@ public class AuthServiceImpl implements AuthService {
                 return R.fail("验证码错误或已过期");
             }
 
+            // 1. 查找用户
+            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+            if (userOpt.isEmpty()) {
+                return R.fail("该邮箱未注册");
+            }
+            User user = userOpt.get();
             // 2. 校验两次密码一致性
             if (!request.getNewPassword().equals(request.getConfirmPassword())) {
                 return R.fail("两次输入的密码不一致");

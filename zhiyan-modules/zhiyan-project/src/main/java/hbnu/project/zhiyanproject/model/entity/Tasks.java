@@ -8,6 +8,7 @@ import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -78,6 +79,7 @@ public class Tasks extends BaseAuditEntity {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", columnDefinition = "ENUM('TODO','IN_PROGRESS','BLOCKED','DONE') DEFAULT 'TODO' COMMENT '任务状态（待办/进行中/阻塞/已完成）'")
+    @Builder.Default
     private TaskStatus status = TaskStatus.TODO;
 
     /**
@@ -85,6 +87,7 @@ public class Tasks extends BaseAuditEntity {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", columnDefinition = "ENUM('HIGH','MEDIUM','LOW') DEFAULT 'MEDIUM' COMMENT '任务优先级（高/中/低）'")
+    @Builder.Default
     private TaskPriority priority = TaskPriority.MEDIUM;
 
     /**
@@ -104,14 +107,14 @@ public class Tasks extends BaseAuditEntity {
      * 创建人ID（逻辑关联用户服务的用户ID）
      */
     @CreatedBy
-    @LongToString
     @Column(name = "created_by", nullable = false, columnDefinition = "BIGINT COMMENT '创建人ID（逻辑关联用户服务的用户ID）'")
-    private Long createdBy;
+    private String createdBy;
 
     /**
      * 是否已删除（软删除标记）
      */
     @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")
+    @Builder.Default
     private Boolean isDeleted = false;
 
     /**
