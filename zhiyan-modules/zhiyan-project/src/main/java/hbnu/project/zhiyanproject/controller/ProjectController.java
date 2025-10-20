@@ -253,6 +253,17 @@ public class ProjectController {
         return projectService.archiveProject(projectId, userId);
     }
 
+    /**
+     * 检查当前用户是否有权限访问项目
+     * 权限要求：已登录用户
+     */
+    @GetMapping("/{projectId}/access")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "检查访问权限", description = "检查当前用户是否有权限访问项目")
+    public R<Boolean> hasAccessPermission(@PathVariable Long projectId) {
+        Long userId = SecurityUtils.getUserId();
+        return projectService.hasAccessPermission(projectId, userId);
+    }
 
     /**
      * 统计当前用户创建的项目数量
@@ -277,16 +288,4 @@ public class ProjectController {
         Long userId = SecurityUtils.getUserId();
         return projectService.countUserParticipatedProjects(userId);
     }
-
-    /**
-     * 检查当前用户是否有权限访问项目
-     * 权限要求：已登录用户
-
-     @GetMapping("/{projectId}/access")
-     @PreAuthorize("isAuthenticated()")
-     @Operation(summary = "检查访问权限", description = "检查当前用户是否有权限访问项目")
-     public R<Boolean> hasAccessPermission(@PathVariable Long projectId) {
-     Long userId = SecurityUtils.getUserId();
-     return projectService.hasAccessPermission(projectId, userId);
-     }*/
 }

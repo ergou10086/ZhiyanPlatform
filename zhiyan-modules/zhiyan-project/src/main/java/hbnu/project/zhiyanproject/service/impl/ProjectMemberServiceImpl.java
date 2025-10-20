@@ -183,11 +183,10 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         } catch (Exception e) {
             log.error("批量查询用户信息失败", e);
         }
-        final Map<Long, UserDTO> finalUserMap = userMap;
 
         // 4. 转换为DTO
         return members.map(member -> {
-            UserDTO user = finalUserMap.get(member.getUserId());
+            UserDTO user = userMap.get(member.getUserId());
             return ProjectMemberDetailDTO.builder()
                     .id(member.getId())
                     .projectId(member.getProjectId())

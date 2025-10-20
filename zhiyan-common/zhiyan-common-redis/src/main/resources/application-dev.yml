@@ -1,8 +1,13 @@
-# redis-config.yml
+# 开发环境（本地环境）
+
 server:
-  port: 8082  # 修改端口，避免与其他服务冲突
+  port: 8099
 
 spring:
+  application:
+    name: zhiyan-common-redis
+
+  # Redis配置
   data:
     redis:
       # Redis 服务器地址
@@ -10,7 +15,7 @@ spring:
       # Redis 服务器连接端口
       port: 6379
       # Redis 服务器连接密码（如果没有密码请删除此行）
-      password:
+      password: zjm10086
       # 连接超时时间（毫秒）
       timeout: 5000
       lettuce:
@@ -23,3 +28,50 @@ spring:
           max-idle: 8
           # 连接池中的最小空闲连接
           min-idle: 0
+
+#  # Nacos配置中心（如果需要）
+#  cloud:
+#    nacos:
+#      config:
+#        server-addr: 127.0.0.1:8848
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+#        group: DEFAULT_GROUP
+#        file-extension: yaml
+#        prefix: zhiyan-common-redis
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project: DEBUG
+    org.springframework.data.redis: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-common-redis.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+
+# Actuator监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: zhiyan-common-redis
+
+
+
+
+
+
+
