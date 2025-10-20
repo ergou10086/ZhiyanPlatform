@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
  */
 @AutoConfiguration
 @ConditionalOnProperty(value = "easy-es.enable", havingValue = "true")
-@EsMapperScan("org.dromara.**.esmapper")
+@EsMapperScan("")
 public class EasyEsConfiguration {
 
 }

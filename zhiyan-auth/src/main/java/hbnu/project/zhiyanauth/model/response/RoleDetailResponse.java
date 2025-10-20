@@ -1,16 +1,17 @@
 package hbnu.project.zhiyanauth.model.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 /**
  * 角色详情响应体
  *
- * @author ErgouTree
- * @version 2.0
+ * @author Tokito
  */
 @Data
 @Builder
@@ -52,18 +53,20 @@ public class RoleDetailResponse {
     private Long userCount;
 
     /**
-     * 角色拥有的权限名称集合
+     * 角色拥有的权限列表
      */
-    private Set<String> permissions;
+    private List<PermissionDTO> permissions;
 
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
     /**

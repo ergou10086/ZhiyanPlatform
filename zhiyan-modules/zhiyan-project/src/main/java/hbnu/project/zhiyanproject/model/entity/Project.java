@@ -2,7 +2,6 @@ package hbnu.project.zhiyanproject.model.entity;
 
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
-import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
@@ -33,11 +32,12 @@ import java.util.stream.Collectors;
 public class Project extends BaseAuditEntity {
 
     /**
-     * 雪花id
+     * 项目唯一标识
      */
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @LongToString
-    @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '项目唯一标识（雪花ID）'")
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '项目唯一标识'")
     private Long id;
 
     /**
@@ -143,15 +143,5 @@ public class Project extends BaseAuditEntity {
                 .filter(member -> member.getUserId().equals(userId))
                 .map(ProjectMember::getProjectRole)
                 .findFirst();
-    }
-
-    /**
-     * 在持久化之前生成雪花ID
-     */
-    @PrePersist
-    public void generateId() {
-        if (this.id == null) {
-            this.id = SnowflakeIdUtil.nextId();
-        }
     }
 }

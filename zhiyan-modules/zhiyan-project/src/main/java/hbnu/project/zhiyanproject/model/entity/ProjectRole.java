@@ -16,7 +16,7 @@ import java.util.List;
  * 项目角色实体类
  * 用于管理项目中的角色权限
  *
- * @author Tokito
+ * @author ErgouTree
  */
 @Entity
 @Table(name = "project_roles",

@@ -3,7 +3,6 @@ package hbnu.project.zhiyanproject.model.entity;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
-import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import jakarta.persistence.*;
@@ -33,11 +32,12 @@ import java.time.LocalDate;
 public class Tasks extends BaseAuditEntity {
 
     /**
-     * 雪花id
+     * 任务唯一标识
      */
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @LongToString
-    @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '任务唯一标识（雪花ID）'")
+    @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '任务唯一标识'")
     private Long id;
 
     /**
@@ -113,14 +113,4 @@ public class Tasks extends BaseAuditEntity {
      */
     @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")
     private Boolean isDeleted = false;
-
-    /**
-     * 在持久化之前生成雪花ID
-     */
-    @PrePersist
-    public void generateId() {
-        if (this.id == null) {
-            this.id = SnowflakeIdUtil.nextId();
-        }
-    }
 }
