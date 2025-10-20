@@ -1,1 +1,36 @@
-spring.application.name=zhiyan-common-oss
+minio:
+  # MinIO????
+  endpoint: http://localhost:9005
+  # ????
+  access-key: root
+  # ??
+  secret-key: zjm10086
+  # ????HTTPS
+  secure: false
+  
+  # ???
+  buckets:
+    achievement-files: achievement-files
+    wiki-assets: wiki-assets
+    temp-uploads: temp-uploads
+    project-covers: project-covers
+    user-avatars: user-avatars
+  
+  # ????
+  upload:
+    # ???????100MB?
+    max-file-size: 104857600
+    # ???????5MB?
+    max-image-size: 5242880
+    # ???????
+    allowed-file-types: *
+    # ???????
+    allowed-image-types:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - webp
+      - svg
+    # ????????????
+    temp-file-retention-hours: 24

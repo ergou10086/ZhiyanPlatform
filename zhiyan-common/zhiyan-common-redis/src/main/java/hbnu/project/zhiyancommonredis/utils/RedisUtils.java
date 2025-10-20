@@ -20,6 +20,7 @@ import java.util.stream.Stream;
  *
  * @author yui
  * @rewrite ErgouTree
+ *
  * @version 3.1.0 新增
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

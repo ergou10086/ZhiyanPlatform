@@ -64,6 +64,8 @@
         <sa-token.version>1.37.0</sa-token.version>
         <hutool-crypto.version>5.8.26</hutool-crypto.version>
         <redisson.version>3.52.0</redisson.version>
+        <thumbnailator.version>0.4.19</thumbnailator.version>
+        <tika-core.version>2.9.1</tika-core.version>
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
@@ -347,6 +349,20 @@
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
                 <version>${redisson.version}</version>
+            </dependency>
+
+            <!--图片处理-->
+            <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
+            </dependency>
+
+            <!-- 文件类型检测 -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-core.version}</version>
             </dependency>
 
             <!--本项目自模块依赖-->
