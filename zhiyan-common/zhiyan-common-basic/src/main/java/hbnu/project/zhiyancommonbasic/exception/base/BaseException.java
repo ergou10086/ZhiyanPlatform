@@ -1,5 +1,7 @@
 package hbnu.project.zhiyancommonbasic.exception.base;
 
+import java.io.Serial;
+
 /**
  * 基础异常
  * 
@@ -7,6 +9,7 @@ package hbnu.project.zhiyancommonbasic.exception.base;
  */
 public class BaseException extends RuntimeException
 {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -67,7 +70,7 @@ public class BaseException extends RuntimeException
 
     public String getCode()
     {
-        return code;
+        return String.valueOf(code);
     }
 
     public Object[] getArgs()

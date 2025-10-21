@@ -1,6 +1,7 @@
 package hbnu.project.zhiyangateway.filter;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.exception.gateway.GatewayAuthenticationException;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyangateway.client.AuthServiceClient;
 import hbnu.project.zhiyangateway.model.TokenValidateResponse;
@@ -73,7 +74,7 @@ public class UserAuthenticationFilter implements GlobalFilter, Ordered {
         // 检查是否有 Authorization 头
         if (StringUtils.isBlank(authHeader)) {
             log.warn("用户认证失败 - 缺少 Authorization 头 - 路径: {}", path);
-            return unauthorizedResponse(exchange, "缺少认证信息");
+            return Mono.error(new GatewayAuthenticationException("缺少认证令牌"));
         }
 
         // 远程调用 Auth 服务验证 Token
@@ -93,14 +94,19 @@ public class UserAuthenticationFilter implements GlobalFilter, Ordered {
                         log.debug("用户认证成功 - 用户ID: {}, 路径: {}", response.getUserId(), path);
                         return chain.filter(mutatedExchange);
                     } else {
-                        // Token 无效
+                        // Token 无效 - 使用自定义异常
                         log.warn("用户认证失败 - {} - 路径: {}", response.getMessage(), path);
-                        return unauthorizedResponse(exchange, response.getMessage());
+                        return Mono.error(new GatewayAuthenticationException(response.getMessage()));
                     }
                 })
                 .onErrorResume(e -> {
+                    // 如果已经是网关异常，直接抛出
+                    if (e instanceof GatewayAuthenticationException) {
+                        return Mono.error(e);
+                    }
+                    // 其他异常转换为认证异常
                     log.error("Token 验证异常 - 路径: {}, 错误: {}", path, e.getMessage(), e);
-                    return unauthorizedResponse(exchange, "认证服务异常");
+                    return Mono.error(new GatewayAuthenticationException("认证服务异常", e));
                 });
     }
 
