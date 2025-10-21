@@ -20,9 +20,40 @@
     </properties>
 
     <dependencies>
+        <!-- 基础模块 -->
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
+        </dependency>
+
+        <!-- MinIO SDK -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+        </dependency>
+
+        <!-- 图片处理 -->
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-basic</artifactId>
+        </dependency>
+
+        <!-- Spring Web (用于文件上传) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- AWS S3 SDK -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.20.162</version>
         </dependency>
     </dependencies>
 

@@ -60,11 +60,20 @@
         <yasson.version>3.0.4</yasson.version>
         <caffeine.version>3.1.6</caffeine.version>
         <jakarta-json.version>2.1.3</jakarta-json.version>
+        <awssdk.version>2.20.162</awssdk.version>
+        <sa-token.version>1.37.0</sa-token.version>
+        <hutool-crypto.version>5.8.26</hutool-crypto.version>
+        <redisson.version>3.52.0</redisson.version>
+        <mongodb-version>5.6.1</mongodb-version>
+        <mongodb-data.version>5.0.0-M6</mongodb-data.version>
+        <thumbnailator.version>0.4.19</thumbnailator.version>
+        <tika-core.version>2.9.1</tika-core.version>
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
         <zhiyan-common-redis.version>0.0.1-SNAPSHOT</zhiyan-common-redis.version>
         <zhiyan-common-elasticsearch.version>0.0.1-SNAPSHOT</zhiyan-common-elasticsearch.version>
+        <zhiyan-common-oss.version>0.0.1-SNAPSHOT</zhiyan-common-oss.version>
         <zhiyan-auth.version>0.0.1-SNAPSHOT</zhiyan-auth.version>
         <zhiyan-api-system.version>0.0.1-SNAPSHOT</zhiyan-api-system.version>
 
@@ -317,6 +326,61 @@
                 <version>${yasson.version}</version>
             </dependency>
 
+            <!--amazon S3-->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${awssdk.version}</version>
+            </dependency>
+
+            <!--saToken权限认证-->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-core</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
+            <!--Hutool-crypto-->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-crypto</artifactId>
+                <version>${hutool-crypto.version}</version>
+            </dependency>
+
+            <!-- Redisson -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongodb-driver-sync</artifactId>
+                <version>${mongodb.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-mongodb</artifactId>
+                <version>${mongodb-data.version}</version>
+            </dependency>
+
+            <!--图片处理-->
+            <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
+            </dependency>
+
+            <!-- 文件类型检测 -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-core.version}</version>
+            </dependency>
+
             <!--本项目自模块依赖-->
 
             <!-- zhiyan-common-basic核心模块 -->
@@ -345,6 +409,13 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-common-elasticsearch</artifactId>
                 <version>${zhiyan-common-elasticsearch.version}</version>
+            </dependency>
+
+            <!--zhiyan-common-oss对象存储模块-->
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-common-oss</artifactId>
+                <version>${zhiyan-common-oss.version}</version>
             </dependency>
 
             <!--zhiyan-auth认证模块-->

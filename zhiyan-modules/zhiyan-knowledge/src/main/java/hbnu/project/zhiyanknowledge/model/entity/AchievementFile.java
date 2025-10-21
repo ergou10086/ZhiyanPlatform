@@ -91,18 +91,18 @@ public class AchievementFile{
     private String minioUrl;
 
 
-    /**
-     * 文件版本号
-     */
-    @Column(name = "version", columnDefinition = "INT DEFAULT 1 COMMENT '文件版本号'")
-    private Integer version = 1;
-
-
-    /**
-     * 是否最新版本
-     */
-    @Column(name = "is_latest", columnDefinition = "BOOLEAN DEFAULT TRUE COMMENT '是否最新版本'")
-    private Boolean isLatest = true;
+//    /**
+//     * 文件版本号
+//     */
+//    @Column(name = "version", columnDefinition = "INT DEFAULT 1 COMMENT '文件版本号'")
+//    private Integer version = 1;
+//
+//
+//    /**
+//     * 是否最新版本
+//     */
+//    @Column(name = "is_latest", columnDefinition = "BOOLEAN DEFAULT TRUE COMMENT '是否最新版本'")
+//    private Boolean isLatest = true;
 
 
     /**

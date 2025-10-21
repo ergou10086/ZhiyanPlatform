@@ -1,0 +1,7 @@
+{
+  "hbnu.project.zhiyancommonratelimiter.annotation.RateLimiter@key": {
+    "method": {
+      "parameters": true
+    }
+  }
+}

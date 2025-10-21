@@ -6,14 +6,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.Objects;
+import org.apache.tika.Tika;
 
 /**
  * 文件类型工具类
  *
- * @author ruoyi
+ * @author ErgouTree
  */
-public class FileTypeUtils
-{
+public class FileTypeUtils {
+
+    private static final Tika tika = new Tika();
+
     /**
      * 获取文件类型
      * <p>
@@ -22,13 +25,28 @@ public class FileTypeUtils
      * @param file 文件名
      * @return 后缀（不含".")
      */
-    public static String getFileType(File file)
-    {
-        if (null == file)
-        {
+    public static String getFileType(File file) {
+        if (null == file) {
             return StringUtils.EMPTY;
         }
         return getFileType(file.getName());
+    }
+
+    /**
+     * 更好的获取文件扩展名
+     */
+    public static String getFileExtension(String filename) {
+        if (filename == null || !filename.contains(".")) {
+            return "";
+        }
+        return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+    }
+
+    /**
+     * 检测文件实际类型
+     */
+    public static String detectContentType(byte[] content) {
+        return tika.detect(content);
     }
 
     /**
@@ -92,5 +110,21 @@ public class FileTypeUtils
             strFileExtendName = "PNG";
         }
         return strFileExtendName;
+    }
+
+
+    /**
+     * 格式化文件大小
+     */
+    public static String formatFileSize(long size) {
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.2f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", size / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0));
+        }
     }
 }
