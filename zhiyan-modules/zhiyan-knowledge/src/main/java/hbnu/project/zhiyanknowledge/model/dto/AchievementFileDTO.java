@@ -64,15 +64,15 @@ public class AchievementFileDTO {
      */
     private String fileUrl;
 
-    /**
-     * 文件版本号
-     */
-    private Integer version;
-
-    /**
-     * 是否最新版本
-     */
-    private Boolean isLatest;
+//    /**
+//     * 文件版本号
+//     */
+//    private Integer version;
+//
+//    /**
+//     * 是否最新版本
+//     */
+//    private Boolean isLatest;
 
     /**
      * 上传者ID

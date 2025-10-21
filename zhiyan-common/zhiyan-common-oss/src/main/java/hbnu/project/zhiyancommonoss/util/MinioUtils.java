@@ -15,7 +15,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
+import java.util.Objects;
 
+/**
+ * Minio对象存储工具
+ * @author ErgouTree
+ */
 @Component
 @RequiredArgsConstructor
 public class MinioUtils {
@@ -59,7 +64,7 @@ public class MinioUtils {
             throw new ServiceException("文件名不能为空");
         }
 
-        if (!FileUtils.isValidFilename(originalFilename)) {
+        if (!FileUtils.isValidFilename(Objects.requireNonNull(originalFilename))) {
             throw new ServiceException("文件名包含非法字符");
         }
 
@@ -79,7 +84,7 @@ public class MinioUtils {
         String[] allowedTypes = isImage ? uploadConfig.getAllowedImageTypes() : uploadConfig.getAllowedFileTypes();
 
         // 如果配置为 * 则允许所有类型
-        if (allowedTypes != null && allowedTypes.length > 0 && !allowedTypes[0].equals("*")) {
+        if (allowedTypes != null && allowedTypes.length > 0 && !"*".equals(allowedTypes[0])) {
             boolean typeAllowed = Arrays.asList(allowedTypes).contains(fileExtension.toLowerCase());
             if (!typeAllowed) {
                 throw new ServiceException("不支持的文件类型: " + fileExtension);
@@ -94,15 +99,14 @@ public class MinioUtils {
      *
      * @param projectId      项目ID
      * @param achievementId  成果ID
-     * @param version        版本号
      * @param originalFilename 原始文件名
      * @return 对象键
      */
     public String buildAchievementObjectKey(Long projectId, Long achievementId,
-                                            Integer version, String originalFilename) {
-        // 格式: project-{projectId}/achievement-{achievementId}/v{version}_{filename}
-        return String.format("project-%d/achievement-%d/v%d_%s",
-                projectId, achievementId, version, originalFilename);
+                                             String originalFilename) {
+        // 格式: project-{projectId}/achievement-{achievementId}_{filename}
+        return String.format("project-%d/achievement-%d_%s",
+                projectId, achievementId, originalFilename);
     }
 
 

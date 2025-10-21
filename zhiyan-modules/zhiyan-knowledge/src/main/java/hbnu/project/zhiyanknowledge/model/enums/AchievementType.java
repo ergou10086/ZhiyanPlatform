@@ -42,11 +42,6 @@ public enum AchievementType {
     MODEL("model", "算法模型"),
 
     /**
-     * 数据
-     */
-    DATA("data", "数据"),
-
-    /**
      * 报告
      */
     REPORT("report", "报告"),

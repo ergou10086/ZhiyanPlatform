@@ -12,6 +12,7 @@
     <modules>
         <module>zhiyan-project</module>
         <module>zhiyan-knowledge</module>
+        <module>zhiyan-wiki</module>
     </modules>
 
     <artifactId>zhiyan-modules</artifactId>

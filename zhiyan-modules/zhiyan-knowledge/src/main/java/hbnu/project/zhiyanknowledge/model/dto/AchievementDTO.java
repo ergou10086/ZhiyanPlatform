@@ -67,11 +67,6 @@ public class AchievementDTO {
     private String abstractText;
 
     /**
-     * 标签
-     */
-    private String tags;
-
-    /**
      * 文件数量
      */
     private Integer fileCount;
