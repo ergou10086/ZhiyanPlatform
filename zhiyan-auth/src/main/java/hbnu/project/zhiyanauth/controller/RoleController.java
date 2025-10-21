@@ -123,8 +123,6 @@ public class RoleController {
                     .isSystemDefault(roleDTO.getIsSystemDefault())
                     .userCount(userCount)
                     .permissions(permissions)
-                    .createdBy(roleDTO.getCreatedBy())
-                    .updatedBy(roleDTO.getUpdatedBy())
                     .build();
 
             return R.ok(response);
@@ -410,8 +408,6 @@ public class RoleController {
                 .name(roleDTO.getName())
                 .description(roleDTO.getDescription())
                 .userCount(userCount)
-                .createdBy(roleDTO.getCreatedBy())
-                .updatedBy(roleDTO.getUpdatedBy())
                 .build();
     }
 }

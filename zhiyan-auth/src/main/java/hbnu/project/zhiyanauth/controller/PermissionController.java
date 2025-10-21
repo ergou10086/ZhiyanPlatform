@@ -120,10 +120,6 @@ public class PermissionController {
                     .name(permissionDTO.getName())
                     .description(permissionDTO.getDescription())
                     .roleCount(roleCount)
-                    .createdAt(permissionDTO.getCreatedAt())
-                    .updatedAt(permissionDTO.getUpdatedAt())
-                    .createdBy(permissionDTO.getCreatedBy())
-                    .updatedBy(permissionDTO.getUpdatedBy())
                     .build();
 
             return R.ok(response);
