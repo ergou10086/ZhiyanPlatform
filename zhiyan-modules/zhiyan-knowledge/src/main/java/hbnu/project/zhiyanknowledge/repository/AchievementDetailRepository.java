@@ -1,9 +1,11 @@
 package hbnu.project.zhiyanknowledge.repository;
 
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
+import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,7 +20,8 @@ import java.util.Optional;
  * @author ErgouTree
  */
 @Repository
-public interface AchievementDetailRepository extends JpaRepository<AchievementDetail, Long> {
+public interface AchievementDetailRepository extends JpaRepository<AchievementFile, Long>,
+        JpaSpecificationExecutor<AchievementDetail> {
 
     /**
      * 根据成果ID查询详情，用于前端展示

@@ -4,6 +4,7 @@ import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,7 +20,8 @@ import java.util.Optional;
  * @author ErgouTree
  */
 @Repository
-public interface AchievementFileRepository extends JpaRepository<AchievementFile, Long> {
+public interface AchievementFileRepository extends JpaRepository<AchievementFile, Long>,
+        JpaSpecificationExecutor<AchievementFile> {
 
     /**
      * 根据成果ID查询所有文件（分页）
