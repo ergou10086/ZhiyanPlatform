@@ -23,6 +23,11 @@ spring:
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+        # 加载redis配置
+        shared-configs:
+          - data-id: zhiyan-common-redis-prod.yaml
+            group: DEFAULT_GROUP
+            refresh: true
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
