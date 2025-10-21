@@ -1,4 +1,10 @@
-# 开发环境（本地环境）
+# 日志配置
+logging:
+  config: classpath:log4j2-spring.xml
+  level:
+    root: info
+    hbnu.project: debug
+
 
 spring:
   application:
@@ -22,7 +28,7 @@ spring:
         # 配置文件类型
         file-extension: yaml
         # 配置文件前缀，默认使用spring.application.name
-        prefix: zhiyan-common-basic
+        prefix: ${spring.application.name}
 
   # Jackson配置
   jackson:
@@ -42,6 +48,7 @@ zhiyan:
     # 设置为false时，只有使用@LongToString注解的字段才会转换
     long-to-string-global: true
 
+
 # Actuator监控配置
 management:
   endpoints:
@@ -56,21 +63,5 @@ management:
       enabled: false
   metrics:
     tags:
-      application: zhiyan-common-basic
-
-# 日志配置
-logging:
-  level:
-    root: INFO
-    hbnu.project: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/zhiyan-common-basic.log
-  logback:
-    rollingpolicy:
-      max-file-size: 50MB
-      max-history: 30
-
+      application: ${spring.application.name}
 

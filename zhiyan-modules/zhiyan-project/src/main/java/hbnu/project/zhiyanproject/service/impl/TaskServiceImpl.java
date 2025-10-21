@@ -84,7 +84,8 @@ public class TaskServiceImpl implements TaskService {
                 .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.MEDIUM)
                 .assigneeId(assigneeIdsJson)
                 .dueDate(request.getDueDate())
-                .createdBy(authServiceClient.getUserById(creatorId).getData().getName())
+                .worktime(request.getWorktime())
+                .createdBy(creatorId)
                 .isDeleted(false)
                 .build();
 
@@ -145,6 +146,11 @@ public class TaskServiceImpl implements TaskService {
 
         if (request.getDueDate() != null) {
             task.setDueDate(request.getDueDate());
+            updated = true;
+        }
+
+        if (request.getWorktime() != null) {
+            task.setWorktime(request.getWorktime());
             updated = true;
         }
 
@@ -408,7 +414,7 @@ public class TaskServiceImpl implements TaskService {
         // 查询创建人信息
         String creatorName = "未知用户";
         try {
-            R<UserDTO> response = authServiceClient.getUserByName(task.getCreatedBy());
+            R<UserDTO> response = authServiceClient.getUserById(task.getCreatedBy());
             if (R.isSuccess(response) && response.getData() != null) {
                 creatorName = response.getData().getName();
             }
@@ -433,6 +439,7 @@ public class TaskServiceImpl implements TaskService {
                 .priorityName(task.getPriority().getPriorityName())
                 .assignees(assignees)
                 .dueDate(task.getDueDate())
+                .worktime(task.getWorktime())
                 .isOverdue(isOverdue)
                 .createdBy(String.valueOf(task.getCreatedBy()))
                 .creatorName(creatorName)

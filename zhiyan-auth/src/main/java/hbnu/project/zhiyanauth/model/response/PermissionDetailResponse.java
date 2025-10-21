@@ -41,4 +41,8 @@ public class PermissionDetailResponse {
      * 拥有该权限的角色列表（简化信息）
      */
     private List<RoleDTO> roles;
+
+
+
+
 }

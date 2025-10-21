@@ -30,6 +30,7 @@ public class CustomRememberMeServiceImpl implements RememberMeService, CustomRem
     @Autowired
     private RememberMeTokenRepository rememberMeTokenRepository;
 
+
     private static final int REMEMBER_ME_DAYS = 30;
 
     /**

@@ -13,7 +13,7 @@ import java.util.List;
  * 项目成员服务接口
  * 项目成员采用直接邀请方式，无需申请审批流程
  *
- * @author  Tokito
+ * @author ErgouTree
  */
 public interface ProjectMemberService {
 

@@ -49,10 +49,10 @@ public class RoleInfoResponse {
     /**
      * 创建人
      */
-    private String createdBy;
+    private Long createdBy;
 
     /**
      * 更新人
      */
-    private String updatedBy;
+    private Long updatedBy;
 }

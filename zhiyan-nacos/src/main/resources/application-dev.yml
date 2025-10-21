@@ -1,21 +1,18 @@
-# 开发环境（本地环境）
-
 server:
   # 服务端口
   port: 8849
 
 spring:
   boot:
-    # Spring Boot Admin客户端配置
     admin:
       client:
         username: zhiyan
         password: zhiyan
-#  cloud:
-#    nacos:
-#      core:
-#        auth:
-#          enabled: false
+  cloud:
+    nacos:
+      core:
+        auth:
+          enabled: false
 
 logging:
   level:
@@ -58,7 +55,6 @@ info:
     name: ${spring.application.name}
     version: 0.0.1-SNAPSHOT
     description: '智研项目微服务注册中心（基于Nacos）'
-    environment: dev
   java:
     version: ${java.version}
   spring:

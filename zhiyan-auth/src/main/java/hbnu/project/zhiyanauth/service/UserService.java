@@ -52,7 +52,7 @@ public interface UserService {
     /**
      * 根据姓名查询用户信息（服务间调用接口）
      * 供其他微服务通过Feign调用
-     *
+     * 
      * @param name 用户姓名
      * @return 用户信息
      */

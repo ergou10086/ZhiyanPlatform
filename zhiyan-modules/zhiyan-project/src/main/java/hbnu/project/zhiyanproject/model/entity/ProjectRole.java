@@ -16,7 +16,7 @@ import java.util.List;
  * 项目角色实体类
  * 用于管理项目中的角色权限
  *
- * @author ErgouTree
+ * @author Tokito
  */
 @Entity
 @Table(name = "project_roles",
@@ -92,18 +92,12 @@ public class ProjectRole extends BaseAuditEntity {
     private Boolean isSystemDefault = false;
 
     /**
-     * 数据创建人（由审计自动填充）
+     * 注意：ProjectMember 使用枚举 ProjectMemberRole，不是此实体
+     * 如果需要关联，应该在 ProjectMember 中添加独立的 projectRoleEntity 字段
      */
-    @CreatedBy
-    @Column(updatable = false)
-    private String createdBy;
-
-    /**
-     * 项目成员关联（一对多）
-     */
-    @JsonIgnore
-    @OneToMany(mappedBy = "projectRole", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<ProjectMember> projectMembers;
+    // @JsonIgnore
+    // @OneToMany(mappedBy = "projectRole", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<ProjectMember> projectMembers;
 
     /**
      * 在持久化之前生成雪花ID和设置默认值

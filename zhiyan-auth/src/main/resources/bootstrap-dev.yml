@@ -1,5 +1,3 @@
-# 开发环境（本地环境）
-
 # bootstrap.yaml - 应用启动核心配置（优先加载）
 spring:
   # 1. 应用基础信息
@@ -9,12 +7,17 @@ spring:
   # 2. 配置中心核心配置（Nacos 连接信息，启动必需）
   cloud:
     nacos:
+      username: nacos
+      password: nacos
+
       # Nacos 配置中心配置（优先初始化，用于拉取后续配置）
       config:
         server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
+        username: nacos
+        password: nacos
         # Spring Cloud Alibaba 会自动加载以下配置文件：
         # 1. zhiyan-auth.yaml (根据 application.name + file-extension)
         # 2. zhiyan-auth-${profile}.yaml (如果配置了 spring.profiles.active)
@@ -24,6 +27,8 @@ spring:
         server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+        username: nacos
+        password: nacos
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
@@ -39,8 +44,7 @@ spring:
 logging:
   level:
     root: INFO
-    org.springframework.cloud: INFO   # 关闭配置加载的详细日志
-    com.alibaba.nacos: WARN           # 关闭 Nacos 客户端频繁日志
-    com.alibaba.nacos.shaded.io.grpc: WARN  # 关闭 gRPC 调试日志
+    org.springframework.cloud: DEBUG  # 可以看到配置加载日志，排查问题
+    com.alibaba.nacos: DEBUG          # Nacos 客户端日志
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [BOOTSTRAP] %-5level %logger{36} - %msg%n"

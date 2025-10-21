@@ -63,6 +63,11 @@ public class TaskDTO {
     private LocalDate dueDate;
 
     /**
+     * 预估工时（单位：小时）
+     */
+    private java.math.BigDecimal worktime;
+
+    /**
      * 创建人ID
      */
     private String createdBy;

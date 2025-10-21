@@ -65,11 +65,11 @@ public class AchievementDetail extends BaseAuditEntity{
     private String abstractText;
 
 
-//    /**
-//     * 标签，逗号分隔
-//     */
-//    @Column(name = "tags", length = 500, columnDefinition = "VARCHAR(500) COMMENT '标签，逗号分隔'")
-//    private String tags;
+    /**
+     * 标签，逗号分隔
+     */
+    @Column(name = "tags", length = 500, columnDefinition = "VARCHAR(500) COMMENT '标签，逗号分隔'")
+    private String tags;
 
 
     /**

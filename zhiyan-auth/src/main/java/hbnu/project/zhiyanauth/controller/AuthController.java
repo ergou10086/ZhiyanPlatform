@@ -18,8 +18,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.MediaType;
 
 import java.util.Map;
 import java.util.Optional;
@@ -62,12 +62,11 @@ public class AuthController {
     /**
      * 用户注册
      */
-    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/register")
     @Operation(summary = "用户注册", description = "通过邮箱和验证码进行用户注册")
     public R<UserRegisterResponse> register(
             @Valid @RequestBody RegisterBody request) {
         log.info("用户注册请求: 邮箱={}, 姓名={}", request.getEmail(), request.getName());
-        log.info("注册请求体详情: {}", request);
 
         // 直接调用 auth 模块的服务
         return authService.register(request);
@@ -77,7 +76,7 @@ public class AuthController {
      *
      * 用户登录
      */
-    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/login")
     @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
     public R<UserLoginResponse> login(
             @Valid @RequestBody LoginBody loginBody, HttpServletResponse response) {

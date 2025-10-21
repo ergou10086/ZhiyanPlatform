@@ -58,6 +58,28 @@ spring:
       max-lifetime: 1200000
       connection-timeout: 20000
 
+  # Redis 配置
+  data:
+    redis:
+      # Redis 服务器地址（与 zhiyan-common-redis 保持一致）
+      host: 10.7.10.98
+      # Redis 服务器端口
+      port: 6379
+      # Redis 服务器密码
+      password: zjm10086
+      # 连接超时时间（毫秒）
+      timeout: 5000
+      lettuce:
+        pool:
+          # 连接池最大连接数
+          max-active: 16
+          # 连接池最大阻塞等待时间
+          max-wait: -1
+          # 连接池中的最大空闲连接
+          max-idle: 8
+          # 连接池中的最小空闲连接
+          min-idle: 2
+
   # Jackson配置
   jackson:
     time-zone: Asia/Shanghai
@@ -133,8 +155,6 @@ swagger:
   enabled: false
   title: "智研平台的项目管理模块"
   description: "项目、任务、团队成员管理"
-
-
 
 
 

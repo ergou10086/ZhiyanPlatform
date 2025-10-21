@@ -51,7 +51,7 @@ public class RoleDTO {
     /**
      * 是否为系统默认角色
      */
-    private String isSystemDefault;
+    private Boolean isSystemDefault;
 
     /**
      * 创建时间
@@ -64,14 +64,14 @@ public class RoleDTO {
     private LocalDateTime updatedAt;
 
     /**
-     * 创建人
+     * 创建人ID
      */
-    private String createdBy;
+    private Long createdBy;
 
     /**
-     * 更新人
+     * 最后修改人ID
      */
-    private String updatedBy;
+    private Long updatedBy;
 
 
 }

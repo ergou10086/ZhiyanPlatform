@@ -67,13 +67,6 @@ public class Role extends BaseAuditEntity {
     private Boolean isSystemDefault = false;
 
     /**
-     * 数据创建人（由审计自动填充）
-     */
-    @CreatedBy
-    @Column(updatable = false)
-    private String createdBy;
-
-    /**
      * 角色用户关联（一对多）
      */
     @JsonIgnore
