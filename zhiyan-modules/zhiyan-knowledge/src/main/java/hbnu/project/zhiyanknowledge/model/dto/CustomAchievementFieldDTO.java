@@ -22,23 +22,56 @@ import java.util.Map;
 @AllArgsConstructor
 public class CustomAchievementFieldDTO {
     /**
-     * 成果ID
+     * 字段键（英文，用于存储）
      */
-    @NotNull(message = "成果ID不能为空")
-    private Long achievementId;
+    @NotBlank(message = "字段键不能为空")
+    private String fieldKey;
 
     /**
-     * 详细信息（自定义字段的键值对）
+     * 字段名称（中文，用于显示）
      */
-    private Map<String, Object> detailData;
+    @NotBlank(message = "字段名称不能为空")
+    private String fieldLabel;
 
     /**
-     * 摘要/描述
+     * 字段类型：text, number, date, textarea, select, multiselect
      */
-    private String abstractText;
+    @NotBlank(message = "字段类型不能为空")
+    private String fieldType;
 
-//    /**
-//     * 操作用户ID
-//     */
-//    private Long userId;
+    /**
+     * 是否必填
+     */
+    @Builder.Default
+    private Boolean required = false;
+
+    /**
+     * 默认值
+     */
+    private String defaultValue;
+
+    /**
+     * 占位符
+     */
+    private String placeholder;
+
+    /**
+     * 选项（当fieldType为select或multiselect时使用）
+     */
+    private String[] options;
+
+    /**
+     * 验证规则（正则表达式）
+     */
+    private String validationRule;
+
+    /**
+     * 提示信息
+     */
+    private String helpText;
+
+    /**
+     * 排序顺序
+     */
+    private Integer sortOrder;
 }

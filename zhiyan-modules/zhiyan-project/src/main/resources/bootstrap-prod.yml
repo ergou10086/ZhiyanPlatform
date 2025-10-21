@@ -18,11 +18,18 @@ spring:
         # 1. zhiyan-project.yaml (根据 application.name + file-extension)
         # 2. zhiyan-project-${profile}.yaml (如果配置了 spring.profiles.active)
 
+        # 加载redis配置
+        shared-configs:
+          - data-id: zhiyan-common-redis-prod.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+
       # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
       discovery:
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:

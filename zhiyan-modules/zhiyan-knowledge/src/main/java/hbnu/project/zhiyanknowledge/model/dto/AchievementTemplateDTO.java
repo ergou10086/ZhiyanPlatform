@@ -30,6 +30,11 @@ public class AchievementTemplateDTO {
     private String templateName;
 
     /**
+     * 模板类型
+     */
+    private AchievementType type;
+
+    /**
      * 摘要/描述
      */
     private String description;
@@ -45,8 +50,8 @@ public class AchievementTemplateDTO {
     @Builder.Default
     private Boolean isSystem = false;
 
-//    /**
-//     * 创建者ID（自定义模板）
-//     */
-//    private Long creatorId;
+    /**
+     * 创建者ID（自定义模板）
+     */
+    private Long creatorId;
 }

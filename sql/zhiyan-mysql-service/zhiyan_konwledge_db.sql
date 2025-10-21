@@ -19,9 +19,9 @@ CREATE TABLE achievement (
 ) COMMENT='成果主表';
 
 
--- 自定义成果类型模板表
+-- 成果类型模板表
 CREATE TABLE achievement_detail (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,     -- 自定义成果类型模板id
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,     -- 成果类型模板id
     achievement_id BIGINT NOT NULL UNIQUE,    -- 关联的成果id
     temple_name VARCHAR(50) NOT NULL COMMENT '自定义成果类型模板标题',
 

@@ -13,7 +13,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication(scanBasePackages = {
         "hbnu.project.zhiyanknowledge",
-        "hbnu.project.zhiyancommonbasic"
+        "hbnu.project.zhiyancommonbasic",
+        "hbnu.project.zhiyancommonoss"
 })
 @EnableJpaRepositories(basePackages = "hbnu.project.zhiyanknowledge.repository")
 @EntityScan(basePackages = "hbnu.project.zhiyanknowledge.model.entity")
