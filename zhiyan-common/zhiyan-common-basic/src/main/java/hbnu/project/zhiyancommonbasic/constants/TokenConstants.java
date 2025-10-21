@@ -42,6 +42,11 @@ public class TokenConstants {
     public static final String JWT_CLAIM_USER_ID = "userId";
 
     /**
+     * JWT声明中的用户邮箱键
+     */
+    public static final String JWT_CLAIM_EMAIL = "email";
+
+    /**
      * JWT声明中的Token类型键
      */
     public static final String JWT_CLAIM_TOKEN_TYPE = "type";

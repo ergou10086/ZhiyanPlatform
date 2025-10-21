@@ -70,7 +70,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
             // 生成验证码
             String code = VerificationCodeGenerator.generateNumericCode(CODE_LENGTH);
 
-            log.info("验证码:", code);
+            log.info("验证码: {}", code);
             // 存入Redis缓存
             String redisKey = buildRedisKey(email, type);
             redisService.setCacheObject(redisKey, code, (long) CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);

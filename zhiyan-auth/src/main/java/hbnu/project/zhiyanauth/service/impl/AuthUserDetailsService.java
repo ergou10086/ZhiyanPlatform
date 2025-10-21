@@ -1,17 +1,19 @@
 package hbnu.project.zhiyanauth.service.impl;
 
 import hbnu.project.zhiyancommonsecurity.service.UserDetailsService;
+import hbnu.project.zhiyanauth.model.entity.Permission;
 import hbnu.project.zhiyanauth.model.entity.User;
-import hbnu.project.zhiyanauth.model.enums.PermissionModule;
-import hbnu.project.zhiyanauth.model.enums.SysRole;
+import hbnu.project.zhiyanauth.repository.PermissionRepository;
 import hbnu.project.zhiyanauth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 认证模块用户详情服务实现
@@ -21,9 +23,11 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+//@ConditionalOnBean({UserRepository.class, PermissionRepository.class})
 public class AuthUserDetailsService extends UserDetailsService {
 
     private final UserRepository userRepository;
+    private final PermissionRepository permissionRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -38,17 +42,14 @@ public class AuthUserDetailsService extends UserDetailsService {
 
         User user = optionalUser.get();
 
-        // 2. 检查用户状态
-        if (Boolean.TRUE.equals(user.getIsLocked())) {
-            log.warn("用户账户已被锁定: {}", email);
-            // 注意：这里不抛出异常，让Spring Security处理锁定状态
-        }
+        // 2. 从数据库加载用户角色和权限
+        Set<String> permissions = loadUserPermissionsFromDatabase(user.getId());
+        List<String> roles = loadUserRolesFromDatabase(user.getId());
 
-        // 3. 加载用户权限和角色
-        Set<String> permissions = loadUserPermissions(user);
-        List<String> roles = loadUserRoles(user);
+        log.debug("用户[{}]加载完成 - 角色数: {}, 权限数: {}", 
+                email, roles.size(), permissions.size());
 
-        // 4. 使用父类方法构建LoginUserBody对象
+        // 3. 使用父类方法构建LoginUserBody对象
         return buildLoginUserBody(
                 user.getId(),
                 user.getEmail(),
@@ -74,8 +75,10 @@ public class AuthUserDetailsService extends UserDetailsService {
         }
 
         User user = optionalUser.get();
-        Set<String> permissions = loadUserPermissions(user);
-        List<String> roles = loadUserRoles(user);
+        
+        // 从数据库加载角色和权限
+        Set<String> permissions = loadUserPermissionsFromDatabase(userId);
+        List<String> roles = loadUserRolesFromDatabase(userId);
 
         return buildLoginUserBody(
                 user.getId(),
@@ -92,84 +95,63 @@ public class AuthUserDetailsService extends UserDetailsService {
     }
 
     /**
-     * 加载用户权限
+     * 从数据库加载用户权限
+     * 通过用户的角色关联查询所有权限
      */
-    private Set<String> loadUserPermissions(User user) {
-        Set<String> permissions = new HashSet<>();
-
-        // 1. 根据用户注册状态分配基础权限
-        permissions.addAll(PermissionModule.BASIC_USER.getPermissionStrings());
-
-        // 2. 检查是否为开发者
-        if (isDeveloper(user)) {
-            permissions.addAll(PermissionModule.SYSTEM_ADMIN.getPermissionStrings());
-            log.debug("用户[{}]具有开发者权限", user.getEmail());
+    private Set<String> loadUserPermissionsFromDatabase(Long userId) {
+        try {
+            List<Permission> permissions = permissionRepository.findAllByUserId(userId);
+            Set<String> permissionNames = permissions.stream()
+                    .map(Permission::getName)
+                    .collect(Collectors.toSet());
+            
+            log.debug("用户[ID: {}]权限加载完成，共{}个权限", userId, permissionNames.size());
+            return permissionNames;
+            
+        } catch (Exception e) {
+            log.error("加载用户权限异常 - userId: {}, 错误: {}", userId, e.getMessage(), e);
+            return Collections.emptySet();
         }
-
-        // 3. 项目相关权限需要在用户加入项目时动态加载
-        // 这里可以预留接口，后续在项目服务中实现
-        permissions.addAll(loadProjectPermissions(user.getId()));
-
-        log.debug("用户[{}]权限加载完成，共{}个权限", user.getEmail(), permissions.size());
-        return permissions;
     }
 
     /**
-     * 加载用户角色
+     * 从数据库加载用户角色
+     * 查询用户的所有角色关联
      */
-    private List<String> loadUserRoles(User user) {
-        List<String> roles = new ArrayList<>();
+    private List<String> loadUserRolesFromDatabase(Long userId) {
+        try {
+            Optional<User> optionalUser = userRepository.findByIdWithRolesAndPermissions(userId);
+            if (optionalUser.isEmpty()) {
+                log.warn("用户不存在 - userId: {}", userId);
+                return Collections.emptyList();
+            }
 
-        // 1. 检查是否为开发者
-        if (isDeveloper(user)) {
-            roles.add(SysRole.DEVELOPER.getCode());
-        } else {
-            // 2. 所有注册用户默认为普通用户
-            roles.add(SysRole.USER.getCode());
+            User user = optionalUser.get();
+            List<String> roles = user.getUserRoles().stream()
+                    .map(ur -> ur.getRole().getName())
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            log.debug("用户[ID: {}]角色加载完成: {}", userId, roles);
+            return roles;
+            
+        } catch (Exception e) {
+            log.error("加载用户角色异常 - userId: {}, 错误: {}", userId, e.getMessage(), e);
+            return Collections.emptyList();
         }
-
-        log.debug("用户[{}]角色加载完成: {}", user.getEmail(), roles);
-        return roles;
-    }
-
-    /**
-     * 判断用户是否为开发者
-     */
-    private boolean isDeveloper(User user) {
-        // 临时实现：假设有特定邮箱的用户为开发者
-        String[] developerEmails = {"admin@zhiyan.com", "developer@zhiyan.com"};
-        return Arrays.asList(developerEmails).contains(user.getEmail());
-
-        // 未来可以改为从数据库或配置中读取
-        // return user.getIsDeveloper() != null && user.getIsDeveloper();
-    }
-
-    /**
-     * 加载项目相关权限（预留接口）
-     */
-    private Set<String> loadProjectPermissions(Long userId) {
-        Set<String> projectPermissions = new HashSet<>();
-
-        // TODO: 实现项目权限加载逻辑
-        // 1. 查询用户参与的所有项目
-        // 2. 根据用户在各项目中的角色添加相应权限
-
-        return projectPermissions;
     }
 
     /**
      * 获取用户权限（业务特定方法）
      */
     public Set<String> getUserPermissions(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        return user.map(this::loadUserPermissions).orElse(Collections.emptySet());
+        return loadUserPermissionsFromDatabase(userId);
     }
 
     /**
      * 获取用户角色（业务特定方法）
      */
     public List<String> getUserRoles(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        return user.map(this::loadUserRoles).orElse(Collections.emptyList());
+        return loadUserRolesFromDatabase(userId);
     }
 }

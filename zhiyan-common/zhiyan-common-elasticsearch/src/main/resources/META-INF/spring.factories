@@ -1,2 +1,5 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
   org.dromara.common.elasticsearch.config.ActuatorEnvironmentPostProcessor
+# ZhiyanAuth??????
+org.springframework.boot.autoconfigure.AutoConfiguration=\
+  hbnu.project.zhiyanauth.config.ZhiyanAuthAutoConfiguration
