@@ -2,7 +2,7 @@ package hbnu.project.zhiyangateway.filter;
 
 import cn.hutool.core.map.MapUtil;
 import hbnu.project.zhiyancommonbasic.utils.JsonUtils;
-import hbnu.project.zhiyangateway.config.CustomGatewayProperties;
+import hbnu.project.zhiyangateway.config.properties.CustomGatewayProperties;
 import hbnu.project.zhiyangateway.utils.WebFluxUtils;
 import lombok.extern.slf4j.Slf4j;
 

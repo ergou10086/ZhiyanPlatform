@@ -68,6 +68,7 @@
         <mongodb-data.version>5.0.0-M6</mongodb-data.version>
         <thumbnailator.version>0.4.19</thumbnailator.version>
         <tika-core.version>2.9.1</tika-core.version>
+        <spring-cloud-bus.version>4.1.0</spring-cloud-bus.version>
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
@@ -102,6 +103,20 @@
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Cloud Bus AMQP 依赖管理 -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-bus-amqp</artifactId>
+                <version>${spring-cloud-bus.version}</version>
+            </dependency>
+
+            <!-- 可选：显式管理AMQP基础依赖（确保与Spring Cloud版本匹配） -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-bus</artifactId>
+                <version>${spring-cloud-bus.version}</version>
             </dependency>
 
             <!-- Spring Cloud Alibaba 依赖管理 -->
