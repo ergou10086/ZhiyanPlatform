@@ -87,13 +87,13 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         // 读取原始请求体（只读取一次）
         String body = StrUtil.str(IoUtil.readBytes(super.getInputStream(), false), StandardCharsets.UTF_8);
         if (StrUtil.isBlank(body)) {
-            // 如果请求体为空，返回空的流
+            // 如果请求体为空，返回空的输入流
             byte[] emptyBytes = new byte[0];
             ByteArrayInputStream emptyStream = new ByteArrayInputStream(emptyBytes);
             return new ServletInputStream() {
                 @Override
                 public boolean isFinished() {
-                    return true;
+                    return emptyStream.available() == 0;
                 }
 
                 @Override

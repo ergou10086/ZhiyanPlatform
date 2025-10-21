@@ -1,13 +1,11 @@
 package hbnu.project.zhiyancommonbasic.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -48,20 +46,16 @@ public abstract class BaseAuditEntity {
     private LocalDateTime updatedAt;
 
     /**
-     * 数据创建人ID（由审计自动填充）
-     */
-    @CreatedBy
-    @LongToString
-    @Column(name = "created_by", columnDefinition = "BIGINT COMMENT '创建人ID'")
-    private Long createdBy;
-
-    /**
-     * 数据最后修改人ID（由审计自动更新）
+     * 数据创建人（由审计自动填充）
      */
     @LastModifiedBy
-    @LongToString
-    @Column(name = "updated_by", columnDefinition = "BIGINT COMMENT '最后修改人ID'")
-    private Long updatedBy;
+    private String createdBy;
+
+    /**
+     * 数据最后修改人（由审计自动更新）
+     */
+    @LastModifiedBy
+    private String updatedBy;
 
 
     /**
