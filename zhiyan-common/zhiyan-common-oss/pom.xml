@@ -24,13 +24,6 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
         </dependency>
-        
-        <!-- AWS S3 SDK -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>2.20.162</version>
-        </dependency>
     </dependencies>
 
 </project>

@@ -23,9 +23,7 @@ import java.time.LocalDate;
  */
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "tasks", indexes = {
-        @Index(name = "idx_created_by", columnList = "created_by")
-})
+@Table(name = "tasks")
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -68,10 +66,10 @@ public class Tasks extends BaseAuditEntity {
     private String description;
 
     /**
-     * 工时
+     * 预估工时（单位：小时）
      */
-    @Column(name = "worktime", columnDefinition = "工时")
-    private String worktime;
+    @Column(name = "worktime", columnDefinition = "DECIMAL(10,2) COMMENT '预估工时（单位：小时，支持小数，例如2.5表示2.5小时）'")
+    private java.math.BigDecimal worktime;
 
     /**
      * 任务状态
@@ -91,7 +89,7 @@ public class Tasks extends BaseAuditEntity {
      * 负责人ID（JSON格式存储多个负责人ID）
      */
     @JsonRawValue
-    @Column(name = "assignee_id", nullable = false, columnDefinition = "JSON COMMENT '负责人ID（逻辑关联用户服务的用户ID，JSON类型存储多个负责人ID）'")
+    @Column(name = "assignee_id", nullable = false, columnDefinition = "JSON COMMENT '负责人ID（逻辑关联用户服务的用户ID，可为空表示未分配）JSON类型存储多个负责人ID'")
     private String assigneeId;
 
     /**
@@ -104,7 +102,7 @@ public class Tasks extends BaseAuditEntity {
     /**
      * 是否已删除（软删除标记）
      */
-    @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0 COMMENT '是否已删除（软删除标记，FALSE为未删除，TRUE为已删除）'")
     private Boolean isDeleted = false;
 
     /**

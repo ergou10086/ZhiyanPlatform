@@ -5,7 +5,6 @@ import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
-import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
 import hbnu.project.zhiyanproject.repository.ProjectRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
@@ -57,11 +56,7 @@ public class ProjectServiceImpl implements ProjectService {
             project = projectRepository.save(project);
 
             // 自动将创建者添加为项目拥有者
-            InviteMemberRequest inviteRequest = InviteMemberRequest.builder()
-                    .userId(creatorId)
-                    .role(ProjectMemberRole.OWNER)
-                    .build();
-            projectMemberService.inviteMember(project.getId(), inviteRequest, creatorId);
+            projectMemberService.addMember(project.getId(), creatorId, ProjectMemberRole.OWNER);
 
             log.info("成功创建项目: id={}, name={}, creator={}", project.getId(), name, creatorId);
             return R.ok(project, "项目创建成功");

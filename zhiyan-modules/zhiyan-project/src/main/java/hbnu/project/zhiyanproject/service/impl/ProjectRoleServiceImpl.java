@@ -86,11 +86,15 @@ public class ProjectRoleServiceImpl implements ProjectRoleService {
                 return R.fail("项目角色不存在");
             }
 
-            // 检查是否有成员使用该角色
-            long memberCount = projectMemberRepository.countByProjectRoleId(roleId);
-            if (memberCount > 0) {
-                return R.fail("该角色正在被 " + memberCount + " 个成员使用，无法删除");
-            }
+            // 注意：ProjectRole 实体与 ProjectMember 没有直接关联
+            // ProjectMember 使用的是 ProjectMemberRole 枚举
+            // 如果需要关联检查，需要重新设计实体关系
+            
+            // 暂时允许删除（因为没有实际关联）
+            // long memberCount = projectMemberRepository.countByProjectRoleId(roleId);
+            // if (memberCount > 0) {
+            //     return R.fail("该角色正在被 " + memberCount + " 个成员使用，无法删除");
+            // }
 
             projectRoleRepository.delete(projectRole);
             log.info("成功删除项目角色: {}", projectRole.getName());

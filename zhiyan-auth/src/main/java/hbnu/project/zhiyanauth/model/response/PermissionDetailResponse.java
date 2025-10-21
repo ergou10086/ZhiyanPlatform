@@ -41,4 +41,24 @@ public class PermissionDetailResponse {
      * 拥有该权限的角色列表（简化信息）
      */
     private List<RoleDTO> roles;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createdAt;
+
+    /**
+     * 更新时间
+     */
+    private LocalDateTime updatedAt;
+
+    /**
+     * 创建人
+     */
+    private String createdBy;
+
+    /**
+     * 更新人
+     */
+    private String updatedBy;
 }

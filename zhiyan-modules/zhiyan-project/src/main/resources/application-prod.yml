@@ -73,7 +73,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: false
     open-in-view: false
 
@@ -133,8 +133,5 @@ swagger:
   enabled: false
   title: "智研平台的项目管理模块"
   description: "项目、任务、团队成员管理"
-
-
-
 
 

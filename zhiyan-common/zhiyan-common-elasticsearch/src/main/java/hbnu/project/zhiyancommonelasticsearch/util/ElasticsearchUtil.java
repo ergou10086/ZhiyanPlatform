@@ -227,6 +227,3 @@ public class ElasticsearchUtil {
 }
 
 
-
-
-

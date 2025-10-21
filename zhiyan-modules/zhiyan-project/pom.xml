@@ -76,6 +76,18 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-security</artifactId>
         </dependency>
+
+        <!-- OpenFeign 用于服务间调用 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- Loadbalancer 负载均衡（OpenFeign需要） -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

@@ -28,4 +28,9 @@ public class PermissionInfoResponse {
      * 权限描述
      */
     private String description;
+
+    /**
+     * 拥有该权限的角色数量
+     */
+    private Long roleCount;
 }

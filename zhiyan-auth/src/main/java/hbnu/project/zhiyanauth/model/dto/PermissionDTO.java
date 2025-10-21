@@ -48,12 +48,12 @@ public class PermissionDTO {
     private LocalDateTime updatedAt;
 
     /**
-     * 创建人
+     * 创建人ID
      */
-    private String createdBy;
+    private Long createdBy;
 
     /**
-     * 更新人
+     * 最后修改人ID
      */
-    private String updatedBy;
+    private Long updatedBy;
 }
