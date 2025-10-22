@@ -50,6 +50,17 @@ public interface RoleService {
      */
     R<RoleDTO> getRoleByName(String roleName);
 
+    /**
+     * 根据名称获取角色ID
+     * 
+     * 注意：此方法会查找所有类型的角色（SYSTEM 和 PROJECT）
+     * 由于角色名称全局唯一，不会有重复
+     * 
+     * @param roleName 角色名称（如：USER, DEVELOPER, GUEST）
+     * @return 角色ID
+     */
+    R<Long> getRoleIdByName(String roleName);
+
     // ==================== 角色管理（CRUD） ====================
 
     /**
