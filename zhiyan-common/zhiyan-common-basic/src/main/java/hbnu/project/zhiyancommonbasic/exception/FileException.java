@@ -2,6 +2,8 @@ package hbnu.project.zhiyancommonbasic.exception;
 
 import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
 
+import java.io.Serial;
+
 /**
  * 文件操作异常
  * 用于处理文件上传、下载、删除等操作中的异常
@@ -9,24 +11,20 @@ import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
  * @author ErgouTree
  */
 public class FileException extends BaseException {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 错误码
+     * 错误码（数字类型）
      */
-    private Integer code;
-
-    /**
-     * 错误信息
-     */
-    private String message;
+    private Integer errorCode;
 
     /**
      * 默认构造函数
      */
     public FileException() {
         super("文件操作异常");
-        this.code = 5000;
+        this.errorCode = 5000;
     }
 
     /**
@@ -36,20 +34,18 @@ public class FileException extends BaseException {
      */
     public FileException(String message) {
         super(message);
-        this.message = message;
-        this.code = 5000;
+        this.errorCode = 5000;
     }
 
     /**
      * 带消息和错误码的构造函数
      *
      * @param message 错误消息
-     * @param code    错误码
+     * @param errorCode    错误码
      */
-    public FileException(String message, Integer code) {
+    public FileException(String message, Integer errorCode) {
         super(message);
-        this.message = message;
-        this.code = code;
+        this.errorCode = errorCode;
     }
 
     /**
@@ -60,41 +56,33 @@ public class FileException extends BaseException {
      */
     public FileException(String message, Throwable cause) {
         super(message, cause);
-        this.message = message;
-        this.code = 5000;
+        this.errorCode = 5000;
     }
 
     /**
      * 完整构造函数
      *
      * @param message 错误消息
-     * @param code    错误码
+     * @param errorCode    错误码
      * @param cause   异常原因
      */
-    public FileException(String message, Integer code, Throwable cause) {
+    public FileException(String message, Integer errorCode, Throwable cause) {
         super(message, cause);
-        this.message = message;
-        this.code = code;
+        this.errorCode = errorCode;
     }
 
     // Getters and Setters
 
-    public String getCode() {
-        return code;
+    public Integer getErrorCode() {
+        return errorCode;
     }
 
-    public FileException setCode(Integer code) {
-        this.code = code;
+    public FileException setErrorCode(Integer errorCode) {
+        this.errorCode = errorCode;
         return this;
     }
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
     public FileException setMessage(String message) {
-        this.message = message;
         return this;
     }
 }

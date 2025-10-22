@@ -141,9 +141,10 @@ public class GatewayExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         // 通用网关异常
+        // 通用网关异常
         if (ex instanceof GatewayException gatewayEx) {
             return new ErrorResponse(
-                    gatewayEx.getCode(),
+                    gatewayEx.getErrorCode(),
                     gatewayEx.getMessage(),
                     gatewayEx.getHttpStatus(),
                     path

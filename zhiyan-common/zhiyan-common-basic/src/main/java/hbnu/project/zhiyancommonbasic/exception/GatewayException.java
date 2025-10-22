@@ -23,14 +23,9 @@ public class GatewayException extends BaseException {
     private HttpStatus httpStatus;
 
     /**
-     * 错误码
+     * 错误码（数字类型）
      */
-    private Integer code;
-
-    /**
-     * 错误信息
-     */
-    private String message;
+    private Integer errorCode;
 
     /**
      * 详细错误信息（用于调试）
@@ -44,7 +39,7 @@ public class GatewayException extends BaseException {
     public GatewayException() {
         super("网关异常");
         this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        this.code = 500;
+        this.errorCode = 500;
     }
 
     /**
@@ -54,9 +49,8 @@ public class GatewayException extends BaseException {
      */
     public GatewayException(String message) {
         super(message);
-        this.message = message;
         this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        this.code = 500;
+        this.errorCode = 500;
     }
 
     /**
@@ -67,9 +61,8 @@ public class GatewayException extends BaseException {
      */
     public GatewayException(String message, HttpStatus httpStatus) {
         super(message);
-        this.message = message;
         this.httpStatus = httpStatus;
-        this.code = httpStatus.value();
+        this.errorCode = httpStatus.value();
     }
 
     /**
@@ -77,13 +70,12 @@ public class GatewayException extends BaseException {
      *
      * @param message    错误消息
      * @param httpStatus HTTP状态码
-     * @param code       业务错误码
+     * @param errorCode       业务错误码
      */
-    public GatewayException(String message, HttpStatus httpStatus, Integer code) {
+    public GatewayException(String message, HttpStatus httpStatus, Integer errorCode) {
         super(message);
-        this.message = message;
         this.httpStatus = httpStatus;
-        this.code = code;
+        this.errorCode = errorCode;
     }
 
     /**
@@ -94,9 +86,8 @@ public class GatewayException extends BaseException {
      */
     public GatewayException(String message, Throwable cause) {
         super(message, cause);
-        this.message = message;
         this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-        this.code = 500;
+        this.errorCode = 500;
     }
 
     /**
@@ -104,14 +95,13 @@ public class GatewayException extends BaseException {
      *
      * @param message    错误消息
      * @param httpStatus HTTP状态码
-     * @param code       业务错误码
+     * @param errorCode       业务错误码
      * @param cause      异常原因
      */
-    public GatewayException(String message, HttpStatus httpStatus, Integer code, Throwable cause) {
+    public GatewayException(String message, HttpStatus httpStatus, Integer errorCode, Throwable cause) {
         super(message, cause);
-        this.message = message;
         this.httpStatus = httpStatus;
-        this.code = code;
+        this.errorCode = errorCode;
     }
 
     // Getters and Setters
@@ -121,23 +111,16 @@ public class GatewayException extends BaseException {
         return this;
     }
 
-    @Override
-    public Integer getCode() {
-        return code;
+    public Integer getErrorCode() {
+        return errorCode;
     }
 
-    public GatewayException setCode(Integer code) {
-        this.code = code;
+    public GatewayException setErrorCode(Integer errorCode) {
+        this.errorCode = errorCode;
         return this;
     }
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
     public GatewayException setMessage(String message) {
-        this.message = message;
         return this;
     }
 
