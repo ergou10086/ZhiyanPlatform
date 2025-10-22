@@ -1,4 +1,4 @@
-package hbnu.project.zhiyancommonbasic.container;
+package hbnu.project.zhiyancommonbasic.utils.container;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

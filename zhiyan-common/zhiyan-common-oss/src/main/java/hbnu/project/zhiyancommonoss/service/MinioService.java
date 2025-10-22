@@ -1,6 +1,7 @@
 package hbnu.project.zhiyancommonoss.service;
 
-import hbnu.project.zhiyancommonbasic.exception.ServiceException;
+import hbnu.project.zhiyancommonbasic.exception.FileException;
+import hbnu.project.zhiyancommonbasic.exception.file.*;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonbasic.utils.file.FileTypeUtils;
 import hbnu.project.zhiyancommonbasic.utils.file.FileUtils;
@@ -50,14 +51,14 @@ public class MinioService {
     @SneakyThrows
     public boolean bucketExists(String bucketName) {
         try{
-            return !minioClient.bucketExists(
+            return minioClient.bucketExists(
                     BucketExistsArgs.builder()
                             .bucket(bucketName)
                             .build()
             );
         }catch (OssException e) {
             log.error("检查桶是否存在失败: {}", bucketName, e);
-            return true;
+            throw new OssException("检查存储桶失败: " + e.getMessage(), e);
         }
     }
 
@@ -67,7 +68,7 @@ public class MinioService {
     @SneakyThrows
     public void createBucket(String bucketName) {
         try{
-            if(bucketExists(bucketName)){
+            if(!bucketExists(bucketName)){
                 minioClient.makeBucket(
                         MakeBucketArgs.builder()
                                 .bucket(bucketName)
@@ -77,13 +78,14 @@ public class MinioService {
             }
         }catch (OssException e) {
             log.error("创建桶失败: {}", bucketName, e);
-            throw new ServiceException("创建存储桶失败");
+            throw new OssException("创建存储桶失败: " + e.getMessage(), e);
         }
     }
 
     /**
      * 获取所有桶
      */
+    @SneakyThrows
     public List<String> listBuckets() {
         try {
             List<Bucket> buckets = minioClient.listBuckets();
@@ -92,9 +94,9 @@ public class MinioService {
                 bucketNames.add(bucket.name());
             }
             return bucketNames;
-        } catch (Exception e) {
+        } catch (OssException e) {
             log.error("获取桶列表失败", e);
-            throw new ServiceException("获取存储桶列表失败");
+            throw new OssException("获取存储桶列表失败: " + e.getMessage(), e);
         }
     }
 
@@ -152,9 +154,9 @@ public class MinioService {
                         .eTag(response.etag())
                         .build();
             }
-        } catch (OssException e) {
+        } catch (Exception e) {
             log.error("文件上传失败: bucket={}, object={}", bucketName, objectKey, e);
-            throw new ServiceException("文件上传失败: " + e.getMessage());
+            throw new FileUploadException("文件上传失败: " + e.getMessage(), e);
         }
     }
 
@@ -202,9 +204,9 @@ public class MinioService {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } catch (OssException e) {
+        } catch (Exception e) {
             log.error("字节数组上传失败: bucket={}, object={}", bucketName, objectKey, e);
-            throw new ServiceException("文件上传失败: " + e.getMessage());
+            throw new FileUploadException("文件上传失败: " + e.getMessage(), e);
         }
     }
 
@@ -228,9 +230,9 @@ public class MinioService {
             InputStream stream = minioClient.getObject(getObjectArgs);
             log.info("文件下载成功: bucket={}, object={}", bucketName, objectKey);
             return stream;
-        } catch (OssException e) {
+        } catch (Exception e) {
             log.error("文件下载失败: bucket={}, object={}", bucketName, objectKey, e);
-            throw new ServiceException("文件下载失败: " + e.getMessage());
+            throw new FileDownloadException("文件下载失败: " + e.getMessage(), e);
         }
     }
 
@@ -258,9 +260,9 @@ public class MinioService {
             String url = minioClient.getPresignedObjectUrl(args);
             log.debug("生成预签名URL: bucket={}, object={}, expiry={}", bucketName, objectKey, expiry);
             return url;
-        }catch (OssException e) {
+        }catch (Exception e) {
             log.error("生成预签名URL失败: bucket={}, object={}", bucketName, objectKey, e);
-            throw new ServiceException("生成访问链接失败");
+            throw new FileDownloadException("生成访问链接失败: " + e.getMessage(), e);
         }
     }
 
@@ -282,9 +284,9 @@ public class MinioService {
 
             minioClient.removeObject(removeObjectArgs);
             log.info("文件删除成功: bucket={}, object={}", bucketName, objectKey);
-        }catch (OssException e) {
+        }catch (Exception e) {
             log.error("文件删除失败: bucket={}, object={}", bucketName, objectKey, e);
-            throw new ServiceException("文件删除失败");
+            throw new FileDeleteException("文件删除失败: " + e.getMessage(), e);
         }
     }
 
@@ -368,7 +370,7 @@ public class MinioService {
 
         } catch (Exception e) {
             log.error("列出文件失败: bucket={}, prefix={}", bucketName, prefix, e);
-            throw new ServiceException("获取文件列表失败");
+            throw new FileException("获取文件列表失败: " + e.getMessage(), e);
         }
     }
 
@@ -404,7 +406,7 @@ public class MinioService {
 
         } catch (Exception e) {
             log.error("文件复制失败", e);
-            throw new ServiceException("文件复制失败");
+            throw new FileException("文件复制失败: " + e.getMessage(), e);
         }
     }
 }

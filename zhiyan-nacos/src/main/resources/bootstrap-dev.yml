@@ -1,32 +1,23 @@
+# 开发环境（本地环境）
+
 spring:
   application:
     # 服务名称，必须在 bootstrap.yml 中定义
     name: zhiyan-nacos
-  # profiles:
-  #   # 环境配置
-  #   active: dev
   cloud:
     nacos:
-      username: nacos
-      password: nacos
       # 服务发现配置
       discovery:
         server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
-        username: nacos
-        password: nacos
       # 配置中心配置
       config:
         server-addr: 127.0.0.1:8848
         file-extension: yaml
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
-        username: nacos
-        password: nacos
         # 启用配置自动刷新
         refresh-enabled: true
         import-check:
           enabled: false
-
-

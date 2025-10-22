@@ -11,14 +11,9 @@ public class ServiceException extends BaseException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 错误码
+     * 错误码（数字类型）
      */
-    private Integer code;
-
-    /**
-     * 错误提示
-     */
-    private String message;
+    private Integer errorCode;
 
     /**
      * 错误明细，内部调试错误
@@ -34,24 +29,20 @@ public class ServiceException extends BaseException {
 
     public ServiceException(String message) {
         super(message);
-        this.message = message;
     }
 
-    public ServiceException(String message, Integer code) {
+    public ServiceException(String message, Integer errorCode) {
         super(message);
-        this.message = message;
-        this.code = code;
+        this.errorCode = errorCode;
     }
 
     public ServiceException(String message, Throwable e) {
         super(message, e);
-        this.message = message;
     }
 
-    public ServiceException(String message, Integer code, Throwable e) {
+    public ServiceException(String message, Integer errorCode, Throwable e) {
         super(message, e);
-        this.message = message;
-        this.code = code;
+        this.errorCode = errorCode;
     }
 
     public String getDetailMessage() {
@@ -63,22 +54,16 @@ public class ServiceException extends BaseException {
         return this;
     }
 
-    @Override
-    public String getMessage() {
-        return message;
+    public Integer getErrorCode() {
+        return errorCode;
     }
 
-    public ServiceException setMessage(String message) {
-        this.message = message;
+    public ServiceException setErrorCode(Integer errorCode) {
+        this.errorCode = errorCode;
         return this;
     }
 
-    public Integer getIntegerCode() {
-        return code;
-    }
-
-    public ServiceException setCode(Integer code) {
-        this.code = code;
+    public ServiceException setMessage(String message) {
         return this;
     }
 }

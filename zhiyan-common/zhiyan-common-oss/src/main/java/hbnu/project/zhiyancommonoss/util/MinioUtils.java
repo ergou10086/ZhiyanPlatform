@@ -1,6 +1,6 @@
 package hbnu.project.zhiyancommonoss.util;
 
-import hbnu.project.zhiyancommonbasic.exception.ServiceException;
+import hbnu.project.zhiyancommonbasic.exception.file.FileValidationException;
 import hbnu.project.zhiyancommonbasic.utils.DateUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonbasic.utils.file.FileTypeUtils;
@@ -55,17 +55,17 @@ public class MinioUtils {
     public void validateFile(MultipartFile file, String fileExtension, long fileSize) {
         // 检查文件是否为空
         if (file.isEmpty()) {
-            throw new ServiceException("文件不能为空");
+            throw new FileValidationException("文件不能为空");
         }
 
         // 检查文件名
         String originalFilename = file.getOriginalFilename();
         if (StringUtils.isEmpty(originalFilename)) {
-            throw new ServiceException("文件名不能为空");
+            throw new FileValidationException("文件名不能为空");
         }
 
         if (!FileUtils.isValidFilename(Objects.requireNonNull(originalFilename))) {
-            throw new ServiceException("文件名包含非法字符");
+            throw new FileValidationException("文件名包含非法字符");
         }
 
         // 检查文件大小
@@ -77,7 +77,7 @@ public class MinioUtils {
         long maxSize = isImage ? uploadConfig.getMaxImageSize() : uploadConfig.getMaxFileSize();
         if (fileSize > maxSize) {
             String maxSizeStr = FileTypeUtils.formatFileSize(maxSize);
-            throw new ServiceException("文件大小超过限制，最大允许: " + maxSizeStr);
+            throw new FileValidationException("文件大小超过限制，最大允许: " + maxSizeStr);
         }
 
         // 检查文件类型（图片桶只能传图片）
@@ -87,7 +87,7 @@ public class MinioUtils {
         if (allowedTypes != null && allowedTypes.length > 0 && !"*".equals(allowedTypes[0])) {
             boolean typeAllowed = Arrays.asList(allowedTypes).contains(fileExtension.toLowerCase());
             if (!typeAllowed) {
-                throw new ServiceException("不支持的文件类型: " + fileExtension);
+                throw new FileValidationException("不支持的文件类型: " + fileExtension);
             }
         }
     }

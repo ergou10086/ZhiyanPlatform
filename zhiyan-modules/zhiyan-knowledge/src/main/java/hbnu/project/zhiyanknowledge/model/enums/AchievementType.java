@@ -27,11 +27,6 @@ public enum AchievementType {
     PATENT("patent", "专利"),
 
     /**
-     * 著作
-     */
-    MONOGRAPH("monograph", "专著"),
-
-    /**
      * 数据集
      */
     DATASET("dataset", "数据集"),

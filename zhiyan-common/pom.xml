@@ -16,6 +16,8 @@
         <module>zhiyan-common-security</module>
         <module>zhiyan-common-elasticsearch</module>
         <module>zhiyan-common-oss</module>
+        <module>zhiyan-common-idempotent</module>
+        <module>zhiyan-common-bus</module>
     </modules>
 
     <artifactId>zhiyan-common</artifactId>

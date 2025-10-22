@@ -65,6 +65,7 @@ public class AchievementFile{
 
     /**
      * 文件类型（pdf/zip/csv等）
+     * 通过读取文件后缀名自动添加
      */
     @Column(name = "file_type", length = 50, columnDefinition = "VARCHAR(50) COMMENT '文件类型（pdf/zip/csv等）'")
     private String fileType;

@@ -2,7 +2,7 @@ package hbnu.project.zhiyangateway.client;
 
 import com.alibaba.nacos.api.model.v2.Result;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import hbnu.project.zhiyancommonbasic.container.MapUtils;
+import hbnu.project.zhiyancommonbasic.utils.container.MapUtils;
 import hbnu.project.zhiyangateway.model.TokenValidateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,12 +1,15 @@
 package hbnu.project.zhiyancommonbasic.exception.base;
 
+import java.io.Serial;
+
 /**
  * 基础异常
- * 
- * @author ruoyi
+ *
+ * @author yui
  */
-public class BaseException extends RuntimeException
-{
+public class BaseException extends RuntimeException {
+
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -58,6 +61,8 @@ public class BaseException extends RuntimeException
     }
 
     public BaseException(String message, Throwable e) {
+        super(message, e);
+        this.defaultMessage = message;
     }
 
     public String getModule()

@@ -14,20 +14,22 @@ spring:
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
-        # 加载共享的redis配置
+        # Spring Cloud Alibaba 会自动加载以下配置文件：
+        # 1. zhiyan-project.yaml (根据 application.name + file-extension)
+        # 2. zhiyan-project-${profile}.yaml (如果配置了 spring.profiles.active)
+
+        # 加载redis配置
         shared-configs:
           - data-id: zhiyan-common-redis-prod.yaml
             group: DEFAULT_GROUP
             refresh: true
-        # Spring Cloud Alibaba 会自动加载以下配置文件：
-        # 1. zhiyan-project.yaml (根据 application.name + file-extension)
-        # 2. zhiyan-project-${profile}.yaml (如果配置了 spring.profiles.active)
 
       # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
       discovery:
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
@@ -44,3 +46,10 @@ logging:
     com.alibaba.nacos.shaded.io.grpc: WARN  # 关闭 gRPC 调试日志
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [BOOTSTRAP] %-5level %logger{36} - %msg%n"
+
+
+
+
+
+
+
