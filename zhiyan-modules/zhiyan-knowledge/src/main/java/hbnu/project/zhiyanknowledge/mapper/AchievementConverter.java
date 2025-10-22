@@ -14,6 +14,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,8 +42,6 @@ public abstract class AchievementConverter {
     @Mapping(target = "fileCount", expression = "java(getFileCount(achievement))")
     @Mapping(target = "abstractText", expression = "java(getAbstractText(achievement))")
     @Mapping(target = "creatorName", ignore = true) // 需要从auth服务获取
-    @Mapping(target = "abstractText", expression = "java(truncateAbstract(entity.getDetail()))")
-    @Mapping(target = "fileCount", expression = "java(getFileCount(entity))")
     public abstract AchievementDTO toDTO(Achievement achievement);
 
     /**
@@ -61,6 +60,7 @@ public abstract class AchievementConverter {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
+    @Mapping(target = "version", ignore = true)
     public abstract Achievement CreateDTOtoEntity(CreateAchievementDTO dto);
 
     /**
@@ -76,6 +76,7 @@ public abstract class AchievementConverter {
     @Mapping(target = "files", source = "files")
     @Mapping(target = "projectName", ignore = true) // 需要从其他服务获取
     @Mapping(target = "creatorName", ignore = true) // 需要从其他服务获取
+    @Mapping(target = "tags", ignore = true) // AchievementDetail 中已注释掉 tags 字段
     public abstract AchievementDetailDTO toDetailDTO(Achievement achievement);
 
     /**
@@ -106,7 +107,7 @@ public abstract class AchievementConverter {
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "version", ignore = true)
-    public abstract void updateEntityFromDTO(UpdateAchievementDTO dto, Achievement achievement);
+    public abstract void updateEntityFromDTO(UpdateAchievementDTO dto, @org.mapstruct.MappingTarget Achievement achievement);
 
     // ==================== AchievementDetail 相关转换 ====================
 
@@ -133,7 +134,7 @@ public abstract class AchievementConverter {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "achievementId", source = "achievementId")
     @Mapping(target = "uploadBy", source = "uploadBy")
-    @Mapping(target = "fileSizeFormatted", expression = "java(formatFileSize(entity.getFileSize()))")
+    @Mapping(target = "fileSizeFormatted", expression = "java(formatFileSize(file.getFileSize()))")
     @Mapping(target = "fileUrl", source = "minioUrl")
     @Mapping(target = "uploaderName", ignore = true) // 需要从auth服务获取
     public abstract AchievementFileDTO fileToDTO(AchievementFile file);
@@ -154,8 +155,6 @@ public abstract class AchievementConverter {
     @Mapping(target = "bucketName", ignore = true)
     @Mapping(target = "objectKey", ignore = true)
     @Mapping(target = "minioUrl", ignore = true)
-    @Mapping(target = "version", constant = "1")
-    @Mapping(target = "isLatest", constant = "true")
     @Mapping(target = "uploadAt", ignore = true)
     @Mapping(target = "achievement", ignore = true)
     public abstract AchievementFile uploadDTOToFile(UploadFileDTO dto);

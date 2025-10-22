@@ -25,7 +25,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("")
+@RequestMapping("/zhiyan/achievement/file")
 @Tag(name = "成果的文件管理", description = "成果文件上传等管理")
 public class AchievementFileController {
 

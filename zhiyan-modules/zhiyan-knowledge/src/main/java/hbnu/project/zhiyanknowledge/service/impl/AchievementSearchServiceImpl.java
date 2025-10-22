@@ -19,6 +19,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,8 +41,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AchievementSearchServiceImpl implements AchievementSearchService {
 
+    @Autowired
     private final AchievementRepository achievementRepository;
+
+    @Autowired
     private final AchievementFileRepository achievementFileRepository;
+
     private final AchievementConverter achievementConverter;
 
     /**

@@ -1,0 +1,50 @@
+# MinIO配置 - 生产环境示例
+# 注意：这是公共模块的示例配置，实际使用时需要在业务模块（如 zhiyan-knowledge）中配置
+
+minio:
+  # MinIO服务地址（生产环境 - 从环境变量读取）
+  # WebUI http://10.7.10.98:9091
+  endpoint: ${MINIO_ENDPOINT:http://10.7.10.98:9000}
+  # 访问密钥（从环境变量读取）
+  access-key: ${MINIO_ROOT_USER:root}
+  # 密钥（从环境变量读取）
+  secret-key: ${MINIO_ROOT_PASSWORD:rootroot}
+  # 是否启用HTTPS
+  secure: ${MINIO_SECURE:true}
+  
+  # 桶配置
+  buckets:
+    achievement-files: achievement-files
+    wiki-assets: wiki-assets
+    temp-uploads: temp-uploads
+    project-covers: project-covers
+    user-avatars: user-avatars
+  
+  # 文件上传配置
+  upload:
+    # 最大文件大小（500MB）
+    max-file-size: 524288000
+    # 最大图片大小（10MB）
+    max-image-size: 10485760
+    # 允许的文件类型
+    allowed-file-types:
+      - "*"
+    # 允许的图片类型
+    allowed-image-types:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - webp
+      - svg
+      - bmp
+    # 临时文件保留时间（小时）
+    temp-file-retention-hours: 24
+  
+  # 图片处理配置
+  image:
+    # 图片质量（0.0-1.0）
+    quality: 0.85
+    # 是否生成WebP格式
+    generate-web-p: true
+

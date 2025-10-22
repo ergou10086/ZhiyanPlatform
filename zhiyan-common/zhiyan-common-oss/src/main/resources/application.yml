@@ -1,36 +1,19 @@
-minio:
-  # MinIO????
-  endpoint: http://localhost:9005
-  # ????
-  access-key: root
-  # ??
-  secret-key: zjm10086
-  # ????HTTPS
-  secure: false
-  
-  # ???
-  buckets:
-    achievement-files: achievement-files
-    wiki-assets: wiki-assets
-    temp-uploads: temp-uploads
-    project-covers: project-covers
-    user-avatars: user-avatars
-  
-  # ????
-  upload:
-    # ???????100MB?
-    max-file-size: 104857600
-    # ???????5MB?
-    max-image-size: 5242880
-    # ???????
-    allowed-file-types: *
-    # ???????
-    allowed-image-types:
-      - jpg
-      - jpeg
-      - png
-      - gif
-      - webp
-      - svg
-    # ????????????
-    temp-file-retention-hours: 24
+# MinIO通用配置（作为公共模块，具体配置由使用方提供）
+# 此文件仅作为配置示例，实际使用时需要在业务模块中配置
+
+
+spring:
+  profiles:
+    # 默认使用prod环境，可通过环境变量覆盖
+    active: ${SPRING_PROFILES_ACTIVE:prod}
+
+# 通用配置
+app:
+  name: 智研平台对象存储基础模块
+  version: 0.0.1-SNAPSHOT
+
+# 通用日志配置
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"

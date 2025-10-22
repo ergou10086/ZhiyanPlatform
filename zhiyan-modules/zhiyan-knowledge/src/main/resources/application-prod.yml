@@ -100,6 +100,9 @@ management:
     metrics:
       export:
         enabled: true
+  health:
+    redis:
+      enabled: false
 
 # 日志配置
 logging:
@@ -133,7 +136,6 @@ swagger:
   enabled: false
   title: "智研平台的知识管理模块"
   description: "学术成果、文献、专利管理"
-
 
 
 

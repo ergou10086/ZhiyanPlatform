@@ -111,12 +111,12 @@ public class AchievementDetailDTO {
     /**
      * 创建人
      */
-    private String createdBy;
+    private Long createdBy;
 
     /**
      * 更新人
      */
-    private String updatedBy;
+    private Long updatedBy;
 
     /**
      * 版本号（乐观锁）

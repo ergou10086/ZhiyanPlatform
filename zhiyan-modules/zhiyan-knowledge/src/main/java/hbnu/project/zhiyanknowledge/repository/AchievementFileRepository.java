@@ -60,19 +60,19 @@ public interface AchievementFileRepository extends JpaRepository<AchievementFile
      * @param fileName      文件名
      * @return 最新版本文件
      */
-    Optional<AchievementFile> findByAchievementIdAndFileNameAndIsLatestTrue(Long achievementId, String fileName);
+    Optional<AchievementFile> findByAchievementIdAndFileName(Long achievementId, String fileName);
 
-    /**
-     * 根据成果ID和版本号查询文件
-     *
-     * @param achievementId 成果ID
-     * @param fileName      文件名
-     * @param version       版本号
-     * @return 文件
-     */
-    Optional<AchievementFile> findByAchievementIdAndFileNameAndVersion(Long achievementId,
-                                                                        String fileName,
-                                                                        Integer version);
+//    /**
+//     * 根据成果ID和版本号查询文件
+//     *
+//     * @param achievementId 成果ID
+//     * @param fileName      文件名
+//     * @param version       版本号
+//     * @return 文件
+//     */
+//    Optional<AchievementFile> findByAchievementIdAndFileNameAndVersion(Long achievementId,
+//                                                                        String fileName,
+//                                                                        Integer version);
 
     /**
      * 根据上传者ID查询文件列表（分页）
@@ -130,8 +130,7 @@ public interface AchievementFileRepository extends JpaRepository<AchievementFile
      * @param achievementIds 成果ID列表
      * @return 文件列表
      */
-    @Query("SELECT f FROM AchievementFile f WHERE f.achievementId IN :achievementIds " +
-           "AND f.isLatest = true")
+    @Query("SELECT f FROM AchievementFile f WHERE f.achievementId IN :achievementIds ")
     List<AchievementFile> findLatestFilesByAchievementIdIn(@Param("achievementIds") List<Long> achievementIds);
 
     /**

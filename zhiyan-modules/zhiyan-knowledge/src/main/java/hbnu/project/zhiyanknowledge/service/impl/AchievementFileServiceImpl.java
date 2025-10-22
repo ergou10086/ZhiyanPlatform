@@ -55,7 +55,6 @@ public class AchievementFileServiceImpl implements AchievementFileService {
     @Autowired
     private final AchievementRepository achievementRepository;
 
-    @Autowired
     private final AchievementConverter achievementConverter;
 
     /**
@@ -91,7 +90,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
 
         // 3. 检查是否存在同名文件，如果存在则删除旧文件（真正的覆盖）
         Optional<AchievementFile> existingFile = achievementFileRepository
-                .findByAchievementIdAndFileNameAndIsLatestTrue(uploadDTO.getAchievementId(), originalFilename);
+                .findByAchievementIdAndFileName(uploadDTO.getAchievementId(), originalFilename);
 
         Integer newVersion = 1;
         if (existingFile.isPresent()) {

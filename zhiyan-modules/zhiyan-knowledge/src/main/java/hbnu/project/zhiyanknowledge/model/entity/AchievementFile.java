@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "achievement_file", indexes = {
         @Index(name = "idx_achievement", columnList = "achievement_id"),
-        @Index(name = "idx_latest", columnList = "achievement_id, is_latest")
 })
 @DynamicInsert
 @DynamicUpdate
