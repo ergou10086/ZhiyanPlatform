@@ -74,12 +74,7 @@ public class ProjectController {
     @Operation(summary = "更新项目", description = "更新项目信息，需要是项目成员")
     public R<Project> updateProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) ProjectVisibility visibility,
-            @RequestParam(required = false) ProjectStatus status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectRequest request) {
 
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]更新项目[{}]", userId, projectId);
@@ -87,7 +82,8 @@ public class ProjectController {
         // 项目级权限检查：必须是项目成员且有管理权限
         projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
 
-        return projectService.updateProject(projectId, name, description, visibility, status, startDate, endDate);
+        return projectService.updateProject(projectId, request.getName(), request.getDescription(), 
+                request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate());
     }
 
     /**
@@ -245,15 +241,15 @@ public class ProjectController {
     @Operation(summary = "更新项目状态", description = "更新项目的状态")
     public R<Project> updateProjectStatus(
             @PathVariable Long projectId,
-            @RequestParam ProjectStatus status) {
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectStatusRequest request) {
 
         Long userId = SecurityUtils.getUserId();
-        log.info("用户[{}]更新项目[{}]状态为: {}", userId, projectId, status);
+        log.info("用户[{}]更新项目[{}]状态为: {}", userId, projectId, request.getStatus());
 
         // 项目级权限检查：必须有项目管理权限
         projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
 
-        return projectService.updateProjectStatus(projectId, status);
+        return projectService.updateProjectStatus(projectId, request.getStatus());
     }
 
     /**

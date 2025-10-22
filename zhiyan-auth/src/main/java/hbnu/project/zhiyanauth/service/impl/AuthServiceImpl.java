@@ -2,7 +2,6 @@ package hbnu.project.zhiyanauth.service.impl;
 
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
-import hbnu.project.zhiyanauth.model.entity.RememberMeToken;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
@@ -16,6 +15,7 @@ import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.model.response.UserRegisterResponse;
 import hbnu.project.zhiyanauth.service.AuthService;
 import hbnu.project.zhiyanauth.service.CustomRememberMeService;
+import hbnu.project.zhiyanauth.service.RoleService;
 import hbnu.project.zhiyanauth.service.VerificationCodeService;
 import hbnu.project.zhiyancommonbasic.constants.CacheConstants;
 import hbnu.project.zhiyancommonbasic.constants.TokenConstants;
@@ -62,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final CustomRememberMeService customRememberMeService;
+    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final AuthUserDetailsService authUserDetailsService;
 
@@ -113,12 +114,17 @@ public class AuthServiceImpl implements AuthService {
                     .build();
 
             User savedUser = userRepository.save(user);
+            log.info("用户创建成功，开始分配角色 - 用户ID: {}", savedUser.getId());
 
-            // 6. 生成JWT令牌（注册后自动登录）
-            boolean rememberMe = false; // 注册时固定为 falsefalse;
+            // 6. 为新用户分配默认角色（普通用户/成员）
+            assignDefaultRoleToUser(savedUser.getId());
+            log.info(" 角色分配流程完成 - 用户ID: {}", savedUser.getId());
+
+            // 7. 生成JWT令牌（注册后自动登录）
+            boolean rememberMe = false; // 注册时固定为 false
             TokenDTO tokenDTO = generateTokens(savedUser.getId(), rememberMe);
 
-            // 7. 构建完整的响应（包含登录令牌）
+            // 8. 构建完整的响应（包含登录令牌）
             UserRegisterResponse response = UserRegisterResponse.builder()
                     .userId(savedUser.getId())
                     .email(savedUser.getEmail())
@@ -701,5 +707,62 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    /**
+     * 为新用户分配默认角色
+     * 注册时自动分配 USER 角色（普通用户）
+     * 
+     * @param userId 用户ID
+     */
+    private void assignDefaultRoleToUser(Long userId) {
+        try {
+            log.info("========================================");
+            log.info("开始为新用户分配默认系统角色: userId={}", userId);
+            log.info("========================================");
+            
+            // 查找 USER 角色（系统级普通用户角色）
+            log.info("步骤1：查找 USER 角色...");
+            R<Long> roleResult = roleService.getRoleIdByName("USER");
+            
+            log.info("步骤1结果 - 查询角色: success={}, data={}", 
+                R.isSuccess(roleResult), roleResult.getData());
+            
+            if (R.isSuccess(roleResult) && roleResult.getData() != null) {
+                Long roleId = roleResult.getData();
+                log.info("步骤2：找到 USER 角色，ID={}", roleId);
+                
+                // 分配角色给用户
+                log.info("步骤3：调用 assignRolesToUser, userId={}, roleIds=[{}]", userId, roleId);
+                R<Void> assignResult = roleService.assignRolesToUser(userId, java.util.List.of(roleId));
+                
+                log.info("步骤3结果 - 分配角色: success={}, msg={}", 
+                    R.isSuccess(assignResult), assignResult.getMsg());
+                
+                if (R.isSuccess(assignResult)) {
+                    log.info("========================================");
+                    log.info("✅ 成功为用户分配默认角色 USER: userId={}", userId);
+                    log.info("========================================");
+                } else {
+                    log.error("========================================");
+                    log.error("❌ 为用户分配默认角色失败: userId={}, 错误={}", userId, assignResult.getMsg());
+                    log.error("========================================");
+                }
+            } else {
+                log.error("========================================");
+                log.error("❌ 未找到 USER 角色，无法分配默认角色");
+                log.error("userId={}, roleResult={}", userId, roleResult);
+                log.error("提示：请检查 roles 表是否存在 name='USER' 的记录");
+                log.error("========================================");
+            }
+            
+        } catch (Exception e) {
+            // 角色分配失败不应该影响注册流程
+            // 管理员可以后续手动分配角色
+            log.error("========================================");
+            log.error("❌ 为用户分配默认角色发生异常");
+            log.error("userId={}, 异常类型={}, 错误信息={}", userId, e.getClass().getName(), e.getMessage());
+            log.error("堆栈跟踪:", e);
+            log.error("========================================");
+        }
+    }
 
 }

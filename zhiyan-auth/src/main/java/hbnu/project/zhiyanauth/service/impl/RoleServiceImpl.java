@@ -142,6 +142,29 @@ public class RoleServiceImpl implements RoleService {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public R<Long> getRoleIdByName(String roleName) {
+        try {
+            log.debug("根据名称获取角色ID - roleName: {}", roleName);
+
+            if (!StringUtils.hasText(roleName)) {
+                return R.fail("角色名称不能为空");
+            }
+
+            Optional<Role> optionalRole = roleRepository.findByName(roleName);
+            if (optionalRole.isEmpty()) {
+                log.warn("角色不存在 - roleName: {}", roleName);
+                return R.fail("角色不存在");
+            }
+
+            return R.ok(optionalRole.get().getId());
+        } catch (Exception e) {
+            log.error("根据名称获取角色ID失败 - roleName: {}", roleName, e);
+            return R.fail("获取角色ID失败");
+        }
+    }
+
     // ==================== 角色管理（CRUD） ====================
 
     @Override
