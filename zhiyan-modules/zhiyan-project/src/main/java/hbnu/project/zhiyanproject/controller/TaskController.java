@@ -116,13 +116,13 @@ public class TaskController {
     @Operation(summary = "更新任务状态", description = "更新任务的状态（TODO/IN_PROGRESS/BLOCKED/DONE）")
     public R<Tasks> updateTaskStatus(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
-            @RequestParam @Parameter(description = "新状态", required = true) TaskStatus status) {
+            @Valid @RequestBody hbnu.project.zhiyanproject.model.form.UpdateTaskStatusRequest request) {
 
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]更新任务[{}]状态为: {}", currentUserId, taskId, status);
+        log.info("用户[{}]更新任务[{}]状态为: {}", currentUserId, taskId, request.getStatus());
 
         try {
-            Tasks task = taskService.updateTaskStatus(taskId, status, currentUserId);
+            Tasks task = taskService.updateTaskStatus(taskId, request.getStatus(), currentUserId);
             return R.ok(task, "状态已更新");
         } catch (IllegalArgumentException e) {
             log.warn("更新任务状态失败: {}", e.getMessage());

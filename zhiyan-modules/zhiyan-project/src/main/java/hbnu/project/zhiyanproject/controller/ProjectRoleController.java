@@ -46,13 +46,12 @@ public class ProjectRoleController {
     @Operation(summary = "创建项目角色")
     public R<ProjectRole> createProjectRole(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @RequestParam @Parameter(description = "角色枚举") ProjectMemberRole roleEnum,
-            @RequestParam(required = false) @Parameter(description = "自定义角色名称") String customRoleName) {
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.CreateProjectRoleRequest request) {
 
         Long userId = SecurityUtils.getUserId();
-        log.info("用户[{}]在项目[{}]创建角色: {}", userId, projectId, roleEnum);
+        log.info("用户[{}]在项目[{}]创建角色: {}", userId, projectId, request.getRoleEnum());
         projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
-        return projectRoleService.createProjectRole(projectId, roleEnum, customRoleName);
+        return projectRoleService.createProjectRole(projectId, request.getRoleEnum(), request.getCustomRoleName());
     }
 
     /**
@@ -75,14 +74,13 @@ public class ProjectRoleController {
     @PutMapping("/{roleId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目角色")
-    public R<ProjectRole> updateProjectRole(@PathVariable @Parameter(description = "角色ID") Long roleId,
-                                            @RequestParam(required = false) @Parameter(description = "角色名称") String name,
-                                            @RequestParam(required = false) @Parameter(description = "角色描述") String description,
-                                            @RequestParam @Parameter(description = "项目ID") Long projectId) {
+    public R<ProjectRole> updateProjectRole(
+            @PathVariable @Parameter(description = "角色ID") Long roleId,
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectRoleRequest request) {
         Long userId = SecurityUtils.getUserId();
-        log.info("用户[{}]更新项目[{}]角色[{}]", userId, projectId, roleId);
-        projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
-        return projectRoleService.updateProjectRole(roleId, name, description);
+        log.info("用户[{}]更新项目[{}]角色[{}]", userId, request.getProjectId(), roleId);
+        projectSecurityUtils.requirePermission(request.getProjectId(), ProjectPermission.PROJECT_MANAGE);
+        return projectRoleService.updateProjectRole(roleId, request.getName(), request.getDescription());
     }
 
     /**
@@ -117,13 +115,13 @@ public class ProjectRoleController {
     @PostMapping("/projects/{projectId}/assign")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "分配用户角色")
-    public R<Void> assignRoleToUser(@PathVariable @Parameter(description = "项目ID") Long projectId,
-                                    @RequestParam @Parameter(description = "用户ID") Long userId,
-                                    @RequestParam @Parameter(description = "角色枚举") ProjectMemberRole roleEnum) {
+    public R<Void> assignRoleToUser(
+            @PathVariable @Parameter(description = "项目ID") Long projectId,
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.AssignRoleRequest request) {
         Long operatorId = SecurityUtils.getUserId();
-        log.info("用户[{}]为用户[{}]在项目[{}]分配角色[{}]", operatorId, userId, projectId, roleEnum);
+        log.info("用户[{}]为用户[{}]在项目[{}]分配角色[{}]", operatorId, request.getUserId(), projectId, request.getRoleEnum());
         projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
-        return projectRoleService.assignRoleToUser(userId, projectId, roleEnum);
+        return projectRoleService.assignRoleToUser(request.getUserId(), projectId, request.getRoleEnum());
     }
 
     /**
