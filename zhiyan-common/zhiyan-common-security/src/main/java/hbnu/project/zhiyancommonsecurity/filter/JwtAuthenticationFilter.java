@@ -106,19 +106,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                     String userIdStr = String.valueOf(claims.get(TokenConstants.JWT_CLAIM_USER_ID));
                     // 从主题(Subject)中获取邮箱(也可以是用户名)
                     String email = claims.getSubject();
+                    // 从自定义声明中获取角色信息
+                    String rolesStr = (String) claims.get(TokenConstants.JWT_CLAIM_ROLES);
+                    java.util.List<String> roles = null;
+                    if (StringUtils.isNotBlank(rolesStr)) {
+                        roles = java.util.Arrays.asList(rolesStr.split(","));
+                    }
 
                     // 5.验证提取的用户信息是否有效
                     if (StringUtils.isNotBlank(userIdStr) && StringUtils.isNotBlank(email)) {
                         // 6. 构建简化的LoginUserBody对象
-                        // 这里只包含基本信息，权限信息可以在后续需要时再加载
+                        // 这里包含基本信息和角色信息
                         LoginUserBody loginUser = LoginUserBody.builder()
                                 .userId(Long.valueOf(userIdStr))
                                 .email(email)
+                                .roles(roles)
                                 .build();
 
                         // 7.设置到Spring Security上下文
-                        // 创建认证令牌，包含用户信息，凭证为null，权限列表为null
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginUser, null, null);
+                        // 将角色转换为Spring Security的GrantedAuthority
+                        java.util.List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
+                        if (roles != null && !roles.isEmpty()) {
+                            for (String role : roles) {
+                                // Spring Security的hasRole会自动添加ROLE_前缀，所以这里直接添加ROLE_前缀
+                                authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                            }
+                        }
+                        
+                        // 创建认证令牌，包含用户信息、凭证、权限列表
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginUser, null, authorities);
 
                         // 设置认证详情，如请求IP、会话ID等
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

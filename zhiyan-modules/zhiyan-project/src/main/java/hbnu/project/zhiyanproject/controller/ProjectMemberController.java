@@ -97,13 +97,13 @@ public class ProjectMemberController {
     public R<ProjectMember> updateMemberRole(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @PathVariable @Parameter(description = "用户ID") Long userId,
-            @RequestParam @Parameter(description = "新角色") ProjectMemberRole newRole) {
+            @Valid @RequestBody hbnu.project.zhiyanproject.model.form.UpdateMemberRoleRequest request) {
 
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]修改项目[{}]成员[{}]的角色为: {}", currentUserId, projectId, userId, newRole);
+        log.info("用户[{}]修改项目[{}]成员[{}]的角色为: {}", currentUserId, projectId, userId, request.getNewRole());
 
         try {
-            ProjectMember member = projectMemberService.updateMemberRole(projectId, userId, newRole, currentUserId);
+            ProjectMember member = projectMemberService.updateMemberRole(projectId, userId, request.getNewRole(), currentUserId);
             return R.ok(member, "角色已更新");
         } catch (IllegalArgumentException e) {
             log.warn("更新成员角色失败: {}", e.getMessage());

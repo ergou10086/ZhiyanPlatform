@@ -150,7 +150,14 @@ public class SecurityConfig implements WebMvcConfigurer {
 
                         // 项目服务公开接口 - 无需登录（供项目广场等公开展示使用）
                         .requestMatchers(
-                                "/api/projects/public/**"            // 公开项目列表、项目广场等
+                                "/api/projects/public",
+                                "/api/projects/public/**",
+                                "/api/projects/search/public"
+                        ).permitAll()
+
+                        // 项目成员公开接口 - 无需登录（查看项目成员信息）
+                        .requestMatchers(
+                                "/api/project-members/*/public"      // 查看项目公开成员列表
                         ).permitAll()
 
                         // 其他所有接口需要认证，具体权限由 @PreAuthorize 注解控制

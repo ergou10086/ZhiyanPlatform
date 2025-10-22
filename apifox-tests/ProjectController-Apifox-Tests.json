@@ -1,0 +1,769 @@
+{
+  "apifoxProject": "智研平台 - 项目管理模块",
+  "version": "1.0.0",
+  "baseUrl": "http://localhost:8080",
+  "auth": {
+    "type": "bearer",
+    "token": "{{accessToken}}",
+    "description": "需要先登录获取token，然后在环境变量中设置accessToken"
+  },
+  "folders": [
+    {
+      "name": "项目管理",
+      "apis": [
+        {
+          "name": "1. 创建项目",
+          "method": "POST",
+          "path": "/api/projects",
+          "description": "创建新项目，创建者自动成为项目拥有者",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "name",
+              "value": "测试项目",
+              "required": true,
+              "description": "项目名称"
+            },
+            {
+              "key": "description",
+              "value": "这是一个测试项目的描述",
+              "required": false,
+              "description": "项目描述"
+            },
+            {
+              "key": "visibility",
+              "value": "PUBLIC",
+              "required": false,
+              "description": "可见性：PUBLIC(公开), PRIVATE(私有), INTERNAL(内部)"
+            },
+            {
+              "key": "startDate",
+              "value": "2025-01-01",
+              "required": false,
+              "description": "开始日期，格式：YYYY-MM-DD"
+            },
+            {
+              "key": "endDate",
+              "value": "2025-12-31",
+              "required": false,
+              "description": "结束日期，格式：YYYY-MM-DD"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "正常创建项目",
+              "params": {
+                "name": "AI智能分析平台",
+                "description": "基于深度学习的数据分析平台",
+                "visibility": "PUBLIC",
+                "startDate": "2025-01-01",
+                "endDate": "2025-12-31"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "创建私有项目",
+              "params": {
+                "name": "内部研发项目",
+                "description": "公司内部研发项目",
+                "visibility": "PRIVATE"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "缺少必填参数name",
+              "params": {
+                "description": "没有项目名称"
+              },
+              "expectedStatus": 400
+            }
+          ]
+        },
+        {
+          "name": "2. 更新项目",
+          "method": "PUT",
+          "path": "/api/projects/{projectId}",
+          "description": "更新项目信息，需要是项目成员",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "projectId",
+              "value": "1",
+              "description": "项目ID"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "name",
+              "value": "更新后的项目名称",
+              "required": false
+            },
+            {
+              "key": "description",
+              "value": "更新后的项目描述",
+              "required": false
+            },
+            {
+              "key": "visibility",
+              "value": "PRIVATE",
+              "required": false,
+              "description": "PUBLIC/PRIVATE/INTERNAL"
+            },
+            {
+              "key": "status",
+              "value": "IN_PROGRESS",
+              "required": false,
+              "description": "PLANNING/IN_PROGRESS/COMPLETED/CANCELLED/ARCHIVED"
+            },
+            {
+              "key": "startDate",
+              "value": "2025-02-01",
+              "required": false
+            },
+            {
+              "key": "endDate",
+              "value": "2026-02-01",
+              "required": false
+            }
+          ],
+          "testCases": [
+            {
+              "name": "更新项目名称和描述",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "params": {
+                "name": "更新后的AI平台",
+                "description": "新的描述内容"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "更新项目状态",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "params": {
+                "status": "IN_PROGRESS"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "3. 删除项目",
+          "method": "DELETE",
+          "path": "/api/projects/{projectId}",
+          "description": "软删除项目，只有项目拥有者可以删除",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "projectId",
+              "value": "1",
+              "description": "要删除的项目ID"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "删除自己创建的项目",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "删除不存在的项目",
+              "pathParams": {
+                "projectId": "99999"
+              },
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "name": "4. 获取项目详情",
+          "method": "GET",
+          "path": "/api/projects/{projectId}",
+          "description": "根据ID获取项目详细信息",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "projectId",
+              "value": "1",
+              "description": "项目ID"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取已存在的项目",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "获取不存在的项目",
+              "pathParams": {
+                "projectId": "99999"
+              },
+              "expectedStatus": 404
+            }
+          ]
+        },
+        {
+          "name": "5. 获取所有项目（管理员）",
+          "method": "GET",
+          "path": "/api/projects",
+          "description": "分页获取所有项目，需要OWNER角色",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "page",
+              "value": "0",
+              "required": false,
+              "description": "页码，从0开始"
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false,
+              "description": "每页数量"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt",
+              "required": false,
+              "description": "排序字段"
+            },
+            {
+              "key": "direction",
+              "value": "DESC",
+              "required": false,
+              "description": "排序方向：ASC/DESC"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取第一页，每页10条",
+              "params": {
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "按创建时间升序排序",
+              "params": {
+                "page": "0",
+                "size": "20",
+                "sortBy": "createdAt",
+                "direction": "ASC"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "6. 获取我创建的项目",
+          "method": "GET",
+          "path": "/api/projects/my-created",
+          "description": "获取当前用户创建的所有项目",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "page",
+              "value": "0",
+              "required": false,
+              "description": "页码"
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false,
+              "description": "每页数量"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取我创建的项目列表",
+              "params": {
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "7. 获取指定用户创建的项目",
+          "method": "GET",
+          "path": "/api/projects/creator/{creatorId}",
+          "description": "根据创建者ID获取项目列表",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "creatorId",
+              "value": "1",
+              "description": "创建者用户ID"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "page",
+              "value": "0",
+              "required": false
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false
+            }
+          ],
+          "testCases": [
+            {
+              "name": "查询用户ID为1的创建项目",
+              "pathParams": {
+                "creatorId": "1"
+              },
+              "params": {
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "8. 按状态获取项目",
+          "method": "GET",
+          "path": "/api/projects/status/{status}",
+          "description": "根据项目状态筛选项目",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "status",
+              "value": "IN_PROGRESS",
+              "description": "项目状态：PLANNING/IN_PROGRESS/COMPLETED/CANCELLED/ARCHIVED"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "page",
+              "value": "0",
+              "required": false
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取进行中的项目",
+              "pathParams": {
+                "status": "IN_PROGRESS"
+              },
+              "params": {
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "获取已完成的项目",
+              "pathParams": {
+                "status": "COMPLETED"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "获取计划中的项目",
+              "pathParams": {
+                "status": "PLANNING"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "9. 获取我参与的项目",
+          "method": "GET",
+          "path": "/api/projects/my-projects",
+          "description": "获取当前用户参与的所有项目",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "page",
+              "value": "0",
+              "required": false
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取我参与的所有项目",
+              "params": {
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "10. 搜索项目",
+          "method": "GET",
+          "path": "/api/projects/search",
+          "description": "根据关键字搜索项目",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "keyword",
+              "value": "AI",
+              "required": true,
+              "description": "搜索关键字"
+            },
+            {
+              "key": "page",
+              "value": "0",
+              "required": false
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false
+            }
+          ],
+          "testCases": [
+            {
+              "name": "搜索包含AI的项目",
+              "params": {
+                "keyword": "AI",
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "搜索包含平台的项目",
+              "params": {
+                "keyword": "平台",
+                "page": "0",
+                "size": "20"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "11. 获取公开项目（无需登录）",
+          "method": "GET",
+          "path": "/api/projects/public/active",
+          "description": "获取所有公开的活跃项目，无需登录",
+          "auth": {
+            "type": "none"
+          },
+          "queryParams": [
+            {
+              "key": "page",
+              "value": "0",
+              "required": false
+            },
+            {
+              "key": "size",
+              "value": "10",
+              "required": false
+            }
+          ],
+          "testCases": [
+            {
+              "name": "不登录获取公开项目",
+              "params": {
+                "page": "0",
+                "size": "10"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "12. 更新项目状态",
+          "method": "PATCH",
+          "path": "/api/projects/{projectId}/status",
+          "description": "更新项目的状态",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "projectId",
+              "value": "1",
+              "description": "项目ID"
+            }
+          ],
+          "queryParams": [
+            {
+              "key": "status",
+              "value": "IN_PROGRESS",
+              "required": true,
+              "description": "新状态：PLANNING/IN_PROGRESS/COMPLETED/CANCELLED/ARCHIVED"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "将项目状态更新为进行中",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "params": {
+                "status": "IN_PROGRESS"
+              },
+              "expectedStatus": 200
+            },
+            {
+              "name": "将项目标记为已完成",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "params": {
+                "status": "COMPLETED"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "13. 归档项目",
+          "method": "POST",
+          "path": "/api/projects/{projectId}/archive",
+          "description": "将项目归档",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "pathParams": [
+            {
+              "key": "projectId",
+              "value": "1",
+              "description": "要归档的项目ID"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "归档已完成的项目",
+              "pathParams": {
+                "projectId": "1"
+              },
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "14. 统计我创建的项目数",
+          "method": "GET",
+          "path": "/api/projects/count/my-created",
+          "description": "统计当前用户创建的项目数量",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取我创建的项目总数",
+              "expectedStatus": 200
+            }
+          ]
+        },
+        {
+          "name": "15. 统计我参与的项目数",
+          "method": "GET",
+          "path": "/api/projects/count/my-participated",
+          "description": "统计当前用户参与的项目数量",
+          "auth": {
+            "type": "bearer",
+            "token": "{{accessToken}}"
+          },
+          "headers": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{accessToken}}"
+            }
+          ],
+          "testCases": [
+            {
+              "name": "获取我参与的项目总数",
+              "expectedStatus": 200
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "environments": [
+    {
+      "name": "本地开发环境",
+      "variables": {
+        "baseUrl": "http://localhost:8080",
+        "accessToken": "请先登录获取token后填写这里"
+      }
+    },
+    {
+      "name": "测试环境",
+      "variables": {
+        "baseUrl": "http://test-server:8080",
+        "accessToken": ""
+      }
+    },
+    {
+      "name": "生产环境",
+      "variables": {
+        "baseUrl": "https://api.zhiyan.com",
+        "accessToken": ""
+      }
+    }
+  ],
+  "notes": {
+    "使用说明": [
+      "1. 首先通过登录接口获取 accessToken",
+      "2. 在 Apifox 环境变量中设置 accessToken",
+      "3. 大部分接口需要认证，请确保 Authorization 头部包含有效的 Bearer Token",
+      "4. 项目状态枚举值：PLANNING(计划中)、IN_PROGRESS(进行中)、COMPLETED(已完成)、CANCELLED(已取消)、ARCHIVED(已归档)",
+      "5. 项目可见性枚举值：PUBLIC(公开)、PRIVATE(私有)、INTERNAL(内部)",
+      "6. 分页参数：page从0开始，size默认10",
+      "7. 日期格式：YYYY-MM-DD，例如：2025-01-01"
+    ],
+    "权限说明": [
+      "- isAuthenticated(): 需要登录",
+      "- hasRole('OWNER'): 需要OWNER角色（拥有者）",
+      "- hasAnyRole('OWNER', 'MEMBER'): 需要OWNER或MEMBER角色",
+      "- 无权限标记: 公开接口，无需登录"
+    ],
+    "常见响应状态码": {
+      "200": "请求成功",
+      "400": "请求参数错误",
+      "401": "未授权，需要登录",
+      "403": "权限不足",
+      "404": "资源不存在",
+      "500": "服务器内部错误"
+    }
+  }
+}
+

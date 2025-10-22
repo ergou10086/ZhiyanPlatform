@@ -1,9 +1,6 @@
 package hbnu.project.zhiyanknowledge.repository;
 
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
-import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +17,7 @@ import java.util.Optional;
  * @author ErgouTree
  */
 @Repository
-public interface AchievementDetailRepository extends JpaRepository<AchievementFile, Long>,
+public interface AchievementDetailRepository extends JpaRepository<AchievementDetail, Long>,
         JpaSpecificationExecutor<AchievementDetail> {
 
     /**
@@ -40,12 +37,9 @@ public interface AchievementDetailRepository extends JpaRepository<AchievementFi
     boolean existsByAchievementId(Long achievementId);
 
     /**
-     * 统计包含指定标签的成果数量
-     *
-     * @param tag 标签
-     * @return 成果数量
+     * 删除成果详情
      */
-    long countByTagsContaining(String tag);
+    boolean deleteByAchievementId(Long achievementId);
 
     /**
      * 批量查询成果详情

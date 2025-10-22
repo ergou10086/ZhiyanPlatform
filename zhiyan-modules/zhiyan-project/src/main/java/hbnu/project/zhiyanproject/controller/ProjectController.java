@@ -3,9 +3,11 @@ package hbnu.project.zhiyanproject.controller;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.entity.Project;
+import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
 import hbnu.project.zhiyanproject.service.ProjectService;
+import hbnu.project.zhiyanproject.utils.ProjectSecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,60 +37,68 @@ import java.time.LocalDate;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ProjectSecurityUtils projectSecurityUtils;
 
     /**
      * 创建项目
-     * 权限要求：已登录用户（USER 角色及以上）
+     * 权限要求：已登录用户（任何登录用户都可以创建项目）
      */
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建项目", description = "创建新项目，创建者自动成为项目拥有者")
-    public R<Project> createProject(
-            @Parameter(description = "项目名称") @RequestParam String name,
-            @Parameter(description = "项目描述") @RequestParam(required = false) String description,
-            @Parameter(description = "可见性") @RequestParam(required = false) ProjectVisibility visibility,
-            @Parameter(description = "开始日期") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @Parameter(description = "结束日期") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+    public R<Project> createProject(@RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.CreateProjectRequest request) {
 
         // 从 Spring Security Context 获取当前登录用户ID
         Long creatorId = SecurityUtils.getUserId();
-        log.info("用户[{}]创建项目: {}", creatorId, name);
+        if (creatorId == null) {
+            return hbnu.project.zhiyancommonbasic.domain.R.fail(hbnu.project.zhiyancommonbasic.domain.R.UNAUTHORIZED, "未登录或令牌无效");
+        }
+        log.info("用户[{}]创建项目: {}", creatorId, request.getName());
 
-        return projectService.createProject(name, description, visibility, startDate, endDate, creatorId);
+        return projectService.createProject(
+                request.getName(),
+                request.getDescription(),
+                request.getVisibility(),
+                request.getStartDate(),
+                request.getEndDate(),
+                creatorId
+        );
     }
 
     /**
      * 更新项目
-     * 权限要求：项目成员（需要在业务层验证是否为项目成员）
+     * 权限要求：已登录 + 项目内有管理权限（通过方法内部检查）
      */
     @PutMapping("/{projectId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目", description = "更新项目信息，需要是项目成员")
     public R<Project> updateProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) ProjectVisibility visibility,
-            @RequestParam(required = false) ProjectStatus status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectRequest request) {
 
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]更新项目[{}]", userId, projectId);
 
-        return projectService.updateProject(projectId, name, description, visibility, status, startDate, endDate);
+        // 项目级权限检查：必须是项目成员且有管理权限
+        projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
+
+        return projectService.updateProject(projectId, request.getName(), request.getDescription(), 
+                request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate());
     }
 
     /**
      * 删除项目（软删除）
-     * 权限要求：项目拥有者或管理员
+     * 权限要求：已登录 + 项目拥有者权限（通过方法内部检查）
      */
     @DeleteMapping("/{projectId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除项目", description = "软删除项目，只有项目拥有者可以删除")
     public R<Void> deleteProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]删除项目[{}]", userId, projectId);
+
+        // 项目级权限检查：必须是项目拥有者才能删除
+        projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_DELETE);
 
         return projectService.deleteProject(projectId, userId);
     }
@@ -224,31 +234,37 @@ public class ProjectController {
 
     /**
      * 更新项目状态
-     * 权限要求：项目成员
+     * 权限要求：已登录 + 项目管理权限（通过方法内部检查）
      */
     @PatchMapping("/{projectId}/status")
-    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目状态", description = "更新项目的状态")
     public R<Project> updateProjectStatus(
             @PathVariable Long projectId,
-            @RequestParam ProjectStatus status) {
+            @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectStatusRequest request) {
 
         Long userId = SecurityUtils.getUserId();
-        log.info("用户[{}]更新项目[{}]状态为: {}", userId, projectId, status);
+        log.info("用户[{}]更新项目[{}]状态为: {}", userId, projectId, request.getStatus());
 
-        return projectService.updateProjectStatus(projectId, status);
+        // 项目级权限检查：必须有项目管理权限
+        projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
+
+        return projectService.updateProjectStatus(projectId, request.getStatus());
     }
 
     /**
      * 归档项目
-     * 权限要求：项目拥有者
+     * 权限要求：已登录 + 项目拥有者权限（通过方法内部检查）
      */
     @PostMapping("/{projectId}/archive")
-    @PreAuthorize("hasAnyRole('OWNER', 'MEMBER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "归档项目", description = "将项目归档")
     public R<Void> archiveProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]归档项目[{}]", userId, projectId);
+
+        // 项目级权限检查：只有项目拥有者可以归档
+        projectSecurityUtils.requireOwner(projectId);
 
         return projectService.archiveProject(projectId, userId);
     }

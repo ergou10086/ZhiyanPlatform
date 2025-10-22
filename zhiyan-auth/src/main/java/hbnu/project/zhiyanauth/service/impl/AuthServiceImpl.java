@@ -24,6 +24,7 @@ import hbnu.project.zhiyancommonbasic.utils.JwtUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonredis.service.RedisService;
 import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
     private final CustomRememberMeService customRememberMeService;
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
+    private final AuthUserDetailsService authUserDetailsService;
 
 
     /**
@@ -344,6 +346,10 @@ public class AuthServiceImpl implements AuthService {
             }
             String email = userOptional.get().getEmail();
             
+            // 获取用户角色信息
+            java.util.List<String> roles = authUserDetailsService.getUserRoles(userId);
+            String rolesStr = String.join(",", roles);
+            
             // 根据记住我选项确定过期时间（分钟）
             // 访问令牌过期时间：默认较短，记住我时较长
             int accessTokenExpireMinutes = rememberMe ? 
@@ -351,10 +357,11 @@ public class AuthServiceImpl implements AuthService {
             int refreshTokenExpireMinutes = rememberMe ? 
                 TokenConstants.REMEMBER_ME_REFRESH_TOKEN_EXPIRE_MINUTES : TokenConstants.DEFAULT_REFRESH_TOKEN_EXPIRE_MINUTES;
             
-            // 创建自定义 claims，包含 userId 和 email
+            // 创建自定义 claims，包含 userId、email 和 roles
             Map<String, Object> claims = new HashMap<>();
             claims.put(TokenConstants.JWT_CLAIM_USER_ID, userId);
             claims.put(TokenConstants.JWT_CLAIM_EMAIL, email);
+            claims.put(TokenConstants.JWT_CLAIM_ROLES, rolesStr);
             
             // 生成访问令牌（subject 使用 userId，claims 包含 email）
             String accessToken = jwtUtils.createToken(userId.toString(), accessTokenExpireMinutes, claims);
@@ -364,6 +371,7 @@ public class AuthServiceImpl implements AuthService {
 
             log.info("=== 生成的Token信息 ===");
             log.info("用户ID: {}", userId);
+            log.info("用户角色: {}", rolesStr);
             log.info("访问Token: {}", accessToken);
             log.info("刷新Token: {}", refreshToken);
 
@@ -550,16 +558,22 @@ public class AuthServiceImpl implements AuthService {
                 return response;
             }
 
-            // 3. 获取令牌剩余时间
+            // 3. 获取令牌剩余时间和角色信息
             Long remainingTime = jwtUtils.getRemainingTime(cleanToken);
+            Claims claims = jwtUtils.getClaims(cleanToken);
+            String rolesStr = null;
+            if (claims != null) {
+                rolesStr = (String) claims.get(TokenConstants.JWT_CLAIM_ROLES);
+            }
 
             // 4. 构建成功响应
             response.setIsValid(true);
             response.setUserId(userId);
+            response.setRoles(rolesStr);
             response.setRemainingTime(remainingTime);
             response.setMessage("令牌有效");
 
-            log.debug("令牌验证成功 - 用户ID: {}, 剩余时间: {}秒", userId, remainingTime);
+            log.debug("令牌验证成功 - 用户ID: {}, 角色: {}, 剩余时间: {}秒", userId, rolesStr, remainingTime);
 
         } catch (Exception e) {
             log.error("令牌验证异常", e);

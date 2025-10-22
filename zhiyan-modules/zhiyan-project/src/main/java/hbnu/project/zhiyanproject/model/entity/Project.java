@@ -90,6 +90,7 @@ public class Project extends BaseAuditEntity {
      * 是否已删除（软删除标记）
      */
     @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")
+    @lombok.Builder.Default
     private Boolean isDeleted = false;
 
     // 在 Project.java 中添加以下内容
