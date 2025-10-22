@@ -73,12 +73,12 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     List<ProjectMember> findByProjectIdAndProjectRole(Long projectId, ProjectMemberRole projectRole);
 
     /**
-     * 根据项目角色ID查询项目成员列表
+     * 根据项目角色查询项目成员列表
      *
-     * @param projectRoleId 项目角色ID
+     * @param projectRole 项目角色
      * @return 项目成员列表
      */
-    List<ProjectMember> findByProjectRoleId(Long projectRoleId);
+    List<ProjectMember> findByProjectRole(ProjectMemberRole projectRole);
 
     /**
      * 检查用户是否为项目成员
@@ -108,10 +108,10 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     /**
      * 统计使用指定角色的成员数量
      *
-     * @param projectRoleId 项目角色ID
+     * @param projectRole 项目角色
      * @return 成员数量
      */
-    long countByProjectRoleId(Long projectRoleId);
+    long countByProjectRole(ProjectMemberRole projectRole);
 
     /**
      * 根据项目ID和角色统计成员数量
