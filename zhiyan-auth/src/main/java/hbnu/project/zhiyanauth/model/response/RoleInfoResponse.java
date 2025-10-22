@@ -46,13 +46,5 @@ public class RoleInfoResponse {
      */
     private Long userCount;
 
-    /**
-     * 创建人
-     */
-    private Long createdBy;
 
-    /**
-     * 更新人
-     */
-    private Long updatedBy;
 }
