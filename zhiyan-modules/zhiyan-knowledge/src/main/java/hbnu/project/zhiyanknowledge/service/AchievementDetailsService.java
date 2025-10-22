@@ -1,8 +1,6 @@
 package hbnu.project.zhiyanknowledge.service;
 
-import hbnu.project.zhiyanknowledge.model.dto.AchievementDetailDTO;
-import hbnu.project.zhiyanknowledge.model.dto.AchievementTemplateDTO;
-import hbnu.project.zhiyanknowledge.model.dto.UpdateDetailDataDTO;
+import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
 
 import java.util.List;
@@ -16,6 +14,15 @@ import java.util.Map;
  * @author ErgouTree
  */
 public interface AchievementDetailsService {
+
+    /**
+     * 创建成果及其详情
+     * 一次性创建成果主记录和详情记录
+     *
+     * @param createDTO 创建DTO
+     * @return 成果信息
+     */
+    AchievementDTO createAchievementWithDetails(CreateAchievementDTO createDTO);
 
     /**
      * 获取成果详情
@@ -99,4 +106,11 @@ public interface AchievementDetailsService {
      * @param abstractText  摘要内容
      */
     void updateAbstract(Long achievementId, String abstractText);
+
+    /**
+     * 删除成果详情
+     *
+     * @param achievementId 成果ID
+     */
+    void deleteDetailByAchievementId(Long achievementId);
 }

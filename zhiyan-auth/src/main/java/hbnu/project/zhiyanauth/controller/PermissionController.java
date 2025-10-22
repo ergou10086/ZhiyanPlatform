@@ -1,7 +1,6 @@
 package hbnu.project.zhiyanauth.controller;
 
 import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
-import hbnu.project.zhiyanauth.model.entity.Permission;
 import hbnu.project.zhiyanauth.model.form.*;
 import hbnu.project.zhiyanauth.model.response.PermissionDetailResponse;
 import hbnu.project.zhiyanauth.model.response.PermissionInfoResponse;
@@ -29,7 +28,7 @@ import java.util.Set;
 /**
  * 权限管理控制器
  * 提供系统权限的管理、查询和校验功能
- * 
+ * <p>
  * 职责说明：
  * - 本控制器专注于系统权限管理
  * - 所有管理接口需要 DEVELOPER 角色权限

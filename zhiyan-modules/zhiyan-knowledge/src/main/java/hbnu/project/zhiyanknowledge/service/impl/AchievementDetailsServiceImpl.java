@@ -6,10 +6,12 @@ import hbnu.project.zhiyancommonbasic.utils.JsonUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonbasic.utils.container.MapUtils;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
+import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementTemple;
+import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
 import hbnu.project.zhiyanknowledge.repository.AchievementDetailRepository;
 import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
@@ -43,6 +45,49 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
 
     @Autowired
     private final AchievementFileService achievementFileService;
+
+    private final AchievementConverter achievementConverter;
+
+    /**
+     * 创建成果及其详情
+     * 一次性创建成果主记录和详情记录
+     *
+     * @param createDTO 创建DTO
+     * @return 成果信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AchievementDTO createAchievementWithDetails(CreateAchievementDTO createDTO) {
+        // 1. 创建成果主记录
+        Achievement achievement = Achievement.builder()
+                .id(SnowflakeIdUtil.nextId())
+                .projectId(createDTO.getProjectId())
+                .title(createDTO.getTitle())
+                .type(createDTO.getType())
+                .creatorId(createDTO.getCreatorId())
+                .status(createDTO.getStatus() != null ? createDTO.getStatus() : AchievementStatus.draft)
+                .build();
+
+        // 2. 持久化
+        achievement = achievementRepository.save(achievement);
+        log.info("成果主记录创建成功: achievementId={}", achievement.getId());
+
+
+        // 3. 读取DTO中的详情，并且创建成果的详情记录
+        String detailDataJson = convertToJson(createDTO.getDetailData());
+
+        AchievementDetail detail = AchievementDetail.builder()
+                .achievementId(achievement.getId())
+                .detailData(detailDataJson)
+                .abstractText(createDTO.getAbstractText())
+                .build();
+
+        achievementDetailRepository.save(detail);
+        log.info("成果详情记录创建成功: achievementId={}", achievement.getId());
+
+        // 4. 转换并返回
+        return achievementConverter.toDTO(achievement);
+    }
 
     /**
      * 获取成果详情
@@ -160,9 +205,13 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AchievementDetailDTO updateDetailData(UpdateDetailDataDTO updateDTO) {
+        // 1. 查询成果是否存在
+        achievementRepository.findById(updateDTO.getAchievementId())
+                .orElseThrow(() -> new ServiceException("成果不存在: " + updateDTO.getAchievementId()));
+
         log.info("更新成果详情数据: achievementId={}", updateDTO.getAchievementId());
 
-        // 1. 查询详情
+        // 2. 查询详情
         AchievementDetail detail = achievementDetailRepository
                 .findByAchievementId(updateDTO.getAchievementId())
                 .orElseThrow(() -> new ServiceException("成果详情不存在"));
@@ -264,7 +313,7 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
         log.info("根据模板初始化详情数据: achievementId={}, type={}", achievementId, type);
 
         // 1. 验证成果是否存在
-        Achievement achievement = achievementRepository.findById(achievementId)
+        achievementRepository.findById(achievementId)
                 .orElseThrow(() -> new ServiceException("成果不存在"));
 
         // 2. 检查是否已经存在详情
@@ -422,6 +471,19 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
 
 
     /**
+     * 删除成果详情
+     *
+     * @param achievementId 成果ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteDetailByAchievementId(Long achievementId) {
+        achievementDetailRepository.deleteByAchievementId(achievementId);
+        log.info("成果详情删除成功: achievementId={}", achievementId);
+    }
+
+
+    /**
      * 根据模板初始化空的详情数据
      * 为字段设置默认值
      *
@@ -473,6 +535,23 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
             throw new ServiceException("解析详情数据失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 将Map转换为JSON字符串
+     */
+    private String convertToJson(Map<String, Object> data) {
+        if (data == null || data.isEmpty()) {
+            return "{}";
+        }
+
+        String jsonString = JsonUtils.toJsonString(data);
+        if (StringUtils.isEmpty(jsonString)) {
+            log.error("JSON序列化失败");
+            throw new ServiceException("详情数据格式错误");
+        }
+        return jsonString;
+    }
+
 
 
     /**
