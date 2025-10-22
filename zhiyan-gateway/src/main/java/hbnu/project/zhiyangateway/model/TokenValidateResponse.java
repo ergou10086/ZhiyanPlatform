@@ -20,6 +20,11 @@ public class TokenValidateResponse {
     private String username;
 
     /**
+     * 用户角色（逗号分隔）
+     */
+    private String roles;
+
+    /**
      * Token 是否有效
      */
     private Boolean isValid;

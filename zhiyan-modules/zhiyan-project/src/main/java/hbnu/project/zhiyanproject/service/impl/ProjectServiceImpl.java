@@ -51,8 +51,13 @@ public class ProjectServiceImpl implements ProjectService {
                     .visibility(visibility != null ? visibility : ProjectVisibility.PRIVATE)
                     .startDate(startDate)
                     .endDate(endDate)
+                    .creatorId(creatorId)
+                .isDeleted(false)
                     .build();
 
+            if (creatorId == null) {
+                return R.fail("未登录或令牌无效，无法创建项目");
+            }
             project = projectRepository.save(project);
 
             // 自动将创建者添加为项目拥有者

@@ -82,16 +82,22 @@ public class UserAuthenticationFilter implements GlobalFilter, Ordered {
                 .flatMap(response -> {
                     if (Boolean.TRUE.equals(response.getIsValid())) {
                         // Token 有效，添加用户信息到请求头
-                        ServerHttpRequest mutatedRequest = request.mutate()
+                        ServerHttpRequest.Builder requestBuilder = request.mutate()
                                 .header("X-User-Id", response.getUserId())
-                                .header("X-Username", response.getUsername())
-                                .build();
+                                .header("X-Username", response.getUsername());
+                        
+                        // 如果有角色信息，也添加到请求头
+                        if (response.getRoles() != null && !response.getRoles().isEmpty()) {
+                            requestBuilder.header("X-User-Roles", response.getRoles());
+                        }
+                        
+                        ServerHttpRequest mutatedRequest = requestBuilder.build();
 
                         ServerWebExchange mutatedExchange = exchange.mutate()
                                 .request(mutatedRequest)
                                 .build();
 
-                        log.debug("用户认证成功 - 用户ID: {}, 路径: {}", response.getUserId(), path);
+                        log.debug("用户认证成功 - 用户ID: {}, 角色: {}, 路径: {}", response.getUserId(), response.getRoles(), path);
                         return chain.filter(mutatedExchange);
                     } else {
                         // Token 无效 - 使用自定义异常
