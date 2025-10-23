@@ -1,0 +1,268 @@
+{
+  "info": {
+    "name": "RememberMe自动登录测试",
+    "description": "测试RememberMe自动登录功能的完整流程",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "remember_me_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 用户登录（选择记住我）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"rememberMe\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('登录成功', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.code).to.eql(200);",
+              "    pm.expect(responseData.data.rememberMe).to.be.true;",
+              "    pm.expect(responseData.data.rememberMeToken).to.be.a('string');",
+              "});",
+              "",
+              "// 保存RememberMe token到环境变量",
+              "if (pm.response.code === 200) {",
+              "    const responseData = pm.response.json();",
+              "    if (responseData.data.rememberMeToken) {",
+              "        pm.environment.set('remember_me_token', responseData.data.rememberMeToken);",
+              "        console.log('RememberMe token已保存:', responseData.data.rememberMeToken);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 检查自动登录状态",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/zhiyan/auth/auto-login-check",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "auth", "auto-login-check"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 设置Cookie",
+              "const token = pm.environment.get('remember_me_token');",
+              "if (token) {",
+              "    pm.request.headers.add({",
+              "        key: 'Cookie',",
+              "        value: `remember_me_token=${token}`",
+              "    });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('自动登录检查成功', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.code).to.eql(200);",
+              "    pm.expect(responseData.data.canAutoLogin).to.be.true;",
+              "    pm.expect(responseData.data.userId).to.be.a('number');",
+              "    console.log('自动登录状态:', responseData.data.message);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 模拟自动登录访问受保护资源",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/zhiyan/auth/validate",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "auth", "validate"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 设置Cookie（模拟浏览器自动发送）",
+              "const token = pm.environment.get('remember_me_token');",
+              "if (token) {",
+              "    pm.request.headers.add({",
+              "        key: 'Cookie',",
+              "        value: `remember_me_token=${token}`",
+              "    });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('自动登录访问成功', function () {",
+              "    // 这个请求应该能通过RememberMe token自动认证",
+              "    pm.response.to.have.status(200);",
+              "    console.log('通过RememberMe token自动登录成功');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 清除RememberMe token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/zhiyan/auth/clear-remember-me",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "auth", "clear-remember-me"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 设置Cookie",
+              "const token = pm.environment.get('remember_me_token');",
+              "if (token) {",
+              "    pm.request.headers.add({",
+              "        key: 'Cookie',",
+              "        value: `remember_me_token=${token}`",
+              "    });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('清除RememberMe token成功', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.code).to.eql(200);",
+              "    pm.expect(responseData.msg).to.include('清除成功');",
+              "    console.log('RememberMe token已清除');",
+              "});",
+              "",
+              "// 清除环境变量",
+              "pm.environment.unset('remember_me_token');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 验证RememberMe token已失效",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/zhiyan/auth/auto-login-check",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "auth", "auto-login-check"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('RememberMe token已失效', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.code).to.eql(200);",
+              "    pm.expect(responseData.data.canAutoLogin).to.be.false;",
+              "    pm.expect(responseData.data.userId).to.be.null;",
+              "    console.log('RememberMe token验证结果:', responseData.data.message);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. 测试无效token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/zhiyan/auth/auto-login-check",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "auth", "auto-login-check"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 设置无效的Cookie",
+              "pm.request.headers.add({",
+              "    key: 'Cookie',",
+              "    value: 'remember_me_token=invalid_token_12345'",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('无效token测试', function () {",
+              "    pm.response.to.have.status(200);",
+              "    const responseData = pm.response.json();",
+              "    pm.expect(responseData.code).to.eql(200);",
+              "    pm.expect(responseData.data.canAutoLogin).to.be.false;",
+              "    pm.expect(responseData.data.userId).to.be.null;",
+              "    console.log('无效token测试结果:', responseData.data.message);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

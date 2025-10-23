@@ -1,0 +1,106 @@
+{
+  "问题诊断": "登录成功但RememberMe token未生成",
+  "可能原因": [
+    "1. 登录请求失败（邮箱或密码错误）",
+    "2. 登录成功但RememberMe token生成失败",
+    "3. Cookie设置失败",
+    "4. 自动登录检查时Cookie丢失"
+  ],
+  "调试步骤": [
+    {
+      "步骤1": "检查登录响应",
+      "说明": "首先确认登录请求是否成功",
+      "测试请求": {
+        "方法": "POST",
+        "URL": "http://localhost:8080/zhiyan/auth/login",
+        "请求头": {
+          "Content-Type": "application/json"
+        },
+        "请求体": {
+          "email": "yxy3213493159@qq.com",
+          "password": "111222",
+          "rememberMe": true
+        }
+      },
+      "期望成功响应": {
+        "code": 200,
+        "msg": "登录成功",
+        "data": {
+          "user": {
+            "id": 1,
+            "email": "yxy3213493159@qq.com",
+            "name": "用户名"
+          },
+          "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "expiresIn": 86400,
+          "tokenType": "Bearer",
+          "rememberMe": true,
+          "rememberMeToken": "a1b2c3d4e5f678901234567890123456789"
+        }
+      },
+      "检查要点": [
+        "响应码是否为200",
+        "data.rememberMe是否为true",
+        "data.rememberMeToken是否存在且不为空"
+      ]
+    },
+    {
+      "步骤2": "检查Cookie",
+      "说明": "确认浏览器是否收到了RememberMe Cookie",
+      "检查方法": [
+        "打开浏览器开发者工具",
+        "查看Network标签页",
+        "找到登录请求",
+        "检查Response Headers中的Set-Cookie"
+      ],
+      "期望Cookie": "remember_me_token=a1b2c3d4e5f678901234567890123456789; HttpOnly; Path=/; Max-Age=2592000"
+    },
+    {
+      "步骤3": "检查数据库",
+      "说明": "确认RememberMe token是否保存到数据库",
+      "SQL查询": "SELECT * FROM remember_me_tokens WHERE user_id = (SELECT id FROM users WHERE email = 'yxy3213493159@qq.com');",
+      "期望结果": "应该有一条记录，包含token、过期时间等信息"
+    },
+    {
+      "步骤4": "检查自动登录检查请求",
+      "说明": "确认自动登录检查请求是否携带了Cookie",
+      "测试请求": {
+        "方法": "GET",
+        "URL": "http://localhost:8080/zhiyan/auth/auto-login-check",
+        "请求头": {
+          "Cookie": "remember_me_token=从登录响应中获取的token值"
+        }
+      }
+    }
+  ],
+  "常见问题解决方案": [
+    {
+      "问题": "登录失败",
+      "原因": "邮箱或密码错误",
+      "解决方案": "检查邮箱和密码是否正确"
+    },
+    {
+      "问题": "登录成功但无RememberMe token",
+      "原因": "数据库连接问题或服务异常",
+      "解决方案": "检查应用日志和数据库连接"
+    },
+    {
+      "问题": "Cookie未设置",
+      "原因": "跨域问题或Cookie设置失败",
+      "解决方案": "检查域名配置和Cookie设置代码"
+    },
+    {
+      "问题": "Cookie丢失",
+      "原因": "请求未携带Cookie",
+      "解决方案": "确保请求中包含credentials: 'include'"
+    }
+  ],
+  "调试建议": [
+    "1. 先单独测试登录接口，查看完整响应",
+    "2. 检查应用日志，查看是否有错误信息",
+    "3. 确认数据库表remember_me_tokens是否存在",
+    "4. 检查用户表中是否存在对应的邮箱",
+    "5. 使用Postman或curl进行测试，确保Cookie正确传递"
+  ]
+}
