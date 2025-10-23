@@ -149,4 +149,34 @@ public class FilePermissionService {
             throw new ServiceException(StringUtils.isEmpty(message) ? "无权限访问该文件" : message);
         }
     }
+
+
+    /**
+     * 验证用户是否有权访问Wiki文件
+     *
+     * @param objectKey      对象键
+     * @param userId         当前用户ID
+     * @param userProjectIds 用户所在的项目ID列表
+     * @return 是否有权限
+     */
+    public boolean canAccessWikiFile(String objectKey, Long userId, List<Long> userProjectIds) {
+        Matcher matcher = WIKI_PATTERN.matcher(objectKey);
+
+        if (!matcher.matches()) {
+            log.warn("Wiki文件路径格式不正确: {}", objectKey);
+            return false;
+        }
+
+        // 提取项目ID
+        Long projectId = Long.parseLong(matcher.group(1));
+
+        // 检查用户是否在该项目中
+        boolean hasAccess = userProjectIds != null && userProjectIds.contains(projectId);
+
+        if (!hasAccess) {
+            log.warn("用户{}无权访问项目{}的Wiki文件: {}", userId, projectId, objectKey);
+        }
+
+        return hasAccess;
+    }
 }

@@ -5,6 +5,7 @@ import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
+import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -261,5 +262,50 @@ public class ProjectMemberController {
     public R<Long> getMemberCount(@PathVariable @Parameter(description = "项目ID") Long projectId) {
         long count = projectMemberService.getMemberCount(projectId);
         return R.ok(count);
+    }
+
+
+    /**
+     * 检查用户是否为项目成员（用于其他微服务调用）
+     */
+    @GetMapping("/{projectId}/members/check")
+    @Operation(summary = "检查成员关系", description = "检查用户是否为项目成员")
+    public Boolean isProjectMember(
+            @PathVariable Long projectId,
+            @RequestParam Long userId) {
+        return projectMemberService.isMember(projectId, userId);
+    }
+
+
+    /**
+     * 检查用户是否为项目拥有者（用于其他微服务调用）
+     */
+    @GetMapping("/{projectId}/owner/check")
+    @Operation(summary = "检查拥有者", description = "检查用户是否为项目拥有者")
+    public Boolean isProjectOwner(
+            @PathVariable Long projectId,
+            @RequestParam Long userId) {
+        return projectMemberService.isOwner(projectId, userId);
+    }
+
+
+    /**
+     * 检查用户权限（用于其他微服务调用）
+     */
+    @GetMapping("/{projectId}/permissions/check")
+    @Operation(summary = "检查权限", description = "检查用户是否有指定权限")
+    public Boolean hasPermission(
+            @PathVariable Long projectId,
+            @RequestParam Long userId,
+            @RequestParam String permission) {
+        try {
+            ProjectPermission perm = ProjectPermission.valueOf(permission);
+            ProjectMemberRole role = projectMemberService.getUserRole(projectId, userId);
+            return role != null && role.hasPermission(perm);
+        } catch (Exception e) {
+            log.error("检查权限失败: projectId={}, userId={}, permission={}",
+                    projectId, userId, permission, e);
+            return false;
+        }
     }
 }

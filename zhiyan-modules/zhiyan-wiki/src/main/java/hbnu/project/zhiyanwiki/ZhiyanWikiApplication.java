@@ -3,13 +3,17 @@ package hbnu.project.zhiyanwiki;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication(scanBasePackages = {
-        "hbnu.project.zhiyancommonbasic"
+        "hbnu.project.zhiyancommonbasic",
+        "hbnu.project.zhiyancommonsecurity",
+        "hbnu.project.zhiyancommonoss",
 })
 @EnableDiscoveryClient
 @EnableJpaAuditing
+@EnableFeignClients
 public class ZhiyanWikiApplication {
 
     public static void main(String[] args) {

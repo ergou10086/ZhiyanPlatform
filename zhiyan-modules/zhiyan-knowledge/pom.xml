@@ -74,6 +74,12 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-security</artifactId>
         </dependency>
+
+        <!-- 添加Feign客户端依赖 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
