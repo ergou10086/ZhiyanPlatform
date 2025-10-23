@@ -1,0 +1,654 @@
+{
+  "info": {
+    "name": "项目管理模块 API - 完整版",
+    "description": "项目管理相关的所有接口，包括图片上传、项目CRUD、查询等功能",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "zhiyan-platform"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "图片管理",
+      "item": [
+        {
+          "name": "上传项目图片",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "图片文件（jpg, jpeg, png, gif, bmp, webp，最大5MB）"
+                },
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "type": "text",
+                  "description": "项目ID（可选）",
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/upload-image?projectId=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "upload-image"],
+              "query": [
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "description": "项目ID（可选，用于生成存储路径）",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "上传项目封面图片到MinIO，返回图片URL\n\n**支持格式**: jpg, jpeg, png, gif, bmp, webp\n**文件大小**: 最大5MB\n**权限**: 需要登录\n\n**响应示例**:\n```json\n{\n  \"code\": 200,\n  \"message\": \"图片上传成功\",\n  \"data\": {\n    \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg\",\n    \"originalFilename\": \"project-cover.jpg\",\n    \"fileSize\": 102400,\n    \"eTag\": \"5d41402abc4b2a76b9719d911017c592\"\n  }\n}\n```"
+          },
+          "response": [
+            {
+              "name": "上传成功",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/api/projects/upload-image",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "projects", "upload-image"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"code\": 200,\n  \"message\": \"图片上传成功\",\n  \"data\": {\n    \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg\",\n    \"originalFilename\": \"project-cover.jpg\",\n    \"fileSize\": 102400,\n    \"eTag\": \"5d41402abc4b2a76b9719d911017c592\"\n  }\n}"
+            },
+            {
+              "name": "文件格式错误",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/projects/upload-image",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "projects", "upload-image"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 400,\n  \"message\": \"只支持以下图片格式: jpg, jpeg, png, gif, bmp, webp\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "删除项目图片",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/delete-image?imageUrl=http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "delete-image"],
+              "query": [
+                {
+                  "key": "imageUrl",
+                  "value": "http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg",
+                  "description": "图片URL（必填）"
+                }
+              ]
+            },
+            "description": "从MinIO删除项目图片\n\n**权限**: 需要登录"
+          },
+          "response": [
+            {
+              "name": "删除成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"图片删除成功\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "项目图片上传和删除功能"
+    },
+    {
+      "name": "项目CRUD",
+      "item": [
+        {
+          "name": "创建项目",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AI智能分析平台\",\n  \"description\": \"基于深度学习的数据分析平台\",\n  \"visibility\": \"PUBLIC\",\n  \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"]
+            },
+            "description": "创建新项目，创建者自动成为项目拥有者\n\n**必填字段**:\n- name: 项目名称\n- imageUrl: 项目图片URL\n\n**可选字段**:\n- description: 项目描述\n- visibility: 可见性（PUBLIC/PRIVATE），默认PUBLIC\n- startDate: 开始日期\n- endDate: 结束日期\n\n**权限**: 需要登录"
+          },
+          "response": [
+            {
+              "name": "创建成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"项目创建成功\",\n  \"data\": {\n    \"id\": \"1234567890\",\n    \"name\": \"AI智能分析平台\",\n    \"description\": \"基于深度学习的数据分析平台\",\n    \"status\": \"PLANNING\",\n    \"visibility\": \"PUBLIC\",\n    \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg\",\n    \"startDate\": \"2025-01-01\",\n    \"endDate\": \"2025-12-31\",\n    \"creatorId\": \"5678\",\n    \"createdAt\": \"2025-01-23T10:30:00\",\n    \"updatedAt\": \"2025-01-23T10:30:00\"\n  }\n}"
+            },
+            {
+              "name": "图片URL为空",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 400,\n  \"message\": \"项目图片URL不能为空\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "更新项目",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"AI智能分析平台-新版\",\n  \"description\": \"基于深度学习的数据分析平台（更新）\",\n  \"visibility\": \"PRIVATE\",\n  \"status\": \"ONGOING\",\n  \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/new-image.jpg\",\n  \"startDate\": \"2025-01-01\",\n  \"endDate\": \"2025-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId"],
+              "variable": [
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "description": "项目ID"
+                }
+              ]
+            },
+            "description": "更新项目信息\n\n**所有字段均可选**，只更新提供的字段\n\n**权限**: 需要项目管理权限"
+          },
+          "response": [
+            {
+              "name": "更新成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"项目更新成功\",\n  \"data\": {\n    \"id\": \"1\",\n    \"name\": \"AI智能分析平台-新版\",\n    \"updatedAt\": \"2025-01-23T11:00:00\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "删除项目",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId"],
+              "variable": [
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "description": "项目ID"
+                }
+              ]
+            },
+            "description": "软删除项目\n\n**权限**: 只有项目拥有者可以删除"
+          },
+          "response": [
+            {
+              "name": "删除成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"项目删除成功\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "更新项目状态",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ONGOING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId", "status"],
+              "variable": [
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "description": "项目ID"
+                }
+              ]
+            },
+            "description": "更新项目的状态\n\n**状态枚举**:\n- PLANNING: 规划中\n- ONGOING: 进行中\n- COMPLETED: 已完成\n- ARCHIVED: 已归档\n\n**权限**: 需要项目管理权限"
+          },
+          "response": [
+            {
+              "name": "更新成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"项目状态更新成功\",\n  \"data\": {\n    \"id\": \"1\",\n    \"status\": \"ONGOING\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "归档项目",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId/archive",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId", "archive"],
+              "variable": [
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "description": "项目ID"
+                }
+              ]
+            },
+            "description": "将项目归档\n\n**权限**: 只有项目拥有者可以归档"
+          },
+          "response": [
+            {
+              "name": "归档成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"项目归档成功\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "项目的创建、更新、删除操作"
+    },
+    {
+      "name": "项目查询",
+      "item": [
+        {
+          "name": "获取项目详情",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/:projectId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", ":projectId"],
+              "variable": [
+                {
+                  "key": "projectId",
+                  "value": "1",
+                  "description": "项目ID"
+                }
+              ]
+            },
+            "description": "根据ID获取项目详细信息\n\n**权限**: 需要登录"
+          },
+          "response": [
+            {
+              "name": "查询成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"success\",\n  \"data\": {\n    \"id\": \"1\",\n    \"name\": \"AI智能分析平台\",\n    \"description\": \"基于深度学习的数据分析平台\",\n    \"status\": \"ONGOING\",\n    \"visibility\": \"PUBLIC\",\n    \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/20250123_p1_abc12345.jpg\",\n    \"startDate\": \"2025-01-01\",\n    \"endDate\": \"2025-12-31\",\n    \"creatorId\": \"5678\",\n    \"createdAt\": \"2025-01-23T10:30:00\",\n    \"updatedAt\": \"2025-01-23T10:30:00\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "获取所有项目（管理员）",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects?page=0&size=10&sortBy=createdAt&direction=DESC",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "页码（从0开始）"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "每页大小"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt",
+                  "description": "排序字段"
+                },
+                {
+                  "key": "direction",
+                  "value": "DESC",
+                  "description": "排序方向（ASC/DESC）"
+                }
+              ]
+            },
+            "description": "分页获取所有项目\n\n**权限**: 需要管理员权限（OWNER角色）"
+          },
+          "response": [
+            {
+              "name": "查询成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"success\",\n  \"data\": {\n    \"content\": [\n      {\n        \"id\": \"1\",\n        \"name\": \"AI智能分析平台\",\n        \"imageUrl\": \"http://localhost:9000/project-covers/2025/01/image1.jpg\"\n      }\n    ],\n    \"totalElements\": 100,\n    \"totalPages\": 10,\n    \"size\": 10,\n    \"number\": 0\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "获取我创建的项目",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/my-created?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "my-created"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "页码"
+                },
+                {
+                  "key": "size",
+                  "value": "10",
+                  "description": "每页大小"
+                }
+              ]
+            },
+            "description": "获取当前用户创建的所有项目\n\n**权限**: 需要登录"
+          },
+          "response": []
+        },
+        {
+          "name": "获取指定用户创建的项目",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/creator/:creatorId?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "creator", ":creatorId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "creatorId",
+                  "value": "5678",
+                  "description": "创建者ID"
+                }
+              ]
+            },
+            "description": "根据创建者ID获取项目列表\n\n**权限**: 需要登录"
+          },
+          "response": []
+        },
+        {
+          "name": "按状态获取项目",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/status/:status?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "status", ":status"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "status",
+                  "value": "ONGOING",
+                  "description": "项目状态（PLANNING/ONGOING/COMPLETED/ARCHIVED）"
+                }
+              ]
+            },
+            "description": "根据项目状态筛选项目\n\n**状态枚举**:\n- PLANNING: 规划中\n- ONGOING: 进行中\n- COMPLETED: 已完成\n- ARCHIVED: 已归档\n\n**权限**: 需要登录"
+          },
+          "response": []
+        },
+        {
+          "name": "获取我参与的项目",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/my-projects?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "my-projects"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取当前用户参与的所有项目（包括创建的和被邀请加入的）\n\n**权限**: 需要登录"
+          },
+          "response": []
+        },
+        {
+          "name": "搜索项目",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/search?keyword=AI&page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "AI",
+                  "description": "搜索关键字（搜索项目名称和描述）"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "根据关键字搜索项目（搜索项目名称和描述）\n\n**权限**: 需要登录"
+          },
+          "response": [
+            {
+              "name": "搜索成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"success\",\n  \"data\": {\n    \"content\": [\n      {\n        \"id\": \"1\",\n        \"name\": \"AI智能分析平台\",\n        \"description\": \"包含AI关键字的项目\"\n      }\n    ],\n    \"totalElements\": 5\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "获取公开活跃项目",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/public/active?page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "public", "active"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取所有公开的活跃项目\n\n**权限**: 无需登录（公开接口）"
+          },
+          "response": []
+        }
+      ],
+      "description": "项目的各种查询接口"
+    },
+    {
+      "name": "项目统计",
+      "item": [
+        {
+          "name": "统计我创建的项目数量",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/count/my-created",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "count", "my-created"]
+            },
+            "description": "统计当前用户创建的项目数量\n\n**权限**: 需要登录"
+          },
+          "response": [
+            {
+              "name": "统计成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"success\",\n  \"data\": 15\n}"
+            }
+          ]
+        },
+        {
+          "name": "统计我参与的项目数量",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/count/my-participated",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "count", "my-participated"]
+            },
+            "description": "统计当前用户参与的项目数量\n\n**权限**: 需要登录"
+          },
+          "response": [
+            {
+              "name": "统计成功",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"code\": 200,\n  \"message\": \"success\",\n  \"data\": 25\n}"
+            }
+          ]
+        }
+      ],
+      "description": "项目相关的统计接口"
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+

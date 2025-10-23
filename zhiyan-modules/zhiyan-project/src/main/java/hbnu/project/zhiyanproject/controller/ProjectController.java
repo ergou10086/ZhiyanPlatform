@@ -2,10 +2,12 @@ package hbnu.project.zhiyanproject.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
+import hbnu.project.zhiyanproject.model.dto.ImageUploadResponse;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
+import hbnu.project.zhiyanproject.service.ProjectImageService;
 import hbnu.project.zhiyanproject.service.ProjectService;
 import hbnu.project.zhiyanproject.utils.ProjectSecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -38,6 +41,48 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final ProjectSecurityUtils projectSecurityUtils;
+    private final ProjectImageService projectImageService;
+
+    // ==================== 图片上传相关 ====================
+
+    /**
+     * 上传项目图片
+     * 权限要求：已登录用户
+     */
+    @PostMapping("/upload-image")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "上传项目图片", description = "上传项目封面图片到MinIO，返回图片URL")
+    public R<ImageUploadResponse> uploadProjectImage(
+            @Parameter(description = "图片文件") @RequestParam("file") MultipartFile file,
+            @Parameter(description = "项目ID（可选）") @RequestParam(required = false) Long projectId) {
+        
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("未登录或令牌无效");
+        }
+        
+        log.info("用户[{}]上传项目图片, projectId={}", userId, projectId);
+        
+        return projectImageService.uploadProjectImage(file, projectId, userId);
+    }
+
+    /**
+     * 删除项目图片
+     * 权限要求：已登录用户
+     */
+    @DeleteMapping("/delete-image")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "删除项目图片", description = "从MinIO删除项目图片")
+    public R<Void> deleteProjectImage(
+            @Parameter(description = "图片URL") @RequestParam String imageUrl) {
+        
+        Long userId = SecurityUtils.getUserId();
+        log.info("用户[{}]删除项目图片: {}", userId, imageUrl);
+        
+        return projectImageService.deleteProjectImage(imageUrl);
+    }
+
+    // ==================== 项目CRUD相关 ====================
 
     /**
      * 创建项目
@@ -61,6 +106,7 @@ public class ProjectController {
                 request.getVisibility(),
                 request.getStartDate(),
                 request.getEndDate(),
+                request.getImageUrl(),
                 creatorId
         );
     }
@@ -83,7 +129,8 @@ public class ProjectController {
         projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
 
         return projectService.updateProject(projectId, request.getName(), request.getDescription(), 
-                request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate());
+                request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate(), 
+                request.getImageUrl());
     }
 
     /**

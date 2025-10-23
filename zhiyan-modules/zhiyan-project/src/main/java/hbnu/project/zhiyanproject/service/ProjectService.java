@@ -25,11 +25,12 @@ public interface ProjectService {
      * @param visibility 可见性
      * @param startDate 开始日期
      * @param endDate 结束日期
+     * @param imageUrl 项目图片URL
      * @param creatorId 创建者ID
      * @return 创建的项目
      */
     R<Project> createProject(String name, String description, ProjectVisibility visibility,
-                             LocalDate startDate, LocalDate endDate, Long creatorId);
+                             LocalDate startDate, LocalDate endDate, String imageUrl, Long creatorId);
 
     /**
      * 更新项目信息
@@ -41,11 +42,12 @@ public interface ProjectService {
      * @param status 项目状态
      * @param startDate 开始日期
      * @param endDate 结束日期
+     * @param imageUrl 项目图片URL
      * @return 更新后的项目
      */
     R<Project> updateProject(Long projectId, String name, String description,
                              ProjectVisibility visibility, ProjectStatus status,
-                             LocalDate startDate, LocalDate endDate);
+                             LocalDate startDate, LocalDate endDate, String imageUrl);
 
     /**
      * 删除项目
