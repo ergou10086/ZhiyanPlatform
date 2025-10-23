@@ -350,10 +350,13 @@ public class AuthServiceImpl implements AuthService {
             java.util.List<String> roles = authUserDetailsService.getUserRoles(userId);
             String rolesStr = String.join(",", roles);
             
-            // 根据记住我选项确定过期时间（分钟）
-            // 访问令牌过期时间：默认较短，记住我时较长
-            int accessTokenExpireMinutes = rememberMe ? 
-                TokenConstants.REMEMBER_ME_REFRESH_TOKEN_EXPIRE_MINUTES : TokenConstants.DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES;
+            // ✅ 修复：根据记住我选项确定过期时间（分钟）
+            // 访问令牌过期时间：始终保持短期有效（30分钟），不受rememberMe影响
+            int accessTokenExpireMinutes = TokenConstants.DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES;
+            
+            // 刷新令牌过期时间：根据rememberMe调整
+            // - 不记住我：3天（4320分钟）
+            // - 记住我：30天（43200分钟）
             int refreshTokenExpireMinutes = rememberMe ? 
                 TokenConstants.REMEMBER_ME_REFRESH_TOKEN_EXPIRE_MINUTES : TokenConstants.DEFAULT_REFRESH_TOKEN_EXPIRE_MINUTES;
             
@@ -401,6 +404,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * 刷新令牌
      * 根据传入的refreshToken，生成新的访问令牌 Access Token
+     * ✅ 修复：生成新AccessToken时包含完整的Claims信息（用户角色、邮箱等）
      */
     @Override
     public TokenDTO refreshToken(String refreshToken) {
@@ -428,23 +432,53 @@ public class AuthServiceImpl implements AuthService {
                 throw new RuntimeException("Refresh Token已过期");
             }
 
-            // 5. 生成新的Access Token
+            // 5. ✅ 查询用户信息以获取完整的claims数据
+            Optional<User> userOptional = userRepository.findById(userId);
+            if (userOptional.isEmpty()) {
+                log.warn("用户不存在 - 用户ID: {}", userId);
+                throw new RuntimeException("用户不存在");
+            }
+            
+            User user = userOptional.get();
+            // 检查用户状态
+            if (user.getIsDeleted()) {
+                log.warn("用户已被删除 - 用户ID: {}", userId);
+                throw new RuntimeException("用户不存在");
+            }
+            if (user.getIsLocked()) {
+                log.warn("用户已被锁定 - 用户ID: {}", userId);
+                throw new RuntimeException("账号已被锁定");
+            }
+            
+            String email = user.getEmail();
+            
+            // 6. ✅ 获取用户角色信息（关键：保留权限信息）
+            java.util.List<String> roles = authUserDetailsService.getUserRoles(userId);
+            String rolesStr = String.join(",", roles);
+            
+            // 7. ✅ 创建包含完整信息的claims
+            Map<String, Object> claims = new HashMap<>();
+            claims.put(TokenConstants.JWT_CLAIM_USER_ID, userId);
+            claims.put(TokenConstants.JWT_CLAIM_EMAIL, email);
+            claims.put(TokenConstants.JWT_CLAIM_ROLES, rolesStr);  // 关键：包含角色信息
+            
+            // 8. 生成新的Access Token（带完整Claims）
             int accessTokenExpireMinutes = TokenConstants.DEFAULT_ACCESS_TOKEN_EXPIRE_MINUTES;
-            String newAccessToken = jwtUtils.createToken(userIdStr, accessTokenExpireMinutes);
+            String newAccessToken = jwtUtils.createToken(userIdStr, accessTokenExpireMinutes, claims);
 
-            // 存储新的Access Token到Redis
+            // 9. 存储新的Access Token到Redis
             String tokenKey = CacheConstants.USER_TOKEN_PREFIX + userId;
             long cacheTimeSeconds = (long) accessTokenExpireMinutes * 60;
             redisService.setCacheObject(tokenKey, newAccessToken, cacheTimeSeconds, TimeUnit.SECONDS);
 
-            // 6. 返回新的TokenDTO（Refresh Token一般不变）
+            // 10. 返回新的TokenDTO（Refresh Token保持不变）
             TokenDTO tokenDTO = new TokenDTO();
             tokenDTO.setAccessToken(newAccessToken);
             tokenDTO.setRefreshToken(refreshToken); // 保持不变
             tokenDTO.setTokenType(TokenConstants.TOKEN_TYPE_BEARER);
             tokenDTO.setExpiresIn(cacheTimeSeconds);
 
-            log.info("刷新Token成功 - 用户ID: {}", userId);
+            log.info("刷新Token成功 - 用户ID: {}, 角色: {}", userId, rolesStr);
             return tokenDTO;
 
         } catch (Exception e) {
