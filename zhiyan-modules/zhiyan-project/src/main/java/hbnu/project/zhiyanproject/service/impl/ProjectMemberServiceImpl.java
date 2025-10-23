@@ -237,7 +237,34 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
+    @Transactional
     public ProjectMember addMember(Long projectId, Long creatorId, Enum roleEnum) {
-        return null;
+        // 1. 检查项目是否存在
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("项目不存在"));
+
+        // 2. 检查用户是否已经是项目成员
+        if (projectMemberRepository.existsByProjectIdAndUserId(projectId, creatorId)) {
+            log.warn("用户[{}]已经是项目[{}]的成员", creatorId, projectId);
+            return projectMemberRepository.findByProjectIdAndUserId(projectId, creatorId)
+                    .orElse(null);
+        }
+
+        // 3. 转换角色枚举
+        ProjectMemberRole role = (ProjectMemberRole) roleEnum;
+
+        // 4. 创建项目成员记录
+        ProjectMember member = ProjectMember.builder()
+                .projectId(projectId)
+                .userId(creatorId)
+                .projectRole(role)
+                .joinedAt(LocalDateTime.now())
+                .build();
+
+        // 5. 保存到数据库
+        ProjectMember saved = projectMemberRepository.save(member);
+        log.info("成功添加用户[{}]到项目[{}]，角色: {}", creatorId, projectId, role);
+
+        return saved;
     }
 }

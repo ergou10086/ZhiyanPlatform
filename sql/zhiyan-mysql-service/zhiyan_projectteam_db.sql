@@ -18,7 +18,7 @@ CREATE TABLE project_members (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '成员记录唯一标识',
     project_id BIGINT NOT NULL COMMENT '项目ID（逻辑关联projects表）',
     user_id BIGINT NOT NULL COMMENT '用户ID（逻辑关联users表）',
-    project_role ENUM('LEADER', 'MEMBER') NOT NULL COMMENT '项目内成员的角色（负责人/普通成员）',
+    project_role ENUM('OWNER', 'MEMBER') NOT NULL COMMENT '项目内角色（创建者/普通成员）',
     permissions_override JSON COMMENT '权限覆盖（JSON格式，用于临时修改成员在项目内的权限）',
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '加入项目时间',
 #     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE COMMENT '项目删除时级联删除成员记录',
