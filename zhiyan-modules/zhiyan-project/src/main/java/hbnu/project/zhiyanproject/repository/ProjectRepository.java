@@ -130,12 +130,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
                                         Pageable pageable);
 
     /**
-     * 查询公开项目（排除已删除）
+     * 查询公开项目（排除已删除和已归档）
      *
      * @param pageable 分页参数
      * @return 项目分页列表
      */
-    @Query("SELECT p FROM Project p WHERE p.visibility = 'PUBLIC' AND p.status = 'ACTIVE' AND p.isDeleted = false")
+    @Query("SELECT p FROM Project p WHERE p.visibility = 'PUBLIC' AND p.status != 'ARCHIVED' AND p.isDeleted = false")
     Page<Project> findPublicActiveProjects(Pageable pageable);
 
     /**

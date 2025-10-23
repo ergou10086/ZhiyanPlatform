@@ -129,7 +129,9 @@ public interface ProjectMemberService {
      * 添加项目成员
      *
      * @param projectId 项目ID
-     * @return 成员ID集合
+     * @param creatorId 创建者ID
+     * @param roleEnum 角色枚举
+     * @return 项目成员记录
      */
-    ProjectMember addMember(Long projectId, Long creatorId, Enum roleEnum);
+    ProjectMember addMember(Long projectId, Long creatorId, ProjectMemberRole roleEnum);
 }

@@ -238,7 +238,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     @Transactional
-    public ProjectMember addMember(Long projectId, Long creatorId, Enum roleEnum) {
+    public ProjectMember addMember(Long projectId, Long creatorId, ProjectMemberRole roleEnum) {
         // 1. 检查项目是否存在
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("项目不存在"));
@@ -250,8 +250,8 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                     .orElse(null);
         }
 
-        // 3. 转换角色枚举
-        ProjectMemberRole role = (ProjectMemberRole) roleEnum;
+        // 3. 使用传入的角色枚举
+        ProjectMemberRole role = roleEnum;
 
         // 4. 创建项目成员记录
         ProjectMember member = ProjectMember.builder()
