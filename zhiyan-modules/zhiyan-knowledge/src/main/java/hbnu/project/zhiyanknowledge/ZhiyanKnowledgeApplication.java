@@ -15,7 +15,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication(scanBasePackages = {
         "hbnu.project.zhiyanknowledge",
         "hbnu.project.zhiyancommonbasic",
-        "hbnu.project.zhiyancommonoss"
+        "hbnu.project.zhiyancommonoss",
+        "hbnu.project.zhiyancommonsecurity"
 }, exclude = {
         org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
         org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration.class,

@@ -10,6 +10,7 @@
 
 # 编译输出
 target/
+**/target/
 build/
 out/
 bin/

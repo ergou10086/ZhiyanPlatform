@@ -14,27 +14,27 @@ public enum BucketType {
     /**
      * 成果附件桶
      */
-    ACHIEVEMENT_FILES("achievement_files"),
+    ACHIEVEMENT_FILES("achievementfiles"),
 
     /**
      * Wiki资源桶
      */
-    WIKI_ASSETS("wiki_assets"),
+    WIKI_ASSETS("wikiassets"),
 
     /**
      * 临时上传桶
      */
-    TEMP_UPLOADS("temp_uploads"),
+    TEMP_UPLOADS("tempuploads"),
 
     /**
      * 项目封面桶
      */
-    PROJECT_COVERS("project_covers"),
+    PROJECT_COVERS("projectcovers"),
 
     /**
      * 用户头像桶
      */
-    USER_AVATARS("user_avatars");
+    USER_AVATARS("useravatars");
 
 
     /**

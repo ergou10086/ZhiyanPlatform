@@ -8,11 +8,13 @@ import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
 import hbnu.project.zhiyanproject.service.ProjectImageService;
+import hbnu.project.zhiyanproject.model.form.CreateProjectRequest;
 import hbnu.project.zhiyanproject.service.ProjectService;
 import hbnu.project.zhiyanproject.utils.ProjectSecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,14 +57,14 @@ public class ProjectController {
     public R<ImageUploadResponse> uploadProjectImage(
             @Parameter(description = "图片文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "项目ID（可选）") @RequestParam(required = false) Long projectId) {
-        
+
         Long userId = SecurityUtils.getUserId();
         if (userId == null) {
             return R.fail("未登录或令牌无效");
         }
-        
+
         log.info("用户[{}]上传项目图片, projectId={}", userId, projectId);
-        
+
         return projectImageService.uploadProjectImage(file, projectId, userId);
     }
 
@@ -75,10 +77,10 @@ public class ProjectController {
     @Operation(summary = "删除项目图片", description = "从MinIO删除项目图片")
     public R<Void> deleteProjectImage(
             @Parameter(description = "图片URL") @RequestParam String imageUrl) {
-        
+
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]删除项目图片: {}", userId, imageUrl);
-        
+
         return projectImageService.deleteProjectImage(imageUrl);
     }
 
@@ -91,7 +93,7 @@ public class ProjectController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建项目", description = "创建新项目，创建者自动成为项目拥有者")
-    public R<Project> createProject(@RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.CreateProjectRequest request) {
+    public R<Project> createProject(@RequestBody @Valid CreateProjectRequest request) {
 
         // 从 Spring Security Context 获取当前登录用户ID
         Long creatorId = SecurityUtils.getUserId();
@@ -129,7 +131,7 @@ public class ProjectController {
         projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
 
         return projectService.updateProject(projectId, request.getName(), request.getDescription(), 
-                request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate(), 
+                request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate(),
                 request.getImageUrl());
     }
 

@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanwiki.model.dto;
 
+import hbnu.project.zhiyanwiki.model.enums.PageType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -34,7 +35,13 @@ public class CreateWikiPageDTO {
     private String title;
 
     /**
-     * Markdown内容（可选）
+     * 页面类型（目录DIRECTORY或文档DOCUMENT，默认文档）
+     */
+    @Builder.Default
+    private PageType pageType = PageType.DOCUMENT;
+
+    /**
+     * Markdown内容（可选，仅当pageType为DOCUMENT时有效）
      */
     private String content;
 

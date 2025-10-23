@@ -17,6 +17,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyanproject",
         "hbnu.project.zhiyancommonbasic",
         "hbnu.project.zhiyancommonsecurity",
+        "hbnu.project.zhiyancommonsecurity",
         "hbnu.project.zhiyancommonoss"
 })
 @EnableJpaRepositories(basePackages = "hbnu.project.zhiyanproject.repository")

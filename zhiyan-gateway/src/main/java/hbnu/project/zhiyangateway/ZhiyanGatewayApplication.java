@@ -7,7 +7,17 @@ import org.springframework.context.annotation.ComponentScan;
 /**
  * @author ErgouTree
  */
-@SpringBootApplication
+@SpringBootApplication(
+        exclude = {
+                org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
+                org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration.class,
+                org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration.class
+        },
+        excludeName = {
+                "org.redisson.spring.starter.RedissonAutoConfiguration",
+                "org.redisson.spring.starter.RedissonAutoConfigurationV2"
+        }
+)
 @ComponentScan(basePackages = {
         "hbnu.project.zhiyangateway",
         "hbnu.project.zhiyancommonbasic"

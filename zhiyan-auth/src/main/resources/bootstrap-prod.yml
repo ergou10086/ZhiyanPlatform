@@ -14,9 +14,8 @@ spring:
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
-        # Spring Cloud Alibaba 会自动加载以下配置文件：
-        # 1. zhiyan-auth.yaml (根据 application.name + file-extension)
-        # 2. zhiyan-auth-${profile}.yaml (如果配置了 spring.profiles.active)
+        username: nacos  # 用户名
+        password: nacos  # 密码
 
         # 加载redis配置
         shared-configs:
@@ -24,11 +23,13 @@ spring:
             group: DEFAULT_GROUP
             refresh: true
 
-      # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
+      # Nacos 服务发现配置（启动阶段）
       discovery:
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+        username: nacos  # 用户名
+        password: nacos  # 密码
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
