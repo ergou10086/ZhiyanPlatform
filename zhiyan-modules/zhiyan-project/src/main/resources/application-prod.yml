@@ -2,7 +2,7 @@
 
 # zhiyan-project
 server:
-  port: 8092
+  port: 8095
 
 spring:
   application:

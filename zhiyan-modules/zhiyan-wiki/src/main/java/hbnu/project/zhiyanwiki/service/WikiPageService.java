@@ -1,24 +1,27 @@
 package hbnu.project.zhiyanwiki.service;
 
-import hbnu.project.zhiyanwiki.model.dto.CreateWikiPageDTO;
-import hbnu.project.zhiyanwiki.model.dto.WikiPageTreeDTO;
+import hbnu.project.zhiyancommonbasic.exception.ServiceException;
+import hbnu.project.zhiyanwiki.model.dto.*;
 import hbnu.project.zhiyanwiki.model.entity.WikiContent;
 import hbnu.project.zhiyanwiki.model.entity.WikiPage;
 import hbnu.project.zhiyanwiki.model.enums.PageType;
 import hbnu.project.zhiyanwiki.repository.WikiPageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Wiki页面服务
- * 负责Wiki页面的增删改查和树状结构管理
+ * Wiki内容服务类
+ * 负责Wiki文档内容的管理，包括内容的增删改查、版本控制、历史记录管理等核心功能
  *
  * @author ErgouTree
  */
@@ -114,6 +117,7 @@ public class WikiPageService {
         return page;
     }
 
+
     /**
      * 更新Wiki页面
      *
@@ -162,6 +166,25 @@ public class WikiPageService {
         return page;
     }
 
+
+    /**
+     * 更新页面排序
+     *
+     * @param pageId    页面ID
+     * @param sortOrder 新的排序序号
+     */
+    @Transactional
+    public void updateSortOrder(Long pageId, Integer sortOrder) {
+        WikiPage page = wikiPageRepository.findById(pageId)
+                .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
+
+        page.setSortOrder(sortOrder);
+        wikiPageRepository.save(page);
+
+        log.info("更新Wiki页面排序: pageId={}, sortOrder={}", pageId, sortOrder);
+    }
+
+
     /**
      * 删除Wiki页面
      *
@@ -187,6 +210,35 @@ public class WikiPageService {
         wikiPageRepository.delete(page);
         log.info("删除Wiki页面成功: id={}, title={}", page.getId(), page.getTitle());
     }
+
+
+    /**
+     * 递归删除目录及其所有子页面
+     *
+     * @param pageId 页面ID
+     */
+    @Transactional
+    public void deletePageRecursively(Long pageId) {
+        WikiPage page = wikiPageRepository.findById(pageId)
+                .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
+
+        // 如果是目录，递归删除所有子页面
+        if (page.getPageType() == PageType.DIRECTORY) {
+            List<WikiPage> children = wikiPageRepository.findChildPages(page.getProjectId(), pageId);
+            for (WikiPage child : children) {
+                deletePageRecursively(child.getId());
+            }
+        }
+
+        // 删除当前页面
+        if (page.getPageType() == PageType.DOCUMENT && page.getMongoContentId() != null) {
+            contentService.deleteContent(pageId);
+        }
+
+        wikiPageRepository.delete(page);
+        log.info("递归删除Wiki页面: id={}, title={}", page.getId(), page.getTitle());
+    }
+
 
     /**
      * 获取项目的Wiki树状结构
@@ -218,15 +270,17 @@ public class WikiPageService {
                 .path(page.getPath())
                 .sortOrder(page.getSortOrder())
                 .isPublic(page.getIsPublic())
+                .pageType(page.getPageType().name())
+                .currentVersion(page.getCurrentVersion())
+                .contentSummary(page.getContentSummary())
+                .createdAt(page.getCreatedAt() != null ? page.getCreatedAt().toString() : null)
+                .updatedAt(page.getUpdatedAt() != null ? page.getUpdatedAt().toString() : null)
                 .build();
 
         // 获取子页面
         List<WikiPage> children = wikiPageRepository.findChildPages(page.getProjectId(), page.getId());
         dto.setHasChildren(!children.isEmpty());
         dto.setChildrenCount(children.size());
-
-        // 设置图标
-        dto.setIcon(page.getPageType() == PageType.DIRECTORY ? "folder" : "document");
 
         // 递归构建子树
         if (!children.isEmpty()) {
@@ -260,6 +314,247 @@ public class WikiPageService {
         return parent.getPath() + "/" + title;
     }
 
+
+    /**
+     * 获取Wiki页面详情（包含内容）- 返回DTO
+     *
+     * @param pageId 页面ID
+     * @return Wiki页面详情DTO
+     */
+    public WikiPageDetailDTO getWikiPageWithContent(Long pageId) {
+        WikiPage page = wikiPageRepository.findById(pageId)
+                .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
+
+        WikiPageDetailDTO.WikiPageDetailDTOBuilder builder = WikiPageDetailDTO.builder()
+                .id(String.valueOf(page.getId()))
+                .projectId(String.valueOf(page.getProjectId()))
+                .title(page.getTitle())
+                .pageType(page.getPageType().name())
+                .parentId(page.getParentId() != null ? String.valueOf(page.getParentId()) : null)
+                .path(page.getPath())
+                .contentSummary(page.getContentSummary())
+                .currentVersion(page.getCurrentVersion())
+                .contentSize(page.getContentSize())
+                .isPublic(page.getIsPublic())
+                .isLocked(page.getIsLocked())
+                .lockedBy(page.getLockedBy() != null ? String.valueOf(page.getLockedBy()) : null)
+                .creatorId(String.valueOf(page.getCreatorId()))
+                .lastEditorId(page.getLastEditorId() != null ? String.valueOf(page.getLastEditorId()) : null)
+                .createdAt(page.getCreatedAt())
+                .updatedAt(page.getUpdatedAt())
+                .mongoContentId(page.getMongoContentId());
+        
+        // 如果是文档类型，获取内容
+        if (page.getPageType() == PageType.DOCUMENT && page.getMongoContentId() != null) {
+            try {
+                WikiContent content = contentService.getContent(pageId);
+                builder.content(content.getContent());
+            } catch (Exception e) {
+                log.error("获取Wiki内容失败: pageId={}", pageId, e);
+                // 内容获取失败不影响其他元数据返回
+            }
+        }
+        
+        return builder.build();
+    }
+
+
+    /**
+     * 搜索Wiki页面（根据标题）
+     *
+     * @param projectId 项目ID
+     * @param keyword   搜索关键字
+     * @param pageable  分页参数
+     * @return 搜索结果分页
+     */
+    public Page<WikiSearchDTO> searchByTitle(Long projectId, String keyword, Pageable pageable) {
+        Page<WikiPage> pages = wikiPageRepository.findByProjectIdAndTitleContaining(projectId, keyword, pageable);
+
+        return pages.map(page -> WikiSearchDTO.builder()
+                .id(String.valueOf(page.getId()))
+                .title(page.getTitle())
+                .path(page.getPath())
+                .pageType(page.getPageType().name())
+                .contentSummary(page.getContentSummary())
+                .updatedAt(page.getUpdatedAt())
+                .lastEditorId(page.getLastEditorId() != null ? String.valueOf(page.getLastEditorId()) : null)
+                .build());
+    }
+
+
+    /**
+     * 搜索Wiki页面（根据内容 - MongoDB全文搜索）
+     *
+     * @param projectId 项目ID
+     * @param keyword   搜索关键字
+     * @return 搜索结果列表
+     */
+    public List<WikiSearchDTO> searchByContent(Long projectId, String keyword) {
+        // 从MongoDB搜索内容
+        List<WikiContent> contents = contentService.searchContent(projectId, keyword);
+
+        // 获取对应的Wiki页面元数据
+        List<WikiSearchDTO> results = new ArrayList<>();
+        for (WikiContent content : contents) {
+            Optional<WikiPage> pageOpt = wikiPageRepository.findById(content.getWikiPageId());
+            if (pageOpt.isPresent()) {
+                WikiPage page = pageOpt.get();
+
+                // 提取匹配内容的上下文作为摘要
+                String summary = extractMatchContext(content.getContent(), keyword, 200);
+
+                results.add(WikiSearchDTO.builder()
+                        .id(String.valueOf(page.getId()))
+                        .title(page.getTitle())
+                        .path(page.getPath())
+                        .pageType(page.getPageType().name())
+                        .contentSummary(summary)
+                        .updatedAt(page.getUpdatedAt())
+                        .lastEditorId(page.getLastEditorId() != null ? String.valueOf(page.getLastEditorId()) : null)
+                        .build());
+            }
+        }
+
+        return results;
+    }
+
+
+    /**
+     * 提取匹配关键字的上下文
+     *
+     * @param content     完整内容
+     * @param keyword     关键字
+     * @param maxLength   最大长度
+     * @return 上下文摘要
+     */
+    private String extractMatchContext(String content, String keyword, int maxLength) {
+        if (content == null || keyword == null) {
+            return "";
+        }
+
+        int index = content.toLowerCase().indexOf(keyword.toLowerCase());
+        if (index == -1) {
+            return content.length() > maxLength ? content.substring(0, maxLength) + "..." : content;
+        }
+
+        // 提取关键字前后的上下文
+        int start = Math.max(0, index - maxLength / 2);
+        int end = Math.min(content.length(), index + keyword.length() + maxLength / 2);
+
+        String context = content.substring(start, end);
+        if (start > 0) {
+            context = "..." + context;
+        }
+        if (end < content.length()) {
+            context = context + "...";
+        }
+
+        return context;
+    }
+
+
+    /**
+     * 获取项目的Wiki统计信息
+     *
+     * @param projectId 项目ID
+     * @return 统计信息
+     */
+    public WikiStatisticsDTO getProjectStatistics(Long projectId) {
+        // 获取所有页面
+        List<WikiPage> allPages = wikiPageRepository.findByProjectId(projectId);
+
+        // 统计文档和目录数量
+        long documentCount = allPages.stream()
+                .filter(p -> p.getPageType() == PageType.DOCUMENT)
+                .count();
+        long directoryCount = allPages.stream()
+                .filter(p -> p.getPageType() == PageType.DIRECTORY)
+                .count();
+
+        // 统计总内容大小
+        long totalContentSize = allPages.stream()
+                .filter(p -> p.getContentSize() != null)
+                .mapToLong(WikiPage::getContentSize)
+                .sum();
+
+        // 统计贡献者
+        Set<Long> contributors = allPages.stream()
+                .map(WikiPage::getCreatorId)
+                .collect(Collectors.toSet());
+        allPages.stream()
+                .map(WikiPage::getLastEditorId)
+                .filter(Objects::nonNull)
+                .forEach(contributors::add);
+
+        // 统计最近30天更新
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        long recentUpdates = allPages.stream()
+                .filter(p -> p.getUpdatedAt() != null && p.getUpdatedAt().isAfter(thirtyDaysAgo))
+                .count();
+
+        // 统计各贡献者编辑次数（简化版）
+        Map<String, Integer> contributorStats = new HashMap<>();
+        for (WikiPage page : allPages) {
+            String creatorId = String.valueOf(page.getCreatorId());
+            contributorStats.put(creatorId, contributorStats.getOrDefault(creatorId, 0) + 1);
+        }
+
+        return WikiStatisticsDTO.builder()
+                .projectId(String.valueOf(projectId))
+                .totalPages((long) allPages.size())
+                .documentCount(documentCount)
+                .directoryCount(directoryCount)
+                .totalContentSize(totalContentSize)
+                .contributorCount(contributors.size())
+                .recentUpdates(recentUpdates)
+                .contributorStats(contributorStats)
+                .build();
+    }
+
+
+    /**
+     * 复制Wiki页面
+     *
+     * @param sourcePageId 源页面ID
+     * @param targetParentId 目标父页面ID（null表示根目录）
+     * @param newTitle 新标题（null表示使用"副本-原标题"）
+     * @param userId 操作用户ID
+     * @return 新创建的页面
+     */
+    @Transactional
+    public WikiPage copyPage(Long sourcePageId, Long targetParentId, String newTitle, Long userId) {
+        WikiPage sourcePage = wikiPageRepository.findById(sourcePageId)
+                .orElseThrow(() -> new ServiceException("源页面不存在"));
+
+        // 生成新标题
+        if (!StringUtils.hasText(newTitle)) {
+            newTitle = "副本-" + sourcePage.getTitle();
+        }
+
+        // 创建DTO
+        CreateWikiPageDTO dto = CreateWikiPageDTO.builder()
+                .projectId(sourcePage.getProjectId())
+                .title(newTitle)
+                .pageType(sourcePage.getPageType())
+                .parentId(targetParentId)
+                .isPublic(sourcePage.getIsPublic())
+                .creatorId(userId)
+                .changeDescription("复制自: " + sourcePage.getTitle())
+                .build();
+
+        // 如果是文档类型，复制内容
+        if (sourcePage.getPageType() == PageType.DOCUMENT && sourcePage.getMongoContentId() != null) {
+            WikiContent sourceContent = contentService.getContent(sourcePageId);
+            dto.setContent(sourceContent.getContent());
+        }
+
+        WikiPage newPage = createWikiPage(dto);
+
+        log.info("复制Wiki页面: sourceId={}, newId={}", sourcePageId, newPage.getId());
+        return newPage;
+    }
+
+
     /**
      * 移动Wiki页面（修改父页面）
      *
@@ -269,19 +564,19 @@ public class WikiPageService {
     @Transactional
     public void moveWikiPage(Long pageId, Long newParentId) {
         WikiPage page = wikiPageRepository.findById(pageId)
-                .orElseThrow(() -> new RuntimeException("Wiki页面不存在"));
+                .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
 
         // 验证新父页面
         if (newParentId != null) {
             WikiPage newParent = wikiPageRepository.findById(newParentId)
-                    .orElseThrow(() -> new RuntimeException("新父页面不存在"));
-            
+                    .orElseThrow(() -> new ServiceException("新父页面不存在"));
+
             if (newParent.getPageType() == PageType.DOCUMENT) {
-                throw new RuntimeException("不能移动到文档节点下");
+                throw new ServiceException("不能移动到文档节点下");
             }
-            
+
             if (!newParent.getProjectId().equals(page.getProjectId())) {
-                throw new RuntimeException("不能移动到其他项目");
+                throw new ServiceException("不能移动到其他项目");
             }
         }
 
@@ -293,23 +588,28 @@ public class WikiPageService {
         log.info("移动Wiki页面成功: id={}, newParentId={}", pageId, newParentId);
     }
 
+
     /**
-     * 获取Wiki页面详情（包含内容）
+     * 获取最近更新的Wiki页面
      *
-     * @param pageId 页面ID
-     * @return Wiki页面
+     * @param projectId 项目ID
+     * @param limit     数量限制
+     * @return 最近更新的页面列表
      */
-    public WikiPage getWikiPageWithContent(Long pageId) {
-        WikiPage page = wikiPageRepository.findById(pageId)
-                .orElseThrow(() -> new RuntimeException("Wiki页面不存在"));
-        
-        // 如果是文档类型，获取内容
-        if (page.getPageType() == PageType.DOCUMENT && page.getMongoContentId() != null) {
-            WikiContent content = contentService.getContent(pageId);
-            // 注意：这里可以在page对象中添加一个transient字段来存储content
-            // 或者返回一个包含page和content的DTO
-        }
-        
-        return page;
+    public List<WikiPageTreeDTO> getRecentlyUpdated(Long projectId, int limit) {
+        Pageable pageable = PageRequest.of(0, limit);
+        List<WikiPage> pages = wikiPageRepository.findRecentlyUpdated(projectId, pageable);
+
+        return pages.stream()
+                .map(page -> WikiPageTreeDTO.builder()
+                        .id(String.valueOf(page.getId()))
+                        .title(page.getTitle())
+                        .path(page.getPath())
+                        .pageType(page.getPageType().name())
+                        .contentSummary(page.getContentSummary())
+                        .currentVersion(page.getCurrentVersion())
+                        .updatedAt(page.getUpdatedAt() != null ? page.getUpdatedAt().toString() : null)
+                        .build())
+                .collect(Collectors.toList());
     }
 }

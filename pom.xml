@@ -51,7 +51,7 @@
         <minio.version>8.5.9</minio.version>
         <spring-boot-starter-mail.version>${spring-boot.version}</spring-boot-starter-mail.version>
         <pagehelper.boot.version>2.0.0</pagehelper.boot.version>
-        <knife4j.version>4.1.0</knife4j.version>
+        <knife4j.version>4.4.0</knife4j.version>
         <seata.version>2.0.0</seata.version>
         <mapstruct-plus.version>1.5.0</mapstruct-plus.version>
         <easy-es.version>2.0.0-beta7</easy-es.version>
@@ -79,6 +79,7 @@
         <zhiyan-common-oss.version>0.0.1-SNAPSHOT</zhiyan-common-oss.version>
         <zhiyan-auth.version>0.0.1-SNAPSHOT</zhiyan-auth.version>
         <zhiyan-api-system.version>0.0.1-SNAPSHOT</zhiyan-api-system.version>
+        <zhiyan-common-swagger.version>0.0.1-SNAPSHOT</zhiyan-common-swagger.version>
 
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -460,6 +461,12 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-api-system</artifactId>
                 <version>${zhiyan-api-system.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-common-swagger</artifactId>
+                <version>${zhiyan-common-swagger.version}</version>
             </dependency>
 
         </dependencies>

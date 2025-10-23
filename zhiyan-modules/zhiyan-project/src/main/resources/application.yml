@@ -5,6 +5,12 @@ spring:
     # 默认使用prod环境，可通过环境变量覆盖
     active: ${SPRING_PROFILES_ACTIVE:prod}
 
+    autoconfigure:
+      exclude:
+        - org.springdoc.core.configuration.SpringDocUIConfiguration
+        - org.springdoc.core.configuration.SpringDocConfiguration
+
+
 # 通用配置
 app:
   name: 智研平台项目管理模块
@@ -15,7 +21,6 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
-
 
 
 
