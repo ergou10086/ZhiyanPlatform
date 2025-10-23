@@ -35,6 +35,9 @@ public class UpdateProjectRequest {
     @Schema(description = "项目状态")
     private ProjectStatus status;
 
+    @Schema(description = "项目图片URL")
+    private String imageUrl;
+
     @Schema(description = "开始日期")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate startDate;

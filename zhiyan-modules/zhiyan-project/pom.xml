@@ -77,6 +77,12 @@
             <artifactId>zhiyan-common-security</artifactId>
         </dependency>
 
+        <!--zhiyan-common-oss OSS对象存储模块-->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-oss</artifactId>
+        </dependency>
+
         <!-- OpenFeign 用于服务间调用 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanproject.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
@@ -79,6 +80,13 @@ public class Project extends BaseAuditEntity {
     private LocalDate endDate;
 
     /**
+     * 项目图片URL
+     */
+    @Column(name = "image_url", nullable = false, length = 500, columnDefinition = "VARCHAR(500) NOT NULL DEFAULT '' COMMENT '项目图片URL'")
+    @lombok.Builder.Default
+    private String imageUrl = "";
+
+    /**
      * 创建人ID（逻辑关联users表）
      */
     @CreatedBy
@@ -97,13 +105,20 @@ public class Project extends BaseAuditEntity {
 
     /**
      * 项目成员列表（一对多关系）
+     * 注意：
+     * - @JsonIgnore: 避免 JSON 序列化时的循环引用
+     * - @ToString.Exclude: 避免 toString() 触发懒加载
      */
+    @JsonIgnore
+    @lombok.ToString.Exclude
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProjectMember> members = new ArrayList<>();
 
     /**
      * 获取项目拥有者列表
+     * 注意：@JsonIgnore 避免 Jackson 序列化此方法
      */
+    @JsonIgnore
     public List<ProjectMember> getOwners() {
         return members.stream()
                 .filter(member -> member.getProjectRole() == ProjectMemberRole.OWNER)
@@ -112,7 +127,9 @@ public class Project extends BaseAuditEntity {
 
     /**
      * 获取普通成员列表
+     * 注意：@JsonIgnore 避免 Jackson 序列化此方法
      */
+    @JsonIgnore
     public List<ProjectMember> getRegularMembers() {
         return members.stream()
                 .filter(member -> member.getProjectRole() == ProjectMemberRole.MEMBER)
@@ -121,7 +138,9 @@ public class Project extends BaseAuditEntity {
     
     /**
      * 检查用户是否为项目拥有者
+     * 注意：@JsonIgnore 避免 Jackson 序列化此方法
      */
+    @JsonIgnore
     public boolean isOwner(Long userId) {
         return members.stream()
                 .anyMatch(member -> member.getUserId().equals(userId) 
@@ -130,7 +149,9 @@ public class Project extends BaseAuditEntity {
 
     /**
      * 检查用户是否为项目成员
+     * 注意：@JsonIgnore 避免 Jackson 序列化此方法
      */
+    @JsonIgnore
     public boolean isMember(Long userId) {
         return members.stream()
                 .anyMatch(member -> member.getUserId().equals(userId));
@@ -138,7 +159,9 @@ public class Project extends BaseAuditEntity {
 
     /**
      * 获取用户在项目中的角色
+     * 注意：@JsonIgnore 避免 Jackson 序列化此方法
      */
+    @JsonIgnore
     public Optional<ProjectMemberRole> getUserRole(Long userId) {
         return members.stream()
                 .filter(member -> member.getUserId().equals(userId))

@@ -57,6 +57,11 @@ public class ProjectDTO {
     private LocalDate endDate;
 
     /**
+     * 项目图片URL
+     */
+    private String imageUrl;
+
+    /**
      * 创建者ID
      */
     private String creatorId;

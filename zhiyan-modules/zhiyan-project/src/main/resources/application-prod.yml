@@ -139,6 +139,19 @@ swagger:
   title: "智研平台的项目管理模块"
   description: "项目、任务、团队成员管理"
 
+  
+# MinIO配置
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket:
+    project-covers: project-covers
+    user-avatars: user-avatars
+    achievement-files: achievement-files
+    wiki-assets: wiki-assets
+    temp-uploads: temp-uploads
+
 
 
 

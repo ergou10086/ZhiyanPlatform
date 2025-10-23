@@ -33,6 +33,10 @@ public class CreateProjectRequest {
     @Schema(description = "可见性（PUBLIC/PRIVATE/TEAM），默认PUBLIC", example = "PUBLIC")
     private ProjectVisibility visibility;
 
+    @NotBlank(message = "项目图片URL不能为空")
+    @Schema(description = "项目图片URL", required = true, example = "https://example.com/project-image.jpg")
+    private String imageUrl;
+
     @Schema(description = "开始日期", example = "2025-01-01")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate startDate;

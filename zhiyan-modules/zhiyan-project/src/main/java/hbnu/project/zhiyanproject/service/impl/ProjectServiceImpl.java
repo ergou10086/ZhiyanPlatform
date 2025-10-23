@@ -36,7 +36,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public R<Project> createProject(String name, String description, ProjectVisibility visibility,
-                                    LocalDate startDate, LocalDate endDate, Long creatorId) {
+                                    LocalDate startDate, LocalDate endDate, String imageUrl, Long creatorId) {
         try {
             // 验证项目名称是否已存在
             if (projectRepository.existsByName(name)) {
@@ -51,8 +51,9 @@ public class ProjectServiceImpl implements ProjectService {
                     .visibility(visibility != null ? visibility : ProjectVisibility.PRIVATE)
                     .startDate(startDate)
                     .endDate(endDate)
+                    .imageUrl(imageUrl != null ? imageUrl : "")
                     .creatorId(creatorId)
-                .isDeleted(false)
+                    .isDeleted(false)
                     .build();
 
             if (creatorId == null) {
@@ -75,7 +76,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public R<Project> updateProject(Long projectId, String name, String description,
                                     ProjectVisibility visibility, ProjectStatus status,
-                                    LocalDate startDate, LocalDate endDate) {
+                                    LocalDate startDate, LocalDate endDate, String imageUrl) {
         try {
             Project project = projectRepository.findById(projectId).orElse(null);
             if (project == null) {
@@ -108,6 +109,10 @@ public class ProjectServiceImpl implements ProjectService {
 
             if (endDate != null) {
                 project.setEndDate(endDate);
+            }
+
+            if (StringUtils.hasText(imageUrl)) {
+                project.setImageUrl(imageUrl);
             }
 
             project = projectRepository.save(project);
