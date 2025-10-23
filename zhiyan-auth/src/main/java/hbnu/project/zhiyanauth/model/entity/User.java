@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
@@ -104,7 +105,12 @@ public class User extends BaseAuditEntity {
     private UserStatus status = UserStatus.ACTIVE;
     /**
      * 用户角色关联（一对多）
+     * 注意：
+     * - @JsonIgnore: 避免 JSON 序列化时的循环引用
+     * - @lombok.ToString.Exclude: 避免 toString() 触发懒加载
      */
+    @JsonIgnore
+    @lombok.ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<UserRole> userRoles = new ArrayList<>();

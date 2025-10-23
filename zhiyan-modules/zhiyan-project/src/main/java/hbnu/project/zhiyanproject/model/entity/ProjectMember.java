@@ -54,6 +54,7 @@ public class ProjectMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", insertable = false, updatable = false)
     @JsonIgnore
+    @lombok.ToString.Exclude
     private Project project;
 
     /**
