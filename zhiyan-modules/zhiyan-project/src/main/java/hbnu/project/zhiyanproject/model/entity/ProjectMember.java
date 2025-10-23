@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanproject.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
@@ -52,6 +53,7 @@ public class ProjectMember {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Project project;
 
     /**
