@@ -1,6 +1,7 @@
 package hbnu.project.zhiyanknowledge.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
 import hbnu.project.zhiyanknowledge.service.AchievementDetailsService;
@@ -60,10 +61,12 @@ public class AchievementDetailController {
     @Operation(summary = "批量更新详情字段", description = "部分更新成果的详情字段")
     public R<AchievementDetailDTO> updateDetailFields(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
-            @RequestBody Map<String, Object> fieldUpdates,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @RequestBody Map<String, Object> fieldUpdates
     ) {
-        log.info("批量更新详情字段: achievementId={}, fieldsCount={}", achievementId, fieldUpdates.size());
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
+        log.info("批量更新详情字段: achievementId={}, fieldsCount={}, userId={}", 
+                achievementId, fieldUpdates.size(), userId);
 
         AchievementDetailDTO result = achievementDetailsService.updateDetailFields(
                 achievementId, fieldUpdates, userId
@@ -131,9 +134,10 @@ public class AchievementDetailController {
     @PostMapping("/template/custom")
     @Operation(summary = "创建自定义模板", description = "创建用户自定义的成果字段模板")
     public R<AchievementTemplateDTO> createCustomTemplate(
-            @Valid @RequestBody AchievementTemplateDTO templateDTO,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Valid @RequestBody AchievementTemplateDTO templateDTO
     ) {
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
         log.info("创建自定义模板: templateName={}, userId={}",
                 templateDTO.getTemplateName(), userId);
 

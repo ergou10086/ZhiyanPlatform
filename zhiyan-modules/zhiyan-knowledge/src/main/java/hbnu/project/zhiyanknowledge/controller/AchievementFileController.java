@@ -1,6 +1,7 @@
 package hbnu.project.zhiyanknowledge.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
 import hbnu.project.zhiyanknowledge.model.dto.UploadFileDTO;
 import hbnu.project.zhiyanknowledge.service.AchievementFileService;
@@ -40,11 +41,12 @@ public class AchievementFileController {
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
     public R<AchievementFileDTO> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
-            @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
     ){
-        log.info("上传成果文件: achievementId={}, fileName={}, size={}",
-                achievementId, file.getOriginalFilename(), file.getSize());
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
+        log.info("上传成果文件: achievementId={}, fileName={}, size={}, userId={}",
+                achievementId, file.getOriginalFilename(), file.getSize(), userId);
 
         UploadFileDTO uploadDTO = UploadFileDTO.builder()
                 .achievementId(achievementId)
@@ -66,10 +68,12 @@ public class AchievementFileController {
     @Operation(summary = "批量上传成果文件", description = "为指定成果批量上传多个文件")
     public R<List<AchievementFileDTO>> uploadFilesBatch(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
-            @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
     ){
-        log.info("批量上传成果文件: achievementId={}, fileCount={}", achievementId, files.size());
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
+        log.info("批量上传成果文件: achievementId={}, fileCount={}, userId={}", 
+                achievementId, files.size(), userId);
 
         List<AchievementFileDTO> fileDTOs = achievementFileService.uploadFilesBatch(files, achievementId, userId);
 
@@ -102,10 +106,10 @@ public class AchievementFileController {
     @DeleteMapping("/file/{fileId}")
     @Operation(summary = "删除成果文件", description = "删除指定的成果文件")
     public R<Void> deleteAchievementFile(
-            @Parameter(description = "文件ID")  @PathVariable Long fileId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Parameter(description = "文件ID")  @PathVariable Long fileId
     ){
-
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
         log.info("删除成果文件: fileId={}, userId={}", fileId, userId);
 
         achievementFileService.deleteFile(fileId, userId);
@@ -123,9 +127,10 @@ public class AchievementFileController {
     @Operation(summary = "获取文件下载URL", description = "生成文件的临时下载链接")
     public R<String> getFileDownloadUrl(
             @Parameter(description = "文件ID") @PathVariable Long fileId,
-            @Parameter(description = "过期时间(秒)") @RequestParam(defaultValue = "3600") Integer expirySeconds,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Parameter(description = "过期时间(秒)") @RequestParam(defaultValue = "3600") Integer expirySeconds
     ) {
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
         log.info("获取文件下载URL: fileId={}, expirySeconds={}", fileId, expirySeconds);
 
         String downloadUrl = achievementFileService.getFileDownloadUrl(fileId, userId, expirySeconds);

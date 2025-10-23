@@ -1,4 +1,4 @@
-// ==================== wiki_contents 集合索引 ====================
+// ==================== wiki_contents.js 集合索引 ====================
 // Wiki内容主集合，存储当前版本和最近10个历史版本
 
 // 唯一索引：通过wikiPageId快速定位文档内容（一个页面对应一个内容文档）
@@ -129,7 +129,7 @@ db.wiki_content_history.createIndex(
 // ==================== 索引统计和验证 ====================
 
 // 查看wiki_contents集合的所有索引
-print("==== wiki_contents 索引列表 ====");
+print("==== wiki_contents.js 索引列表 ====");
 printjson(db.wiki_contents.getIndexes());
 
 // 查看wiki_content_history集合的所有索引
@@ -138,5 +138,5 @@ printjson(db.wiki_content_history.getIndexes());
 
 // 输出完成信息
 print("\n✅ MongoDB索引创建完成！");
-print("📊 wiki_contents 集合: " + db.wiki_contents.getIndexes().length + " 个索引");
+print("📊 wiki_contents.js 集合: " + db.wiki_contents.getIndexes().length + " 个索引");
 print("📊 wiki_content_history 集合: " + db.wiki_content_history.getIndexes().length + " 个索引");

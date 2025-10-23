@@ -12,6 +12,10 @@ import org.springframework.context.annotation.ComponentScan;
                 org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
                 org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration.class,
                 org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration.class
+        },
+        excludeName = {
+                "org.redisson.spring.starter.RedissonAutoConfiguration",
+                "org.redisson.spring.starter.RedissonAutoConfigurationV2"
         }
 )
 @ComponentScan(basePackages = {

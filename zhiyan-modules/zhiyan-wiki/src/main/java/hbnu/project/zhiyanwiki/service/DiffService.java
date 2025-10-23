@@ -144,21 +144,22 @@ public class DiffService {
 
         Patch<String> patch = DiffUtils.diff(oldLines, newLines);
 
-        int addedLines = 0;
-        int deletedLines = 0;
+        // 使用普通 int 变量而不是 AtomicInteger
+        int[] addedLines = {0};
+        int[] deletedLines = {0};
 
         // 统计新增和删除的行数
         patch.getDeltas().forEach(delta -> {
             switch (delta.getType()) {
                 case INSERT:
-                    addedLines += delta.getTarget().size();
+                    addedLines[0] += delta.getTarget().size();
                     break;
                 case DELETE:
-                    deletedLines += delta.getSource().size();
+                    deletedLines[0] += delta.getSource().size();
                     break;
                 case CHANGE:
-                    addedLines += delta.getTarget().size();
-                    deletedLines += delta.getSource().size();
+                    addedLines[0] += delta.getTarget().size();
+                    deletedLines[0] += delta.getSource().size();
                     break;
             }
         });
@@ -167,8 +168,8 @@ public class DiffService {
         int changedChars = Math.abs(newContent.length() - oldContent.length());
 
         return ChangeStats.builder()
-                .addedLines(addedLines)
-                .deletedLines(deletedLines)
+                .addedLines(addedLines[0])  // 传递 int 值，会自动装箱为 Integer
+                .deletedLines(deletedLines[0])
                 .changedChars(changedChars)
                 .build();
     }
@@ -192,9 +193,7 @@ public class DiffService {
 
             // 创建反向补丁
             Patch<String> reversePatch = new Patch<>();
-            patch.getDeltas().forEach(delta -> {
-                reversePatch.addDelta(delta);
-            });
+            patch.getDeltas().forEach(reversePatch::addDelta);
 
             // 应用反向补丁
             List<String> oldLines = reversePatch.restore(newLines);

@@ -89,6 +89,11 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-data-redis</artifactId>
                 </exclusion>
+                <!-- 排除 Redisson，Gateway 不需要 Redisson -->
+                <exclusion>
+                    <groupId>org.redisson</groupId>
+                    <artifactId>redisson-spring-boot-starter</artifactId>
+                </exclusion>
                 <!-- 排除 Spring Web MVC -->
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
@@ -119,6 +124,16 @@
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-security</artifactId>
+                </exclusion>
+                <!-- 排除 Redis，Gateway 不需要 Redis -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-data-redis</artifactId>
+                </exclusion>
+                <!-- 排除 Redisson，Gateway 不需要 Redisson -->
+                <exclusion>
+                    <groupId>org.redisson</groupId>
+                    <artifactId>redisson-spring-boot-starter</artifactId>
                 </exclusion>
                 <!-- 排除 Spring Web MVC -->
                 <exclusion>
