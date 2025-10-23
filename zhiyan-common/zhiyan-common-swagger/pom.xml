@@ -27,12 +27,6 @@
             <optional>true</optional>
         </dependency>
 
-<!--        &lt;!&ndash; SpringDoc OpenAPI Starter WebMvc UI &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.springdoc</groupId>-->
-<!--            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>-->
-<!--        </dependency>-->
-
         <!-- Knife4j OpenAPI3 Jakarta Spring Boot Starter -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
