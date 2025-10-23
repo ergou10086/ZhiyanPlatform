@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -105,7 +106,8 @@ public class User extends BaseAuditEntity {
      * 用户角色关联（一对多）
      */
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<UserRole> userRoles;
+    @Builder.Default
+    private List<UserRole> userRoles = new ArrayList<>();
 
     /**
      * 在持久化之前生成雪花ID
