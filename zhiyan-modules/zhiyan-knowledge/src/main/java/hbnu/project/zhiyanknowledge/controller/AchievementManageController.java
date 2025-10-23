@@ -1,6 +1,7 @@
 package hbnu.project.zhiyanknowledge.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.service.AchievementDetailsService;
@@ -45,13 +46,13 @@ public class AchievementManageController {
     @PostMapping("/create")
     @Operation(summary = "创建成果", description = "为指定项目创建新的成果记录")
     public R<AchievementDTO> createAchievement(
-            @Valid @RequestBody CreateAchievementDTO createDTO,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Valid @RequestBody CreateAchievementDTO createDTO
     ){
         log.info("创建成果请求: projectId={}, title={}, type={}",
                 createDTO.getProjectId(), createDTO.getTitle(), createDTO.getType());
 
-        // 设置创建者ID，从请求头获取，之后应修改成从安全上下文获取
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
         if (userId != null) {
             createDTO.setCreatorId(userId);
         }
@@ -71,9 +72,10 @@ public class AchievementManageController {
     @Operation(summary = "更新成果状态", description = "修改成果的发布状态")
     public R<Void> updateAchievementStatus(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
-            @Parameter(description = "新状态") @RequestParam AchievementStatus status,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Parameter(description = "新状态") @RequestParam AchievementStatus status
     ){
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
         log.info("更新成果状态: achievementId={}, status={}, userId={}",
                 achievementId, status, userId);
 
@@ -108,9 +110,10 @@ public class AchievementManageController {
     @DeleteMapping("/{achievementId}")
     @Operation(summary = "删除成果", description = "删除指定成果及其关联数据")
     public R<Void> deleteAchievement(
-            @Parameter(description = "成果ID") @PathVariable Long achievementId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId
+            @Parameter(description = "成果ID") @PathVariable Long achievementId
     ){
+        // 从安全上下文获取当前登录用户ID
+        Long userId = SecurityUtils.getUserId();
         log.info("删除成果: achievementId={}, userId={}", achievementId, userId);
 
         // 删除详情数据

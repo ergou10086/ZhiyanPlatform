@@ -82,3 +82,41 @@ CREATE TABLE achievement_review (
 ) COMMENT='评审记录表';
 
 
+
+CREATE TABLE `wiki_page` (
+                             `id` BIGINT NOT NULL COMMENT 'Wiki页面唯一标识（雪花ID）',
+                             `project_id` BIGINT NOT NULL COMMENT '所属项目ID',
+                             `title` VARCHAR(255) NOT NULL COMMENT '页面标题',
+                             `page_type` VARCHAR(20) NOT NULL DEFAULT 'DOCUMENT' COMMENT '页面类型',
+                             `mongo_content_id` VARCHAR(24) COMMENT 'MongoDB文档ID',
+                             `parent_id` BIGINT COMMENT '父页面ID',
+                             `path` VARCHAR(1000) COMMENT '页面路径',
+                             `sort_order` INT DEFAULT 0 COMMENT '排序序号',
+                             `is_public` BOOLEAN DEFAULT FALSE COMMENT '是否公开',
+                             `creator_id` BIGINT NOT NULL COMMENT '创建者ID',
+                             `last_editor_id` BIGINT COMMENT '最后编辑者ID',
+                             `content_size` INT DEFAULT 0 COMMENT '内容大小',
+                             `current_version` INT DEFAULT 1 COMMENT '当前版本号',
+                             `content_summary` VARCHAR(200) COMMENT '内容摘要',
+                             `is_locked` BOOLEAN DEFAULT FALSE COMMENT '是否被锁定',
+                             `locked_by` BIGINT COMMENT '锁定者用户ID',
+                             `locked_at` DATETIME COMMENT '锁定时间',
+                             `collaborative_mode` BOOLEAN DEFAULT FALSE COMMENT '是否启用协同编辑',
+
+    -- 审计字段（来自 BaseAuditEntity）
+                             `created_by` BIGINT COMMENT '创建人ID',
+                             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                             `updated_by` BIGINT COMMENT '更新人ID',
+                             `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                             `version` INT DEFAULT 1 COMMENT '乐观锁版本号',
+
+                             PRIMARY KEY (`id`),
+                             INDEX `idx_project` (`project_id`),
+                             INDEX `idx_parent` (`parent_id`),
+                             INDEX `idx_project_parent` (`project_id`, `parent_id`),
+                             INDEX `idx_project_type` (`project_id`, `page_type`),
+                             INDEX `idx_mongo_content` (`mongo_content_id`),
+                             INDEX `idx_path` (`path`(255)),
+                             INDEX `idx_created_at` (`created_at`),
+                             INDEX `idx_updated_at` (`updated_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Wiki页面表（存储元数据和关系）';

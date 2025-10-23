@@ -6,11 +6,13 @@ import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
+import hbnu.project.zhiyanproject.model.form.CreateProjectRequest;
 import hbnu.project.zhiyanproject.service.ProjectService;
 import hbnu.project.zhiyanproject.utils.ProjectSecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,7 +48,7 @@ public class ProjectController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建项目", description = "创建新项目，创建者自动成为项目拥有者")
-    public R<Project> createProject(@RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.CreateProjectRequest request) {
+    public R<Project> createProject(@RequestBody @Valid CreateProjectRequest request) {
 
         // 从 Spring Security Context 获取当前登录用户ID
         Long creatorId = SecurityUtils.getUserId();
