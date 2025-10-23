@@ -48,7 +48,33 @@ public enum ProjectPermission {
     /**
      * 成员管理权限 - 项目拥有者拥有
      */
-    MEMBER_MANAGE("member:manage", "管理项目成员");
+    MEMBER_MANAGE("member:manage", "管理项目成员"),
+
+    // ============ Wiki相关权限 ============
+    /**
+     * Wiki查看权限 - 项目成员拥有
+     */
+    WIKI_VIEW("wiki:view", "查看项目Wiki"),
+
+    /**
+     * Wiki编辑权限 - 项目成员拥有
+     */
+    WIKI_EDIT("wiki:edit", "编辑项目Wiki"),
+
+    /**
+     * Wiki创建权限 - 项目成员拥有
+     */
+    WIKI_CREATE("wiki:create", "创建Wiki页面"),
+
+    /**
+     * Wiki删除权限 - 项目管理员拥有
+     */
+    WIKI_DELETE("wiki:delete", "删除Wiki页面"),
+
+    /**
+     * Wiki管理权限 - 项目管理员拥有（包括批量操作、设置等）
+     */
+    WIKI_MANAGE("wiki:manage", "管理项目Wiki");
 
     private final String permission;
     private final String description;

@@ -4,6 +4,7 @@ import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
+import hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils;
 import hbnu.project.zhiyanknowledge.service.AchievementDetailsService;
 import hbnu.project.zhiyanknowledge.service.AchievementSearchService;
 import hbnu.project.zhiyanknowledge.service.AchievementService;
@@ -38,6 +39,7 @@ public class AchievementManageController {
     @Autowired
     private final AchievementDetailsService achievementDetailsService;
 
+    private final KnowledgeSecurityUtils knowledgeSecurityUtils;
 
     /**
      * 创建成果
@@ -56,6 +58,9 @@ public class AchievementManageController {
         if (userId != null) {
             createDTO.setCreatorId(userId);
         }
+
+        // 权限检查：必须是项目成员
+        knowledgeSecurityUtils.requireProjectMember(createDTO.getProjectId());
 
         AchievementDTO result = achievementDetailsService.createAchievementWithDetails(createDTO);
 
@@ -79,6 +84,9 @@ public class AchievementManageController {
         log.info("更新成果状态: achievementId={}, status={}, userId={}",
                 achievementId, status, userId);
 
+        // 权限检查：必须有编辑权限
+        knowledgeSecurityUtils.requireEdit(achievementId);
+
         achievementService.updateAchievementStatus(achievementId, status, userId);
 
         log.info("成果状态更新成功: achievementId={}, newStatus={}", achievementId, status);
@@ -97,6 +105,8 @@ public class AchievementManageController {
 
         log.info("查询成果详情: achievementId={}", achievementId);
 
+        // 权限检查：必须有访问权限
+        knowledgeSecurityUtils.requireAccess(achievementId);
         AchievementDetailDTO detail = achievementDetailsService.getAchievementDetail(achievementId);
 
         return R.ok(detail, "查询成功");
@@ -115,6 +125,9 @@ public class AchievementManageController {
         // 从安全上下文获取当前登录用户ID
         Long userId = SecurityUtils.getUserId();
         log.info("删除成果: achievementId={}, userId={}", achievementId, userId);
+
+        // 权限检查：必须有删除权限
+        knowledgeSecurityUtils.requireDelete(achievementId);
 
         // 删除详情数据
         achievementDetailsService.deleteDetailByAchievementId(achievementId);

@@ -18,6 +18,7 @@
         <module>zhiyan-common-oss</module>
         <module>zhiyan-common-idempotent</module>
         <module>zhiyan-common-bus</module>
+        <module>zhiyan-common-swagger</module>
     </modules>
 
     <artifactId>zhiyan-common</artifactId>
