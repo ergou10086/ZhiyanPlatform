@@ -12,6 +12,8 @@ spring:
     nacos:
       # Nacos服务发现
       discovery:
+        username: nacos  # 用户名
+        password: nacos  # 密码
         # Nacos地址
         server-addr: 10.7.10.98:8848
         # 命名空间
@@ -23,6 +25,8 @@ spring:
 
       # Nacos配置中心
       config:
+        username: nacos  # 用户名
+        password: nacos  # 密码
         # 和服务发现的一样
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
@@ -107,6 +111,10 @@ management:
 # 日志配置
 logging:
   level:
+    # Nacos客户端日志级别
+    com.alibaba.nacos: WARN
+    # Spring Cloud相关日志级别
+    org.springframework.cloud: INFO
     root: INFO
     hbnu.project.zhiyan: INFO
     org.springframework.security: WARN
@@ -115,10 +123,6 @@ logging:
     com.zaxxer.hikari: INFO
     # 关闭特定框架的冗余日志
     org.springframework.data.redis.repository: WARN
-    # 关闭 Nacos 客户端的频繁日志
-    com.alibaba.nacos.client: WARN
-    com.alibaba.nacos.shaded.io.grpc: WARN
-    org.springframework.cloud.alibaba.nacos: WARN
     # 关闭 Sentinel 控制台输出
     com.alibaba.csp.sentinel: WARN
   pattern:

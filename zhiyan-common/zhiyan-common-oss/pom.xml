@@ -42,12 +42,6 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
         </dependency>
-
-        <!-- Spring Web (用于文件上传) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
         
         <!-- AWS S3 SDK -->
         <dependency>

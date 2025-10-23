@@ -1,12 +1,12 @@
 package hbnu.project.zhiyanwiki.repository;
 
-import hbnu.project.zhiyanknowledge.model.entity.WikiPage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import hbnu.project.zhiyanwiki.model.entity.WikiPage;
 
 import java.util.List;
 import java.util.Optional;
@@ -182,19 +182,5 @@ public interface WikiPageRepository extends JpaRepository<WikiPage, Long> {
     @Query("SELECT COALESCE(MAX(w.sortOrder), 0) FROM WikiPage w " +
            "WHERE w.projectId = :projectId AND w.parentId = :parentId")
     Integer findMaxSortOrder(@Param("projectId") Long projectId, @Param("parentId") Long parentId);
-
-    /**
-     * 根据内容模糊查询Wiki页面（简单搜索，复杂搜索使用ES）
-     *
-     * @param projectId 项目ID
-     * @param keyword   关键字
-     * @param pageable  分页参数
-     * @return Wiki页面分页列表
-     */
-    @Query("SELECT w FROM WikiPage w WHERE w.projectId = :projectId " +
-           "AND (w.title LIKE %:keyword% OR w.content LIKE %:keyword%)")
-    Page<WikiPage> searchByKeyword(@Param("projectId") Long projectId,
-                                    @Param("keyword") String keyword,
-                                    Pageable pageable);
 }
 
