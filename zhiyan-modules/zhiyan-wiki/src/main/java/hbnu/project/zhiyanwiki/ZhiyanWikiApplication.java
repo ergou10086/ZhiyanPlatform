@@ -7,7 +7,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication(scanBasePackages = {
-        "hbnu.project.zhiyancommonbasic"
+        "hbnu.project.zhiyancommonbasic",
+        "hbnu.project.zhiyancommonsecurity",
+        "hbnu.project.zhiyancommonoss",
 })
 @EnableDiscoveryClient
 @EnableJpaAuditing
