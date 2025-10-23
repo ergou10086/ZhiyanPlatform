@@ -61,8 +61,8 @@ public class ProjectServiceImpl implements ProjectService {
             }
             project = projectRepository.save(project);
 
-            // 自动将创建者添加为项目拥有者
-            projectMemberService.addMember(project.getId(), creatorId, ProjectMemberRole.OWNER);
+            // 自动将创建者添加为项目拥有者（使用内部方法，不验证用户）
+            projectMemberService.addMemberInternal(project.getId(), creatorId, ProjectMemberRole.OWNER);
 
             log.info("成功创建项目: id={}, name={}, creator={}", project.getId(), name, creatorId);
             return R.ok(project, "项目创建成功");
