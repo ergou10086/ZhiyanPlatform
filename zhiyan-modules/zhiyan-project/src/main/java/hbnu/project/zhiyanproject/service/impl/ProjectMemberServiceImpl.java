@@ -2,11 +2,14 @@ package hbnu.project.zhiyanproject.service.impl;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
+import hbnu.project.zhiyanproject.model.dto.ProjectMemberDTO;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
+import hbnu.project.zhiyanproject.model.dto.RoleInfoDTO;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
+import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
 import hbnu.project.zhiyanproject.repository.ProjectRepository;
@@ -19,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -161,49 +162,6 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     // ==================== 查询相关 ====================
 
     @Override
-    public Page<ProjectMemberDetailDTO> getProjectMembers(Long projectId, Pageable pageable) {
-        // 1. 查询项目
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("项目不存在"));
-
-        // 2. 查询成员
-        Page<ProjectMember> members = projectMemberRepository.findByProjectId(projectId, pageable);
-
-        // 3. 批量查询用户信息
-        List<Long> userIds = members.getContent().stream()
-                .map(ProjectMember::getUserId)
-                .collect(Collectors.toList());
-
-        Map<Long, UserDTO> userMap = new HashMap<>();
-        try {
-            R<Map<Long, UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
-            if (R.isSuccess(userResponse) && userResponse.getData() != null) {
-                userMap = userResponse.getData();
-            }
-        } catch (Exception e) {
-            log.error("批量查询用户信息失败", e);
-        }
-        final Map<Long, UserDTO> finalUserMap = userMap;
-
-        // 4. 转换为DTO
-        return members.map(member -> {
-            UserDTO user = finalUserMap.get(member.getUserId());
-            return ProjectMemberDetailDTO.builder()
-                    .id(member.getId())
-                    .projectId(member.getProjectId())
-                    .projectName(project.getName())
-                    .userId(member.getUserId())
-                    .username(user != null ? user.getName() : "未知用户")
-                    .email(user != null ? user.getEmail() : "")
-                    .projectRole(member.getProjectRole())
-                    .roleName(member.getProjectRole().getRoleName())
-                    .joinedAt(member.getJoinedAt())
-                    .isCurrentUser(false) // 在Controller层设置
-                    .build();
-        });
-    }
-
-    @Override
     public Page<ProjectMember> getMyProjects(Long userId, Pageable pageable) {
         return projectMemberRepository.findByUserId(userId, pageable);
     }
@@ -236,35 +194,273 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         return projectMemberRepository.countByProjectId(projectId);
     }
 
+    // ==================== 新增方法（用于新的角色管理接口） ====================
+
     @Override
     @Transactional
-    public ProjectMember addMember(Long projectId, Long creatorId, Enum roleEnum) {
+    public ProjectMember addMemberInternal(Long projectId, Long userId, ProjectMemberRole role) {
         // 1. 检查项目是否存在
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("项目不存在"));
 
         // 2. 检查用户是否已经是项目成员
-        if (projectMemberRepository.existsByProjectIdAndUserId(projectId, creatorId)) {
-            log.warn("用户[{}]已经是项目[{}]的成员", creatorId, projectId);
-            return projectMemberRepository.findByProjectIdAndUserId(projectId, creatorId)
+        if (projectMemberRepository.existsByProjectIdAndUserId(projectId, userId)) {
+            log.warn("用户[{}]已经是项目[{}]的成员", userId, projectId);
+            return projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
                     .orElse(null);
         }
 
-        // 3. 转换角色枚举
-        ProjectMemberRole role = (ProjectMemberRole) roleEnum;
-
-        // 4. 创建项目成员记录
+        // 3. 创建项目成员记录（不验证用户，用于内部调用）
         ProjectMember member = ProjectMember.builder()
                 .projectId(projectId)
-                .userId(creatorId)
+                .userId(userId)
                 .projectRole(role)
                 .joinedAt(LocalDateTime.now())
                 .build();
 
-        // 5. 保存到数据库
+        // 4. 保存到数据库
         ProjectMember saved = projectMemberRepository.save(member);
-        log.info("成功添加用户[{}]到项目[{}]，角色: {}", creatorId, projectId, role);
+        log.info("成功添加用户[{}]到项目[{}]，角色: {}（内部调用）", userId, projectId, role);
 
         return saved;
+    }
+
+    @Override
+    @Transactional
+    public R<Void> addMemberWithValidation(Long projectId, Long userId, ProjectMemberRole role) {
+        try {
+            // 1. 检查项目是否存在
+            if (!projectRepository.existsById(projectId)) {
+                return R.fail("项目不存在");
+            }
+
+            // 2. 检查用户是否存在（通过认证服务）
+            R<UserDTO> userResponse = authServiceClient.getUserById(userId);
+            if (!R.isSuccess(userResponse) || userResponse.getData() == null) {
+                return R.fail("用户不存在");
+            }
+
+            // 3. 检查用户是否已经是项目成员
+            if (projectMemberRepository.existsByProjectIdAndUserId(projectId, userId)) {
+                return R.fail("该用户已经是项目成员");
+            }
+
+            // 4. 创建成员记录
+            ProjectMember member = ProjectMember.builder()
+                    .projectId(projectId)
+                    .userId(userId)
+                    .projectRole(role)
+                    .joinedAt(LocalDateTime.now())
+                    .build();
+
+            projectMemberRepository.save(member);
+            log.info("成功添加用户[{}]到项目[{}]，角色: {}（API调用）", userId, projectId, role);
+
+            return R.ok();
+        } catch (Exception e) {
+            log.error("添加项目成员失败: projectId={}, userId={}, role={}", projectId, userId, role, e);
+            return R.fail("添加成员失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public R<Void> removeMember(Long projectId, Long userId) {
+        try {
+            // 1. 检查成员是否存在
+            ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                    .orElse(null);
+            
+            if (member == null) {
+                return R.fail("该用户不是项目成员");
+            }
+
+            // 2. 移除成员
+            projectMemberRepository.delete(member);
+            log.info("成功移除项目[{}]成员[{}]", projectId, userId);
+
+            return R.ok();
+        } catch (Exception e) {
+            log.error("移除项目成员失败: projectId={}, userId={}", projectId, userId, e);
+            return R.fail("移除成员失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public R<Void> updateMemberRole(Long projectId, Long userId, ProjectMemberRole newRole) {
+        try {
+            // 1. 查询成员
+            ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                    .orElse(null);
+            
+            if (member == null) {
+                return R.fail("该用户不是项目成员");
+            }
+
+            // 2. 不能修改拥有者的角色
+            if (member.getProjectRole() == ProjectMemberRole.OWNER && newRole != ProjectMemberRole.OWNER) {
+                return R.fail("不能修改项目拥有者的角色");
+            }
+
+            // 3. 更新角色
+            member.setProjectRole(newRole);
+            projectMemberRepository.save(member);
+            log.info("成功更新项目[{}]成员[{}]角色为: {}", projectId, userId, newRole);
+
+            return R.ok();
+        } catch (Exception e) {
+            log.error("更新成员角色失败: projectId={}, userId={}, newRole={}", projectId, userId, newRole, e);
+            return R.fail("更新角色失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<ProjectMemberRole> getMemberRole(Long projectId, Long userId) {
+        try {
+            ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                    .orElse(null);
+            
+            if (member == null) {
+                return R.fail("该用户不是项目成员");
+            }
+
+            return R.ok(member.getProjectRole());
+        } catch (Exception e) {
+            log.error("获取成员角色失败: projectId={}, userId={}", projectId, userId, e);
+            return R.fail("获取角色失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<RoleInfoDTO> getUserRoleInfo(Long userId, Long projectId) {
+        try {
+            // 1. 查询成员角色
+            ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                    .orElse(null);
+            
+            if (member == null) {
+                return R.fail("该用户不是项目成员");
+            }
+
+            ProjectMemberRole role = member.getProjectRole();
+
+            // 2. 获取角色权限
+            Set<String> permissions = role.getPermissions().stream()
+                    .map(ProjectPermission::getCode)
+                    .collect(Collectors.toSet());
+
+            // 3. 构建 DTO
+            RoleInfoDTO dto = RoleInfoDTO.builder()
+                    .roleCode(role.name())
+                    .roleName(role.getRoleName())
+                    .roleDescription(role.getDescription())
+                    .permissions(permissions)
+                    .build();
+
+            return R.ok(dto);
+        } catch (Exception e) {
+            log.error("获取用户角色信息失败: userId={}, projectId={}", userId, projectId, e);
+            return R.fail("获取角色信息失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<Set<String>> getUserPermissions(Long userId, Long projectId) {
+        try {
+            // 1. 查询成员角色
+            ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                    .orElse(null);
+            
+            if (member == null) {
+                return R.fail("该用户不是项目成员");
+            }
+
+            // 2. 获取角色权限
+            Set<String> permissions = member.getProjectRole().getPermissions().stream()
+                    .map(ProjectPermission::getCode)
+                    .collect(Collectors.toSet());
+
+            return R.ok(permissions);
+        } catch (Exception e) {
+            log.error("获取用户权限失败: userId={}, projectId={}", userId, projectId, e);
+            return R.fail("获取权限失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<Boolean> hasPermission(Long userId, Long projectId, String permissionCode) {
+        try {
+            // 1. 查询成员角色
+            ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                    .orElse(null);
+            
+            if (member == null) {
+                return R.ok(false);
+            }
+
+            // 2. 检查权限
+            boolean hasPermission = member.getProjectRole().hasPermission(permissionCode);
+            return R.ok(hasPermission);
+        } catch (Exception e) {
+            log.error("检查用户权限失败: userId={}, projectId={}, permission={}", 
+                    userId, projectId, permissionCode, e);
+            return R.fail("检查权限失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public R<Page<ProjectMemberDTO>> getProjectMembers(Long projectId, Pageable pageable) {
+        try {
+            // 1. 检查项目是否存在
+            if (!projectRepository.existsById(projectId)) {
+                return R.fail("项目不存在");
+            }
+
+            // 2. 查询成员
+            Page<ProjectMember> members = projectMemberRepository.findByProjectId(projectId, pageable);
+
+            // 3. 批量查询用户信息
+            List<Long> userIds = members.getContent().stream()
+                    .map(ProjectMember::getUserId)
+                    .collect(Collectors.toList());
+
+            Map<Long, UserDTO> userMap = new HashMap<>();
+            if (!userIds.isEmpty()) {
+                try {
+                    R<Map<Long, UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
+                    if (R.isSuccess(userResponse) && userResponse.getData() != null) {
+                        userMap = userResponse.getData();
+                    }
+                } catch (Exception e) {
+                    log.warn("批量查询用户信息失败", e);
+                }
+            }
+            final Map<Long, UserDTO> finalUserMap = userMap;
+
+            // 4. 转换为 DTO
+            Page<ProjectMemberDTO> dtoPage = members.map(member -> {
+                UserDTO user = finalUserMap.get(member.getUserId());
+                ProjectMemberRole role = member.getProjectRole();
+                
+                return ProjectMemberDTO.builder()
+                        .id(member.getId())
+                        .userId(member.getUserId())
+                        .username(user != null ? user.getName() : "未知用户")
+                        .nickname(user != null ? user.getName() : "") // 使用 name 代替 nickname
+                        .email(user != null ? user.getEmail() : "")
+                        .avatar(user != null ? user.getAvatarUrl() : "") // 使用 avatarUrl 代替 avatar
+                        .projectId(member.getProjectId())
+                        .roleCode(role.name())
+                        .roleName(role.getRoleName())
+                        .joinedAt(member.getJoinedAt())
+                        .build();
+            });
+
+            return R.ok(dtoPage);
+        } catch (Exception e) {
+            log.error("获取项目成员列表失败: projectId={}", projectId, e);
+            return R.fail("获取成员列表失败: " + e.getMessage());
+        }
     }
 }

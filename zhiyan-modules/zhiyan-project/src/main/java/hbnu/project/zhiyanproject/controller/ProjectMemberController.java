@@ -2,7 +2,7 @@ package hbnu.project.zhiyanproject.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
-import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
+import hbnu.project.zhiyanproject.model.dto.ProjectMemberDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
@@ -141,7 +141,7 @@ public class ProjectMemberController {
     @GetMapping("/projects/{projectId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取项目成员", description = "获取项目的所有成员详细信息")
-    public R<Page<ProjectMemberDetailDTO>> getProjectMembers(
+    public R<Page<ProjectMemberDTO>> getProjectMembers(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
             @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
@@ -151,17 +151,7 @@ public class ProjectMemberController {
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("joinedAt").ascending());
-            Page<ProjectMemberDetailDTO> members = projectMemberService.getProjectMembers(projectId, pageable);
-
-            // 标记当前用户
-            final Long userId = currentUserId;
-            members.forEach(member -> {
-                if (member.getUserId().equals(userId)) {
-                    member.setIsCurrentUser(true);
-                }
-            });
-
-            return R.ok(members, "获取成功");
+            return projectMemberService.getProjectMembers(projectId, pageable);
         } catch (Exception e) {
             log.error("获取项目成员失败", e);
             return R.fail("获取失败: " + e.getMessage());

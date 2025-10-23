@@ -14,13 +14,18 @@ public enum ProjectMemberRole {
     /**
      * 项目创建者/拥有者 - 拥有项目的全部权限
      */
-    OWNER("项目创建者", "项目拥有者，拥有项目的全部权限", Arrays.asList(
+    OWNER("项目拥有者", "项目拥有者，拥有项目的全部权限", Arrays.asList(
             ProjectPermission.PROJECT_MANAGE,
             ProjectPermission.PROJECT_DELETE,
             ProjectPermission.KNOWLEDGE_MANAGE,
             ProjectPermission.TASK_MANAGE,
             ProjectPermission.TASK_CREATE,
-            ProjectPermission.MEMBER_MANAGE
+            ProjectPermission.MEMBER_MANAGE,
+            ProjectPermission.WIKI_VIEW,
+            ProjectPermission.WIKI_EDIT,
+            ProjectPermission.WIKI_CREATE,
+            ProjectPermission.WIKI_DELETE,
+            ProjectPermission.WIKI_MANAGE
     )),
 
     /**
@@ -29,7 +34,10 @@ public enum ProjectMemberRole {
     MEMBER("项目成员", "项目普通成员，基础参与权限", Arrays.asList(
             ProjectPermission.KNOWLEDGE_MANAGE,
             ProjectPermission.TASK_MANAGE,
-            ProjectPermission.TASK_CREATE
+            ProjectPermission.TASK_CREATE,
+            ProjectPermission.WIKI_VIEW,
+            ProjectPermission.WIKI_EDIT,
+            ProjectPermission.WIKI_CREATE
     ));
 
     private final String roleName;
