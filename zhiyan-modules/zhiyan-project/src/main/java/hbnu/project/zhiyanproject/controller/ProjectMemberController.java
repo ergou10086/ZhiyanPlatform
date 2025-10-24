@@ -32,7 +32,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects/members")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @Tag(name = "项目成员管理", description = "项目成员管理相关接口，包括成员邀请、角色管理等")
 @SecurityRequirement(name = "Bearer Authentication")
@@ -138,7 +138,7 @@ public class ProjectMemberController {
      * 获取项目成员列表（含详细信息）
      * 业务场景：在项目详情页的"成员"标签页展示成员列表
      */
-    @GetMapping("/projects/{projectId}")
+    @GetMapping("/projects/{projectId}/members")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取项目成员", description = "获取项目的所有成员详细信息")
     public R<Page<ProjectMemberDTO>> getProjectMembers(
@@ -226,21 +226,6 @@ public class ProjectMemberController {
         Long currentUserId = SecurityUtils.getUserId();
         boolean isOwner = projectMemberService.isOwner(projectId, currentUserId);
         return R.ok(isOwner);
-    }
-
-    /**
-     * 获取用户在项目中的角色
-     */
-    @GetMapping("/projects/{projectId}/my-role")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取我的角色", description = "获取当前用户在项目中的角色")
-    public R<ProjectMemberRole> getMyRole(@PathVariable @Parameter(description = "项目ID") Long projectId) {
-        Long currentUserId = SecurityUtils.getUserId();
-        ProjectMemberRole role = projectMemberService.getUserRole(projectId, currentUserId);
-        if (role == null) {
-            return R.fail("您不是该项目的成员");
-        }
-        return R.ok(role);
     }
 
     /**

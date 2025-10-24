@@ -6,7 +6,6 @@ import hbnu.project.zhiyanproject.model.dto.*;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.form.AssignRoleRequest;
-import hbnu.project.zhiyanproject.model.form.UpdateRoleRequest;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import hbnu.project.zhiyanproject.utils.ProjectSecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,10 +15,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,15 +28,17 @@ import java.util.stream.Collectors;
  * 职责：
  * 1. 查询角色定义（从枚举）
  * 2. 查询用户在项目中的角色和权限
- * 3. 为用户分配/移除项目角色
+ * 3. 为用户分配项目角色
  * 
- * 注意：不允许创建/修改/删除角色定义，角色在枚举中预定义
+ * 注意：
+ * - 不允许创建/修改/删除角色定义，角色在枚举中预定义
+ * - 成员管理功能（更新角色、移除成员、获取成员列表）已移至 ProjectMemberController
  *
  * @author AI Assistant
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects/roles")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @Tag(name = "项目角色管理", description = "项目角色查询和分配接口（不允许修改角色定义）")
 @SecurityRequirement(name = "Bearer Authentication")
@@ -151,61 +148,8 @@ public class ProjectRoleController {
         return projectMemberService.addMemberWithValidation(projectId, request.getUserId(), role);
     }
 
-    /**
-     * 更新用户在项目中的角色
-     */
-    @PutMapping("/projects/{projectId}/members/{userId}/role")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "更新用户角色", description = "修改用户在项目中的角色（需要成员管理权限）")
-    public R<Void> updateUserRole(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @PathVariable @Parameter(description = "用户ID") Long userId,
-            @RequestBody @Valid UpdateRoleRequest request) {
-
-        Long operatorId = SecurityUtils.getUserId();
-        log.info("用户[{}]更新用户[{}]在项目[{}]的角色为[{}]",
-                operatorId, userId, projectId, request.getRoleCode());
-
-        // 权限检查
-        projectSecurityUtils.requirePermission(projectId, ProjectPermission.MEMBER_MANAGE);
-
-        // 验证角色代码
-        ProjectMemberRole role;
-        try {
-            role = ProjectMemberRole.valueOf(request.getRoleCode());
-        } catch (IllegalArgumentException e) {
-            log.warn("无效的角色代码: {}", request.getRoleCode());
-            return R.fail("无效的角色代码: " + request.getRoleCode());
-        }
-
-        return projectMemberService.updateMemberRole(projectId, userId, role);
-    }
-
-    /**
-     * 移除用户的项目角色（即移出项目）
-     */
-    @DeleteMapping("/projects/{projectId}/members/{userId}")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "移除项目成员", description = "将用户移出项目（需要成员管理权限）")
-    public R<Void> removeUserFromProject(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @PathVariable @Parameter(description = "用户ID") Long userId) {
-
-        Long operatorId = SecurityUtils.getUserId();
-        log.info("用户[{}]将用户[{}]移出项目[{}]", operatorId, userId, projectId);
-
-        // 权限检查
-        projectSecurityUtils.requirePermission(projectId, ProjectPermission.MEMBER_MANAGE);
-
-        // 不允许移除项目拥有者
-        R<ProjectMemberRole> roleResult = projectMemberService.getMemberRole(projectId, userId);
-        if (roleResult.getCode() == R.SUCCESS && roleResult.getData() == ProjectMemberRole.OWNER) {
-            log.warn("不允许移除项目拥有者: projectId={}, userId={}", projectId, userId);
-            return R.fail("不允许移除项目拥有者");
-        }
-
-        return projectMemberService.removeMember(projectId, userId);
-    }
+    // Note: 更新用户角色功能已移至 ProjectMemberController#updateMemberRole
+    // Note: 移除成员功能已移至 ProjectMemberController#removeMember
 
     // ==================== 角色权限查询 ====================
 
@@ -255,34 +199,7 @@ public class ProjectRoleController {
         return projectMemberService.hasPermission(currentUserId, projectId, permissionCode);
     }
 
-    /**
-     * 获取项目所有成员及其角色
-     */
-    @GetMapping("/projects/{projectId}/members")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取项目成员列表", description = "查询项目的所有成员及其角色信息")
-    public R<Page<ProjectMemberDTO>> getProjectMembers(
-            @PathVariable @Parameter(description = "项目ID") Long projectId,
-            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
-            @RequestParam(defaultValue = "20") @Parameter(description = "每页数量") int size,
-            @RequestParam(defaultValue = "joinedAt") @Parameter(description = "排序字段") String sortBy,
-            @RequestParam(defaultValue = "DESC") @Parameter(description = "排序方向") String direction) {
-
-        // 检查用户是否是项目成员
-        Long currentUserId = SecurityUtils.getUserId();
-        if (!projectSecurityUtils.isMember(projectId)) {
-            log.warn("用户[{}]不是项目[{}]成员，无权查看成员列表", currentUserId, projectId);
-            return R.fail("您不是项目成员，无权查看成员列表");
-        }
-
-        log.debug("用户[{}]查询项目[{}]成员列表", currentUserId, projectId);
-        
-        Sort.Direction sortDirection = "ASC".equalsIgnoreCase(direction) ? 
-                Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
-        
-        return projectMemberService.getProjectMembers(projectId, pageable);
-    }
+    // Note: 获取项目成员列表功能已移至 ProjectMemberController#getProjectMembers
 
     /**
      * 获取指定用户在项目中的角色（项目成员可见）
