@@ -17,9 +17,11 @@ spring:
         prefix: zhiyan-common-basic
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
-  config:
-    import:
-      - nacos:zhiyan-common-basic.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
+  # 注意：作为公共模块被其他模块依赖时，不应该加载Nacos配置
+  # 只有在独立运行时才需要加载Nacos配置
+  # config:
+  #   import:
+  #     - nacos:zhiyan-common-basic-prod.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
 
 # 日志基础配置（启动阶段日志，避免日志配置加载延迟）
 logging:

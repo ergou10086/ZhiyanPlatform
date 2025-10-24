@@ -156,13 +156,19 @@ public class AchievementDetailController {
     @Operation(summary = "根据模板初始化详情", description = "为成果根据模板初始化详情数据")
     public R<AchievementDetailDTO> initializeTemplate(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
-            @Parameter(description = "成果类型") @RequestParam AchievementType type,
+            @Parameter(description = "成果类型") @RequestParam String type,
             @RequestBody(required = false) Map<String, Object> initialData
     ){
+        // 手动转换
+        AchievementType achievementType = AchievementType.getByCode(type);
+        if (achievementType == null) {
+            throw new IllegalArgumentException("无效的成果类型: " + type);
+        }
+
         log.info("根据模板初始化详情: achievementId={}, type={}", achievementId, type);
 
         AchievementDetailDTO result = achievementDetailsService.initializeDetailByTemplate(
-                achievementId, type, initialData
+                achievementId, achievementType, initialData
         );
 
         return  R.ok(result, "模板初始化成功");

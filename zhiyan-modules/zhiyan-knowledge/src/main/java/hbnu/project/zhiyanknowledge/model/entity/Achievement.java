@@ -3,18 +3,15 @@ package hbnu.project.zhiyanknowledge.model.entity;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
+import hbnu.project.zhiyanknowledge.converter.AchievementTypeConverter;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -56,8 +53,9 @@ public class Achievement extends BaseAuditEntity {
 
     /**
      * 成果类型：paper(论文)、patent(专利)、dataset(数据集)、model(模型)、report(报告)、custom(自定义)
+     * 使用自定义转换器 AchievementTypeConverter 进行枚举与数据库值的转换
      */
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = AchievementTypeConverter.class)
     @Column(name = "type", nullable = false, columnDefinition = "ENUM('paper', 'patent', 'dataset', 'model', 'report', 'custom') COMMENT '成果类型'")
     private AchievementType type;
 
@@ -78,8 +76,9 @@ public class Achievement extends BaseAuditEntity {
      * 状态：draft(草稿)、under_review(审核中)、published(已发布)、obsolete（过时）
      * 这个状态先简单调整，用户发布就是已发布，然后由用户手动调整状态
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, columnDefinition = "ENUM('draft', 'under_review', 'published') DEFAULT 'draft' COMMENT '状态'")
+    @Column(name = "status", nullable = false, columnDefinition = "ENUM('draft', 'under_review', 'published', 'obsolete') DEFAULT 'draft' COMMENT '状态'")
     private AchievementStatus status = AchievementStatus.draft;
 
     /**

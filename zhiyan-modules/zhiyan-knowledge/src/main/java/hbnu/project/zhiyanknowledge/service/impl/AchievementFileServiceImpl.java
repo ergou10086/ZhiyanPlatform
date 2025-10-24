@@ -9,11 +9,12 @@ import hbnu.project.zhiyancommonoss.entity.FileUploadRequest;
 import hbnu.project.zhiyancommonoss.enums.BucketType;
 import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyancommonoss.util.MinioUtils;
-import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
+import hbnu.project.zhiyanknowledge.converter.AchievementConverter;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
 import hbnu.project.zhiyanknowledge.model.dto.UploadFileDTO;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
+import hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils;
 import hbnu.project.zhiyanknowledge.repository.AchievementFileRepository;
 import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
 import hbnu.project.zhiyanknowledge.service.AchievementFileService;
@@ -54,6 +55,9 @@ public class AchievementFileServiceImpl implements AchievementFileService {
 
     @Autowired
     private final AchievementRepository achievementRepository;
+
+    @Autowired
+    private final KnowledgeSecurityUtils  knowledgeSecurityUtils;
 
     private final AchievementConverter achievementConverter;
 
@@ -350,18 +354,16 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      */
     @Override
     public boolean hasFilePermission(Long fileId, Long userId) {
-        // TODO: 实现真实的权限验证逻辑
-        // 1. 查询文件所属的成果
-        // 2. 查询成果所属的项目
-        // 3. 验证用户是否是项目成员
-//
-//        // 查询项目成员表进行更完善的权限验证
-//        boolean isCreator = achievement.getCreatorId().equals(userId);
-//
-//        log.debug("权限检查: fileId={}, userId={}, isUploader={}, isCreator={}",
-//                fileId, userId, isUploader, isCreator);
-//
-//        return isUploader || isCreator;
-        return false;
+        try{
+            // 查询文件情况
+            AchievementFile file = achievementFileRepository.findById(fileId)
+                    .orElseThrow(() -> new ServiceException("文件不存在"));
+
+            // 2. 使用工具类检查项目成员权限
+            return knowledgeSecurityUtils.isProjectMemberByProjectId(file.getAchievement().getProjectId(), userId);
+        } catch (ServiceException e) {
+            log.error("文件权限检查失败: fileId={}, userId={}", fileId, userId, e);
+            return false;
+        }
     }
 }

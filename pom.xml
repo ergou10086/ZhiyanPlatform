@@ -64,13 +64,15 @@
         <sa-token.version>1.37.0</sa-token.version>
         <hutool-crypto.version>5.8.26</hutool-crypto.version>
         <redisson.version>3.52.0</redisson.version>
-        <mongodb-version>5.6.1</mongodb-version>
-        <mongodb-data.version>5.0.0-M6</mongodb-data.version>
+        <mongodb-version>4.11.1</mongodb-version>
+<!--        <mongodb-data.version>5.0.0-M6</mongodb-data.version>-->
         <commons-text.version>1.11.0</commons-text.version>
         <jgit.version>7.4.0.202509020913-r</jgit.version>
         <thumbnailator.version>0.4.19</thumbnailator.version>
         <tika-core.version>2.9.1</tika-core.version>
         <spring-cloud-bus.version>4.1.0</spring-cloud-bus.version>
+        <spring-data-bom.version>2023.1.5</spring-data-bom.version>
+
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
         <zhiyan-common-security.version>0.0.1-SNAPSHOT</zhiyan-common-security.version>
@@ -80,7 +82,7 @@
         <zhiyan-auth.version>0.0.1-SNAPSHOT</zhiyan-auth.version>
         <zhiyan-api-system.version>0.0.1-SNAPSHOT</zhiyan-api-system.version>
         <zhiyan-common-swagger.version>0.0.1-SNAPSHOT</zhiyan-common-swagger.version>
-
+        <zhiyan-common-loadbalancer.version>0.0.1-SNAPSHOT</zhiyan-common-loadbalancer.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -379,11 +381,11 @@
                 <version>${mongodb.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-mongodb</artifactId>
-                <version>${mongodb-data.version}</version>
-            </dependency>
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.data</groupId>-->
+<!--                <artifactId>spring-data-mongodb</artifactId>-->
+<!--                <version>${mongodb-data.version}</version>-->
+<!--            </dependency>-->
 
             <!-- Apache Commons Text 文本处理工具 -->
             <dependency>
@@ -411,6 +413,15 @@
                 <groupId>org.apache.tika</groupId>
                 <artifactId>tika-core</artifactId>
                 <version>${tika-core.version}</version>
+            </dependency>
+
+            <!-- Spring Data BOM -->
+            <dependency>
+                <groupId>org.springframework.data</groupId>
+                <artifactId>spring-data-bom</artifactId>
+                <version>${spring-data-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!--本项目自模块依赖-->
@@ -469,6 +480,11 @@
                 <version>${zhiyan-common-swagger.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-common-loadbalancer</artifactId>
+                <version>${zhiyan-common-loadbalancer.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

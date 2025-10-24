@@ -1,0 +1,187 @@
+{
+  "info": {
+    "name": "智研平台 - 成果管理接口",
+    "description": "成果创建、查询、更新等接口集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "创建成果 - 论文（完整示例）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}",
+            "description": "JWT认证Token"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": 1981188046153977856,\n  \"title\": \"基于深度学习的图像识别算法研究\",\n  \"type\": \"paper\",\n  \"status\": \"draft\",\n  \"abstractText\": \"本文提出了一种基于深度学习的图像识别算法，通过改进卷积神经网络结构，在多个公开数据集上取得了显著的性能提升。实验结果表明，该算法在图像分类任务中的准确率达到了98.5%，超过了现有主流方法。\",\n  \"detailData\": {\n    \"authors\": [\"张三\", \"李四\", \"王五\"],\n    \"journal\": \"Nature\",\n    \"doi\": \"10.1038/s41586-2025-01234-5\",\n    \"publishYear\": 2025,\n    \"publishDate\": \"2025-03-15\",\n    \"volume\": \"621\",\n    \"issue\": \"7990\",\n    \"pages\": \"123-135\",\n    \"keywords\": [\"深度学习\", \"图像识别\", \"卷积神经网络\"],\n    \"citationCount\": 0,\n    \"impactFactor\": 49.962\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/achievement/create",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "achievement", "create"]
+        },
+        "description": "创建一个论文类型的成果，包含完整的详细信息"
+      },
+      "response": []
+    },
+    {
+      "name": "创建成果 - 论文（最简示例）",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": 1981188046153977856,\n  \"title\": \"基于深度学习的图像识别算法研究\",\n  \"type\": \"paper\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/achievement/create",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "achievement", "create"]
+        },
+        "description": "最简单的创建成果请求，只包含必填字段"
+      },
+      "response": []
+    },
+    {
+      "name": "创建成果 - 专利",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": 1981188046153977856,\n  \"title\": \"一种基于人工智能的智能识别系统\",\n  \"type\": \"patent\",\n  \"status\": \"under_review\",\n  \"abstractText\": \"本发明涉及人工智能技术领域，具体公开了一种基于人工智能的智能识别系统，包括数据采集模块、特征提取模块、模型训练模块和识别模块。该系统通过深度学习技术实现对目标对象的高精度识别，识别准确率可达99%以上。\",\n  \"detailData\": {\n    \"patentNo\": \"CN202510123456.7\",\n    \"inventors\": [\"王五\", \"赵六\"],\n    \"applicant\": \"某某大学\",\n    \"applicationDate\": \"2025-01-15\",\n    \"publicationDate\": \"2025-06-20\",\n    \"patentType\": \"发明专利\",\n    \"legalStatus\": \"实质审查\",\n    \"ipcClass\": \"G06N3/04\",\n    \"claims\": 10,\n    \"description\": \"本发明提供了一种智能识别系统及方法\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/achievement/create",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "achievement", "create"]
+        },
+        "description": "创建专利类型的成果"
+      },
+      "response": []
+    },
+    {
+      "name": "创建成果 - 数据集",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": 1981188046153977856,\n  \"title\": \"中文医疗对话数据集\",\n  \"type\": \"dataset\",\n  \"status\": \"published\",\n  \"abstractText\": \"该数据集包含10万条中文医疗领域的对话数据，涵盖常见疾病咨询、用药指导、健康管理等多个场景。数据经过严格的隐私脱敏处理，可用于医疗对话系统的训练和评估。\",\n  \"detailData\": {\n    \"version\": \"1.0\",\n    \"format\": \"JSON\",\n    \"size\": \"2.5GB\",\n    \"recordCount\": 100000,\n    \"license\": \"CC BY-NC 4.0\",\n    \"downloadUrl\": \"https://example.com/dataset\",\n    \"createdDate\": \"2025-02-01\",\n    \"updateDate\": \"2025-02-15\",\n    \"categories\": [\"医疗\", \"对话\", \"中文\"],\n    \"description\": \"包含问诊、诊断、用药等多个场景\",\n    \"language\": \"中文\",\n    \"encoding\": \"UTF-8\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/achievement/create",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "achievement", "create"]
+        },
+        "description": "创建数据集类型的成果"
+      },
+      "response": []
+    },
+    {
+      "name": "创建成果 - 算法模型",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": 1981188046153977856,\n  \"title\": \"图像分类预训练模型 ResNet-50\",\n  \"type\": \"model\",\n  \"status\": \"published\",\n  \"abstractText\": \"基于ImageNet数据集训练的ResNet-50图像分类模型，在ImageNet验证集上的Top-1准确率达到76.15%，Top-5准确率达到92.87%。模型使用PyTorch框架实现，可直接用于迁移学习。\",\n  \"detailData\": {\n    \"modelType\": \"深度神经网络\",\n    \"framework\": \"PyTorch\",\n    \"version\": \"2.0\",\n    \"accuracy\": 0.7615,\n    \"top5Accuracy\": 0.9287,\n    \"parameters\": \"25.6M\",\n    \"modelSize\": \"98MB\",\n    \"trainDataset\": \"ImageNet\",\n    \"epochs\": 100,\n    \"batchSize\": 256,\n    \"optimizer\": \"SGD\",\n    \"learningRate\": 0.1,\n    \"downloadUrl\": \"https://example.com/model.pth\",\n    \"license\": \"Apache 2.0\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/achievement/create",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "achievement", "create"]
+        },
+        "description": "创建算法模型类型的成果"
+      },
+      "response": []
+    },
+    {
+      "name": "创建成果 - 研究报告",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwt_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"projectId\": 1981188046153977856,\n  \"title\": \"2025年人工智能技术发展趋势研究报告\",\n  \"type\": \"report\",\n  \"status\": \"draft\",\n  \"abstractText\": \"本报告系统分析了2025年人工智能技术的最新发展趋势，包括大语言模型、多模态学习、强化学习等前沿领域的技术进展，并对未来发展方向进行了展望。报告基于大量文献调研和案例分析，为相关研究人员提供参考。\",\n  \"detailData\": {\n    \"reportType\": \"技术研究报告\",\n    \"authors\": [\"张三\", \"李四\"],\n    \"submitDate\": \"2025-03-01\",\n    \"pageCount\": 50,\n    \"language\": \"中文\",\n    \"organization\": \"某某研究院\",\n    \"version\": \"1.0\",\n    \"chapters\": [\n      \"人工智能技术概述\",\n      \"大语言模型发展趋势\",\n      \"多模态学习研究进展\",\n      \"强化学习应用案例\",\n      \"未来发展展望\"\n    ],\n    \"references\": 150\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/zhiyan/achievement/create",
+          "host": ["{{base_url}}"],
+          "path": ["zhiyan", "achievement", "create"]
+        },
+        "description": "创建研究报告类型的成果"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8094",
+      "type": "string",
+      "description": "知识服务基础URL（开发环境）"
+    },
+    {
+      "key": "jwt_token",
+      "value": "your_jwt_token_here",
+      "type": "string",
+      "description": "JWT认证Token，通过登录接口获取"
+    }
+  ]
+}
+
