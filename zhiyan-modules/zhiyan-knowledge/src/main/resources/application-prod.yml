@@ -8,30 +8,30 @@ spring:
   application:
     name: zhiyan-knowledge
 
-  cloud:
-    nacos:
-      # Nacos服务发现
-      discovery:
-        username: nacos  # 用户名
-        password: nacos  # 密码
-        # Nacos地址
-        server-addr: 10.7.10.98:8848
-        # 命名空间
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        # 组
-        group: DEFAULT_GROUP
-        # 权重
-        weight: 1
-
-      # Nacos配置中心
-      config:
-        username: nacos  # 用户名
-        password: nacos  # 密码
-        # 和服务发现的一样
-        server-addr: 10.7.10.98:8848
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        group: DEFAULT_GROUP
-        file-extension: yaml
+#  cloud:
+#    nacos:
+#      # Nacos服务发现
+#      discovery:
+#        username: nacos  # 用户名
+#        password: nacos  # 密码
+#        # Nacos地址
+#        server-addr: 10.7.10.98:8848
+#        # 命名空间
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+#        # 组
+#        group: DEFAULT_GROUP
+#        # 权重
+#        weight: 1
+#
+#      # Nacos配置中心
+#      config:
+#        username: nacos  # 用户名
+#        password: nacos  # 密码
+#        # 和服务发现的一样
+#        server-addr: 10.7.10.98:8848
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+#        group: DEFAULT_GROUP
+#        file-extension: yaml
 
     # OpenFeign配置
     openfeign:

@@ -52,7 +52,7 @@ public class AchievementServiceImpl implements AchievementService {
 
 
     /**
-     * 统计项目成果数量
+     * 统计项目成果数量的各种情况
      *
      * @param projectId 项目ID
      * @return 统计信息

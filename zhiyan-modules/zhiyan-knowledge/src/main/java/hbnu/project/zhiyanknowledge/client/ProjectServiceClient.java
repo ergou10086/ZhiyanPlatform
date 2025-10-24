@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author ErgouTree
  */
-@FeignClient(name = "zhiyan-project", path = "/api/projects")
+@FeignClient(name = "zhiyan-project", path = "/api/projects/members")
 public interface ProjectServiceClient {
 
     /**
