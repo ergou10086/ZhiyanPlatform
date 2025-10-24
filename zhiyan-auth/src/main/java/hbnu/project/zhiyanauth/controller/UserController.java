@@ -429,17 +429,50 @@ public class UserController {
     }
 
     /**
-     * 批量根据ID查询用户信息（服务间调用接口）
+     * 批量根据ID查询用户信息（服务间调用接口 - GET方式）
+     * 路径: GET /api/users/batch?ids=1&ids=2&ids=3
+     * 用于其他微服务批量查询成员信息（返回Map格式）
+     * 无需权限校验（内部调用）
+     */
+    @GetMapping("/batch")
+    @Operation(summary = "批量查询用户(GET)", description = "根据ID列表批量查询用户信息，返回Map格式（服务间调用）")
+    public R<Map<Long, UserDTO>> getUsersByIdsMap(
+            @Parameter(description = "用户ID列表", required = true)
+            @RequestParam("ids") List<Long> userIds) {
+        log.info("批量查询用户(GET): 数量={}", userIds.size());
+
+        try {
+            R<List<UserDTO>> result = userService.getUsersByIds(userIds);
+            if (!R.isSuccess(result)) {
+                return R.fail(result.getMsg());
+            }
+            
+            // 将List转换为Map，以userId为key
+            Map<Long, UserDTO> userMap = result.getData().stream()
+                    .collect(java.util.stream.Collectors.toMap(
+                            UserDTO::getId,
+                            user -> user
+                    ));
+            
+            return R.ok(userMap);
+        } catch (Exception e) {
+            log.error("批量查询用户失败", e);
+            return R.fail("批量查询用户失败");
+        }
+    }
+
+    /**
+     * 批量根据ID查询用户信息（服务间调用接口 - POST方式）
      * 路径: POST /api/users/batch-query
      * 用于其他微服务批量查询成员信息
      * 无需权限校验（内部调用）
      */
     @PostMapping("/batch-query")
-    @Operation(summary = "批量查询用户", description = "根据ID列表批量查询用户信息（服务间调用）")
+    @Operation(summary = "批量查询用户(POST)", description = "根据ID列表批量查询用户信息（服务间调用）")
     public R<List<UserDTO>> getUsersByIds(
             @Parameter(description = "用户ID列表", required = true)
             @RequestBody List<Long> userIds) {
-        log.info("批量查询用户: 数量={}", userIds.size());
+        log.info("批量查询用户(POST): 数量={}", userIds.size());
 
         try {
             return userService.getUsersByIds(userIds);

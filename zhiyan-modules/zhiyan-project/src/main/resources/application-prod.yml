@@ -34,9 +34,12 @@ spring:
       client:
         config:
           default:
-            connect-timeout: 5000
-            read-timeout: 10000
+            connect-timeout: 500000  # 连接超时时间 50秒
+            read-timeout: 500000     # 读取超时时间 50秒
             logger-level: basic
+          zhiyan-auth:
+            connect-timeout: 500000  # zhiyan-auth 服务连接超时 50秒
+            read-timeout: 500000     # zhiyan-auth 服务读取超时 50秒
       compression:
         request:
           enabled: true

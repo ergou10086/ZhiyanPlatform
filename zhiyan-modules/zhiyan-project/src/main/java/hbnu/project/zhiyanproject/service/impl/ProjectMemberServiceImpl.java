@@ -428,9 +428,14 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             Map<Long, UserDTO> userMap = new HashMap<>();
             if (!userIds.isEmpty()) {
                 try {
-                    R<Map<Long, UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
+                    R<List<UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
                     if (R.isSuccess(userResponse) && userResponse.getData() != null) {
-                        userMap = userResponse.getData();
+                        // 将List转换为Map，以userId为key
+                        userMap = userResponse.getData().stream()
+                                .collect(Collectors.toMap(
+                                        UserDTO::getId,
+                                        user -> user
+                                ));
                     }
                 } catch (Exception e) {
                     log.warn("批量查询用户信息失败", e);

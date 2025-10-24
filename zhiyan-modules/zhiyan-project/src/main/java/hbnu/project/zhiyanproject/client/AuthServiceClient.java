@@ -5,6 +5,8 @@ import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.Map;
  *
  * @author Tokito
  */
-@FeignClient(name = "zhiyan-auth-service", path = "/zhiyan/users")
+@FeignClient(name = "zhiyan-auth", path = "/zhiyan/users")
 public interface AuthServiceClient {
 
     /**
@@ -50,8 +52,8 @@ public interface AuthServiceClient {
      * 批量查询用户信息
      *
      * @param userIds 用户ID列表
-     * @return 用户ID到用户信息的映射
+     * @return 用户信息列表
      */
-    @GetMapping("/batch")
-    R<Map<Long, UserDTO>> getUsersByIds(@RequestParam("ids") List<Long> userIds);
+    @PostMapping("/batch-query")
+    R<List<UserDTO>> getUsersByIds(@RequestBody List<Long> userIds);
 }

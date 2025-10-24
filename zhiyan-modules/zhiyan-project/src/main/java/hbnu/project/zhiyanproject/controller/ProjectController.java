@@ -2,7 +2,10 @@ package hbnu.project.zhiyanproject.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
+import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.model.dto.ImageUploadResponse;
+import hbnu.project.zhiyanproject.model.dto.ProjectDTO;
+import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
@@ -18,6 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,6 +31,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 项目控制器
@@ -44,6 +51,7 @@ public class ProjectController {
     private final ProjectService projectService;
     private final ProjectSecurityUtils projectSecurityUtils;
     private final ProjectImageService projectImageService;
+    private final AuthServiceClient authServiceClient;
 
     // ==================== 图片上传相关 ====================
 
@@ -273,12 +281,89 @@ public class ProjectController {
      */
     @GetMapping("/public/active")
     @Operation(summary = "获取公开项目", description = "获取所有公开的活跃项目")
-    public R<Page<Project>> getPublicActiveProjects(
+    public R<Page<ProjectDTO>> getPublicActiveProjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
+        log.info("获取公开活跃项目列表，page={}, size={}", page, size);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return projectService.getPublicActiveProjects(pageable);
+        
+        // 获取项目列表
+        R<Page<Project>> projectsResult = projectService.getPublicActiveProjects(pageable);
+        if (projectsResult.getCode() != 200 || projectsResult.getData() == null) {
+            log.warn("获取项目列表失败: {}", projectsResult.getMsg());
+            return R.fail(projectsResult.getMsg());
+        }
+        
+        Page<Project> projects = projectsResult.getData();
+        log.info("查询到 {} 个公开项目", projects.getTotalElements());
+        
+        // 收集所有创建者ID
+        List<Long> creatorIds = projects.getContent().stream()
+                .map(Project::getCreatorId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        log.info("需要查询 {} 个创建者的信息: {}", creatorIds.size(), creatorIds);
+        
+        // 批量查询创建者信息
+        Map<Long, UserDTO> creatorMap = null;
+        try {
+            if (!creatorIds.isEmpty()) {
+                R<List<UserDTO>> usersResult = authServiceClient.getUsersByIds(creatorIds);
+                if (usersResult != null && usersResult.getCode() == 200 && usersResult.getData() != null) {
+                    // 将List转换为Map，以userId为key
+                    creatorMap = usersResult.getData().stream()
+                            .collect(Collectors.toMap(
+                                    UserDTO::getId,
+                                    user -> user
+                            ));
+                    log.info("成功获取 {} 个用户信息", creatorMap.size());
+                } else {
+                    log.warn("批量查询用户信息失败: {}", usersResult != null ? usersResult.getMsg() : "响应为空");
+                }
+            }
+        } catch (Exception e) {
+            log.error("调用auth服务查询用户信息失败", e);
+        }
+        
+        // 转换为ProjectDTO并填充创建者名称
+        final Map<Long, UserDTO> finalCreatorMap = creatorMap;
+        List<ProjectDTO> projectDTOs = projects.getContent().stream()
+                .map(project -> {
+                    ProjectDTO dto = ProjectDTO.builder()
+                            .id(String.valueOf(project.getId()))
+                            .name(project.getName())
+                            .description(project.getDescription())
+                            .status(project.getStatus())
+                            .visibility(project.getVisibility())
+                            .startDate(project.getStartDate())
+                            .endDate(project.getEndDate())
+                            .imageUrl(project.getImageUrl())
+                            .creatorId(String.valueOf(project.getCreatorId()))
+                            .createdAt(project.getCreatedAt())
+                            .updatedAt(project.getUpdatedAt())
+                            .build();
+                    
+                    // 填充创建者名称
+                    if (finalCreatorMap != null && finalCreatorMap.containsKey(project.getCreatorId())) {
+                        UserDTO creator = finalCreatorMap.get(project.getCreatorId());
+                        dto.setCreatorName(creator.getName());
+                        log.info("✅ 项目 {} (ID:{}) 的创建者: {} (ID:{})", project.getName(), project.getId(), creator.getName(), creator.getId());
+                    } else {
+                        dto.setCreatorName("未知用户");
+                        log.warn("⚠️ 项目 {} (ID:{}) 的创建者信息未找到，设置为未知用户", project.getName(), project.getId());
+                    }
+                    
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        
+        // 创建新的分页对象
+        Page<ProjectDTO> projectDTOPage = new PageImpl<>(projectDTOs, pageable, projects.getTotalElements());
+        
+        log.info("成功返回 {} 个项目信息（含创建者名称）", projectDTOs.size());
+        return R.ok(projectDTOPage);
     }
 
     /**
