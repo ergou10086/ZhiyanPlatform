@@ -1,6 +1,6 @@
 package hbnu.project.zhiyancommonloadbalancer.config;
 
-import org.dromara.common.loadbalance.core.CustomSpringCloudLoadBalancer;
+import hbnu.project.zhiyancommonloadbalancer.core.CustomSpringCloudLoadBalancer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
@@ -13,7 +13,7 @@ import org.springframework.core.env.Environment;
 /**
  * 自定义负载均衡客户端配置
  *
- * @author LionLi
+ * @author yui
  */
 @SuppressWarnings("all")
 @Configuration(proxyBeanMethods = false)

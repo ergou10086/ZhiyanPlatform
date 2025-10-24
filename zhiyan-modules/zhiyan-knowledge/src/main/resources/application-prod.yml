@@ -81,6 +81,11 @@ spring:
     show-sql: false
     open-in-view: false
 
+# JWT配置（需与认证服务保持一致）
+jwt:
+  secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
+  issuer: "zhiyan-platform"
+
 # Actuator配置
 management:
   endpoints:

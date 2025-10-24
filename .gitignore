@@ -30,3 +30,6 @@ resources/bootstrap.yml
 
 # 日志文件
 logs/
+
+
+codebuddy/

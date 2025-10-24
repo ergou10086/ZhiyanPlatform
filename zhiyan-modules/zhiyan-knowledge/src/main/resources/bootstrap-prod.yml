@@ -31,7 +31,7 @@ spring:
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
     import:
-      - nacos:zhiyan-knowledge.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
+      - nacos:zhiyan-knowledge-prod.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
       - nacos:zhiyan-common-oss-prod.yaml?group=DEFAULT_GROUP&refresh=true
 
 

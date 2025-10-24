@@ -34,11 +34,9 @@ public class AchievementManageController {
     private final AchievementService achievementService;
 
     @Autowired
-    private final AchievementSearchService achievementSearchService;
-
-    @Autowired
     private final AchievementDetailsService achievementDetailsService;
 
+    @Autowired
     private final KnowledgeSecurityUtils knowledgeSecurityUtils;
 
     /**

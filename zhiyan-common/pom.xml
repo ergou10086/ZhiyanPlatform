@@ -17,6 +17,7 @@
         <module>zhiyan-common-elasticsearch</module>
         <module>zhiyan-common-oss</module>
         <module>zhiyan-common-idempotent</module>
+        <module>zhiyan-common-loadbalancer</module>
         <module>zhiyan-common-bus</module>
         <module>zhiyan-common-swagger</module>
     </modules>
