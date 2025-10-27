@@ -3,16 +3,14 @@ package hbnu.project.zhiyanauth.controller;
 import hbnu.project.zhiyanauth.model.dto.AvatarDTO;
 import hbnu.project.zhiyanauth.service.AvatarService;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.exception.ControllerException;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -51,9 +49,54 @@ public class AvatarController {
 
             // 调用服务层上传头像
             return avatarService.uploadAvatar(userId, file);
-        }catch (Exception e){
-
+        }catch (ControllerException e){
+            log.error("上传头像失败", e);
+            return R.fail("上传头像失败: " + e.getMessage());
         }
     }
 
+
+    /**
+     * 获取当前用户头像信息
+     * 路径: GET /api/users/avatar/me_avatar
+     * 权限: 所有已登录用户
+     */
+    @GetMapping("/me_avatar")
+    @Operation(summary = "获取头像信息", description = "获取当前用户的头像URL信息（包含所有尺寸）")
+    public R<AvatarDTO> getMyAvatar() {
+        log.info("获取当前用户头像信息");
+
+        try {
+            Long userId = SecurityUtils.getUserId();
+            if (userId == null) {
+                return R.fail("用户未登录");
+            }
+
+            return avatarService.getAvatarInfo(userId);
+
+        } catch (Exception e) {
+            log.error("获取头像信息失败", e);
+            return R.fail("获取头像信息失败");
+        }
+    }
+
+
+
+    /**
+     * 根据用户ID获取头像信息（内部接口,服务间调用预留）
+     * 路径: GET /api/users/avatar/{userId}
+     * 用于其他服务查询用户头像
+     */
+    @GetMapping("/{userId}")
+    @Operation(summary = "获取指定用户头像", description = "根据用户ID获取头像信息（服务间调用）")
+    public R<AvatarDTO> getAvatar(@Parameter(description = "用户ID", required = true) @PathVariable Long userId) {
+        log.info("获取用户头像信息: userId={}", userId);
+
+        try {
+            return avatarService.getAvatarInfo(userId);
+        } catch (Exception e) {
+            log.error("获取用户头像信息失败: userId={}", userId, e);
+            return R.fail("获取头像信息失败");
+        }
+    }
 }
