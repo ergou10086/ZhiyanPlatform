@@ -87,6 +87,12 @@
             <artifactId>hutool-extra</artifactId>
         </dependency>
 
+        <!--mail的starter-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- zhiyan-common-redis模块 -->
         <dependency>
             <groupId>hbnu.project</groupId>
@@ -122,6 +128,11 @@
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-oss</artifactId>
         </dependency>
     </dependencies>
 

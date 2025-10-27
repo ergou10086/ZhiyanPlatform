@@ -20,6 +20,7 @@
     <description>智研平台微服务系统</description>
 
     <modules>
+        <module>zhiyan-ai</module>
         <module>zhiyan-api</module>
         <module>zhiyan-auth</module>
         <module>zhiyan-common</module>
@@ -54,6 +55,7 @@
         <knife4j.version>4.4.0</knife4j.version>
         <seata.version>2.0.0</seata.version>
         <mapstruct-plus.version>1.5.0</mapstruct-plus.version>
+        <feign.version>12.5</feign.version>
         <easy-es.version>2.0.0-beta7</easy-es.version>
         <elasticsearch.version>9.1.4</elasticsearch.version>
         <elasticsearch-rest-client.version>9.1.4</elasticsearch-rest-client.version>
@@ -65,13 +67,16 @@
         <hutool-crypto.version>5.8.26</hutool-crypto.version>
         <redisson.version>3.52.0</redisson.version>
         <mongodb-version>4.11.1</mongodb-version>
-<!--        <mongodb-data.version>5.0.0-M6</mongodb-data.version>-->
+<!--    <mongodb-data.version>5.0.0-M6</mongodb-data.version>-->
         <commons-text.version>1.11.0</commons-text.version>
         <jgit.version>7.4.0.202509020913-r</jgit.version>
         <thumbnailator.version>0.4.19</thumbnailator.version>
         <tika-core.version>2.9.1</tika-core.version>
         <spring-cloud-bus.version>4.1.0</spring-cloud-bus.version>
         <spring-data-bom.version>2023.1.5</spring-data-bom.version>
+        <openai-java.version>0.18.2</openai-java.version>
+        <langchain4j.version>0.29.1</langchain4j.version>
+<!--        <spring-ai.version>0.8.1</spring-ai.version>-->
 
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>
@@ -283,6 +288,18 @@
                 <version>${mapstruct-plus.version}</version>
             </dependency>
 
+            <!--openfeign单独引入feign，为ai调用-->
+            <dependency>
+                <groupId>io.github.openfeign</groupId>
+                <artifactId>feign-core</artifactId>
+                <version>${feign.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.openfeign</groupId>
+                <artifactId>feign-jackson</artifactId>
+                <version>${feign.version}</version>
+            </dependency>
+
             <!-- Easy-ES Elasticsearch 简化框架 -->
             <dependency>
                 <groupId>org.dromara.easy-es</groupId>
@@ -422,6 +439,44 @@
                 <version>${spring-data-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- OpenAI Java Client -->
+            <dependency>
+                <groupId>com.theokanning.openai-gpt3-java</groupId>
+                <artifactId>service</artifactId>
+                <version>${openai-java.version}</version>
+            </dependency>
+
+            <!-- LangChain4j (AI应用框架) -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-open-ai</artifactId>
+                <version>${langchain4j.version}</version>
+            </dependency>
+
+<!--            &lt;!&ndash; Spring AI (Spring官方AI框架) &ndash;&gt;-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.ai</groupId>-->
+<!--                <artifactId>spring-ai-core</artifactId>-->
+<!--                <version>${spring-ai.version}</version>-->
+<!--            </dependency>-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.ai</groupId>-->
+<!--                <artifactId>spring-ai-openai-spring-boot-starter</artifactId>-->
+<!--                <version>${spring-ai.version}</version>-->
+<!--            </dependency>-->
+
+            <!-- WebClient for HTTP requests -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-webflux</artifactId>
+                <version>${spring-boot.version}</version>
             </dependency>
 
             <!--本项目自模块依赖-->

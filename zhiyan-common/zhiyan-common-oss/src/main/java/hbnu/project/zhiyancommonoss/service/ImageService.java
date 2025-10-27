@@ -88,7 +88,7 @@ public class ImageService {
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-            MinioProperties.ImageConfig imageConfig = minioProperties.getImage();
+            MinioProperties.ImageConfig imageConfig = new MinioProperties.ImageConfig();
             float quality = imageConfig.getQuality();
 
             if (keepRatio) {

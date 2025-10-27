@@ -67,6 +67,11 @@ public class ProjectDTO {
     private String creatorId;
 
     /**
+     * 创建者名称
+     */
+    private String creatorName;
+
+    /**
      * 成员数量
      */
     private Integer memberCount;
