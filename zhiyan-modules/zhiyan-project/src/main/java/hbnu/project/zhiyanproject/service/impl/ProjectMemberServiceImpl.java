@@ -85,7 +85,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             }
             throw e;
         }
-        
+
         log.info("项目[{}]负责人[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
 
         // TODO: 发送通知给被添加的用户（通过消息队列），告知已被添加到项目

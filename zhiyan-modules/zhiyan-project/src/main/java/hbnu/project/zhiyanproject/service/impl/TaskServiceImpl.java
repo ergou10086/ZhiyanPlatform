@@ -20,6 +20,7 @@ import hbnu.project.zhiyanproject.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -308,8 +309,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getProjectTasks(Long projectId, Pageable pageable) {
-        Page<Tasks> tasks = taskRepository.findByProjectId(projectId, pageable);
-        return tasks.map(this::convertToDetailDTO);
+        Page<Tasks> tasksPage = taskRepository.findByProjectId(projectId, pageable);
+        List<TaskDetailDTO> taskDTOs = convertListToDetailDTO(tasksPage.getContent());
+        return new PageImpl<>(taskDTOs, pageable, tasksPage.getTotalElements());
     }
 
     @Override
@@ -394,6 +396,12 @@ public class TaskServiceImpl implements TaskService {
             try {
                 R<List<UserDTO>> response = authServiceClient.getUsersByIds(assigneeIds);
                 if (R.isSuccess(response) && response.getData() != null) {
+                    // 将List转换为Map，以userId为key
+                    Map<Long, UserDTO> userMap = response.getData().stream()
+                            .collect(Collectors.toMap(
+                                    UserDTO::getId,
+                                    user -> user
+                            ));
                     // 将List转换为Map
                     Map<Long, UserDTO> userMap = response.getData().stream()
                             .collect(Collectors.toMap(UserDTO::getId, user -> user));
@@ -451,11 +459,105 @@ public class TaskServiceImpl implements TaskService {
     }
 
     /**
-     * 批量转换任务列表为DTO
+     * 批量转换任务列表为DTO（优化版：批量查询用户信息）
      */
     private List<TaskDetailDTO> convertListToDetailDTO(List<Tasks> tasks) {
+        if (tasks == null || tasks.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 1. 收集所有需要查询的用户ID（创建人+执行者）
+        Set<Long> allUserIds = new HashSet<>();
+        Map<Long, List<Long>> taskAssigneeMap = new HashMap<>(); // taskId -> assigneeIds
+
+        for (Tasks task : tasks) {
+            // 添加创建人ID
+            allUserIds.add(task.getCreatedBy());
+
+            // 添加执行者IDs
+            List<Long> assigneeIds = convertJsonToList(task.getAssigneeId());
+            if (!assigneeIds.isEmpty()) {
+                allUserIds.addAll(assigneeIds);
+                taskAssigneeMap.put(task.getId(), assigneeIds);
+            }
+        }
+
+        // 2. 批量查询所有用户信息（一次调用）
+        Map<Long, UserDTO> userMap = new HashMap<>();
+        try {
+            if (!allUserIds.isEmpty()) {
+                R<List<UserDTO>> response = authServiceClient.getUsersByIds(new ArrayList<>(allUserIds));
+                if (R.isSuccess(response) && response.getData() != null) {
+                    userMap = response.getData().stream()
+                            .collect(Collectors.toMap(UserDTO::getId, user -> user));
+                    log.info(" 批量查询用户信息成功: 查询{}个用户，获取到{}个", allUserIds.size(), userMap.size());
+                } else {
+                    log.warn(" 批量查询用户信息失败: {}", response != null ? response.getMsg() : "响应为空");
+                }
+            }
+        } catch (Exception e) {
+            log.error(" 批量查询用户信息异常", e);
+        }
+
+        // 3. 查询所有项目信息（批量）
+        Set<Long> projectIds = tasks.stream().map(Tasks::getProjectId).collect(Collectors.toSet());
+        Map<Long, String> projectNameMap = new HashMap<>();
+        for (Long projectId : projectIds) {
+            projectRepository.findById(projectId).ifPresent(p ->
+                projectNameMap.put(projectId, p.getName()));
+        }
+
+        // 4. 转换为DTO
+        final Map<Long, UserDTO> finalUserMap = userMap;
+        LocalDate today = LocalDate.now();
+
         return tasks.stream()
-                .map(this::convertToDetailDTO)
+                .map(task -> {
+                    // 获取项目名称
+                    String projectName = projectNameMap.getOrDefault(task.getProjectId(), "未知项目");
+
+                    // 获取执行者信息
+                    List<Long> assigneeIds = taskAssigneeMap.getOrDefault(task.getId(), Collections.emptyList());
+                    List<TaskDetailDTO.TaskAssigneeDTO> assignees = assigneeIds.stream()
+                            .map(finalUserMap::get)
+                            .filter(Objects::nonNull)
+                            .map(user -> TaskDetailDTO.TaskAssigneeDTO.builder()
+                                    .userId(String.valueOf(user.getId()))
+                                    .userName(user.getName())
+                                    .email(user.getEmail())
+                                    .avatarUrl(user.getAvatarUrl())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    // 获取创建人信息
+                    UserDTO creator = finalUserMap.get(task.getCreatedBy());
+                    String creatorName = creator != null ? creator.getName() : "未知用户";
+
+                    // 判断是否逾期
+                    boolean isOverdue = task.getDueDate() != null
+                            && task.getDueDate().isBefore(today)
+                            && task.getStatus() != TaskStatus.DONE;
+
+                    return TaskDetailDTO.builder()
+                            .id(String.valueOf(task.getId()))
+                            .projectId(String.valueOf(task.getProjectId()))
+                            .projectName(projectName)
+                            .title(task.getTitle())
+                            .description(task.getDescription())
+                            .status(task.getStatus())
+                            .statusName(task.getStatus().getStatusName())
+                            .priority(task.getPriority())
+                            .priorityName(task.getPriority().getPriorityName())
+                            .assignees(assignees)
+                            .dueDate(task.getDueDate())
+                            .worktime(task.getWorktime())
+                            .isOverdue(isOverdue)
+                            .createdBy(String.valueOf(task.getCreatedBy()))
+                            .creatorName(creatorName)
+                            .createdAt(task.getCreatedAt())
+                            .updatedAt(task.getUpdatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 

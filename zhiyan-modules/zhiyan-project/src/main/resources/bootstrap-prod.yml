@@ -18,11 +18,12 @@ spring:
         # 1. zhiyan-project.yaml (根据 application.name + file-extension)
         # 2. zhiyan-project-${profile}.yaml (如果配置了 spring.profiles.active)
 
-        # 加载redis配置
+        # 从Nacos加载配置
         shared-configs:
           - data-id: zhiyan-common-redis-prod.yaml
             group: DEFAULT_GROUP
             refresh: true
+
           - data-id: zhiyan-common-oss-prod.yaml
             group: DEFAULT_GROUP
             refresh: true
