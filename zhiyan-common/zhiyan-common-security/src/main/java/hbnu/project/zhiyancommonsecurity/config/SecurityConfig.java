@@ -160,13 +160,6 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/api/project-members/*/public"      // 查看项目公开成员列表
                         ).permitAll()
 
-                        // 项目服务内部接口 - 无需登录（供微服务间调用）
-                        .requestMatchers(
-                                "/api/projects/members/*/members/check",     // 检查成员关系
-                                "/api/projects/members/*/owner/check",       // 检查拥有者
-                                "/api/projects/members/*/permissions/check"  // 检查权限
-                        ).permitAll()
-
                         // 其他所有接口需要认证，具体权限由 @PreAuthorize 注解控制
                         .anyRequest().authenticated()
                 )

@@ -226,11 +226,6 @@ public class UserServiceImpl implements UserService {
 
             User user = optionalUser.get();
 
-            // 修改头像信息
-            if (updateBody.getAvatarUrl() != null) {
-                user.setAvatarUrl(updateBody.getAvatarUrl());
-            }
-
             // 使用MapStruct更新用户信息
             userMapper.updateUserProfile(user, updateBody);
 

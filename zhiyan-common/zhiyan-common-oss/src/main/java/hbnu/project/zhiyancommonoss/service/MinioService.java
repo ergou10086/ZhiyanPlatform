@@ -114,7 +114,7 @@ public class MinioService {
 
         try {
             // 确保桶存在
-            if (!bucketExists(bucketName)) {
+            if (bucketExists(bucketName)) {
                 createBucket(bucketName);
             }
 

@@ -35,7 +35,7 @@ public class AchievementStatisticsController {
 
     /**
      * 获取项目成果统计信息
-     * 统计项目成果数量的各种情况
+     * 统计项目下的成果数量、类型分布等
      */
     @GetMapping("/project/{projectId}")
     @Operation(summary = "获取项目成果统计", description = "统计项目下的成果数量、类型分布等信息")

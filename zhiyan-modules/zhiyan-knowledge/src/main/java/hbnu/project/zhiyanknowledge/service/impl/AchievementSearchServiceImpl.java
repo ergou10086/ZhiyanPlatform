@@ -2,7 +2,7 @@ package hbnu.project.zhiyanknowledge.service.impl;
 
 import hbnu.project.zhiyancommonbasic.exception.ServiceException;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
-import hbnu.project.zhiyanknowledge.converter.AchievementConverter;
+import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementDTO;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementQueryDTO;
