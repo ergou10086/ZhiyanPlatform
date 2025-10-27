@@ -403,7 +403,7 @@ public class TaskServiceImpl implements TaskService {
                                     user -> user
                             ));
                     // 将List转换为Map
-                    Map<Long, UserDTO> userMap = response.getData().stream()
+                    userMap = response.getData().stream()
                             .collect(Collectors.toMap(UserDTO::getId, user -> user));
                     assignees = assigneeIds.stream()
                             .map(userMap::get)

@@ -30,7 +30,6 @@ public class AvatarController {
     /**
      * 上传用户头像
      * 前端处理裁剪为正方形
-     * 路径: POST /api/users/avatar/upload
      * 权限: 所有已登录用户（只能上传自己的头像）
      */
     @PostMapping("/upload")
