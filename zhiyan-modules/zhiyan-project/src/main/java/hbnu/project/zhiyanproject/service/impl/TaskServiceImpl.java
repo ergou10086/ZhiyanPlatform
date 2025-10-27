@@ -392,9 +392,11 @@ public class TaskServiceImpl implements TaskService {
         List<TaskDetailDTO.TaskAssigneeDTO> assignees = new ArrayList<>();
         if (!assigneeIds.isEmpty()) {
             try {
-                R<Map<Long, UserDTO>> response = authServiceClient.getUsersByIds(assigneeIds);
+                R<List<UserDTO>> response = authServiceClient.getUsersByIds(assigneeIds);
                 if (R.isSuccess(response) && response.getData() != null) {
-                    Map<Long, UserDTO> userMap = response.getData();
+                    // 将List转换为Map
+                    Map<Long, UserDTO> userMap = response.getData().stream()
+                            .collect(Collectors.toMap(UserDTO::getId, user -> user));
                     assignees = assigneeIds.stream()
                             .map(userMap::get)
                             .filter(Objects::nonNull)

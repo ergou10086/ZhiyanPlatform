@@ -75,7 +75,17 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .joinedAt(LocalDateTime.now())
                 .build();
 
-        ProjectMember saved = projectMemberRepository.save(member);
+        ProjectMember saved;
+        try {
+            saved = projectMemberRepository.save(member);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // 处理并发情况下的唯一约束冲突
+            if (e.getMessage().contains("project_id") || e.getMessage().contains("Duplicate entry")) {
+                throw new IllegalArgumentException("该用户已经是项目成员");
+            }
+            throw e;
+        }
+        
         log.info("项目[{}]负责人[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
 
         // TODO: 发送通知给被添加的用户（通过消息队列），告知已被添加到项目
@@ -253,10 +263,17 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                     .joinedAt(LocalDateTime.now())
                     .build();
 
-            projectMemberRepository.save(member);
-            log.info("成功添加用户[{}]到项目[{}]，角色: {}（API调用）", userId, projectId, role);
-
-            return R.ok();
+            try {
+                projectMemberRepository.save(member);
+                log.info("成功添加用户[{}]到项目[{}]，角色: {}（API调用）", userId, projectId, role);
+                return R.ok();
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                // 处理并发情况下的唯一约束冲突
+                if (e.getMessage().contains("project_id") || e.getMessage().contains("Duplicate entry")) {
+                    return R.fail("该用户已经是项目成员");
+                }
+                throw e;
+            }
         } catch (Exception e) {
             log.error("添加项目成员失败: projectId={}, userId={}, role={}", projectId, userId, role, e);
             return R.fail("添加成员失败: " + e.getMessage());
@@ -428,9 +445,11 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             Map<Long, UserDTO> userMap = new HashMap<>();
             if (!userIds.isEmpty()) {
                 try {
-                    R<Map<Long, UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
+                    R<List<UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
                     if (R.isSuccess(userResponse) && userResponse.getData() != null) {
-                        userMap = userResponse.getData();
+                        // 将List转换为Map
+                        userMap = userResponse.getData().stream()
+                                .collect(Collectors.toMap(UserDTO::getId, user -> user));
                     }
                 } catch (Exception e) {
                     log.warn("批量查询用户信息失败", e);

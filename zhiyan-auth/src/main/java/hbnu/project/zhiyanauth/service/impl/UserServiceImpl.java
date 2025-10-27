@@ -490,7 +490,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * 搜索用户（用于项目成员邀请等场景）
-     * 根据邮箱或姓名模糊搜索
+     * 根据用户ID、邮箱或姓名搜索
      */
     @Override
     @Transactional(readOnly = true)
@@ -503,8 +503,28 @@ public class UserServiceImpl implements UserService {
                 return R.fail("搜索关键词不能为空");
             }
 
-            Page<User> userPage = userRepository.findByNameContainingOrEmailContainingAndIsDeletedFalse(
-                    keyword, keyword, pageable);
+            Page<User> userPage;
+            
+            // 尝试将关键词解析为用户ID（纯数字）
+            try {
+                Long userId = Long.parseLong(keyword.trim());
+                // 如果是数字，先按ID精确查找
+                Optional<User> userById = userRepository.findByIdAndIsDeletedFalse(userId);
+                if (userById.isPresent()) {
+                    // 找到了，返回单个用户的分页结果
+                    List<User> users = List.of(userById.get());
+                    userPage = new PageImpl<>(users, pageable, 1);
+                    log.debug("按用户ID搜索成功 - ID: {}", userId);
+                } else {
+                    // ID没找到，按邮箱和姓名模糊搜索（可能是邮箱中的数字）
+                    userPage = userRepository.findByNameContainingOrEmailContainingAndIsDeletedFalse(
+                            keyword, keyword, pageable);
+                }
+            } catch (NumberFormatException e) {
+                // 不是纯数字，按邮箱和姓名模糊搜索
+                userPage = userRepository.findByNameContainingOrEmailContainingAndIsDeletedFalse(
+                        keyword, keyword, pageable);
+            }
             
             List<UserDTO> userDTOs = userMapper.toDTOList(userPage.getContent());
             Page<UserDTO> userDTOPage = new PageImpl<>(userDTOs, pageable, userPage.getTotalElements());

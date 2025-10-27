@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.model.dto;
 
+import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -53,6 +54,11 @@ public class UserDTO {
      * 账号是否锁定
      */
     private Boolean isLocked;
+
+    /**
+     * 用户状态
+     */
+    private UserStatus status;
 
     /**
      * 用户角色列表

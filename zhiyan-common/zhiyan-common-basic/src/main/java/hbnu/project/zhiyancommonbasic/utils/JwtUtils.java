@@ -64,12 +64,14 @@ public class JwtUtils {
         Date now = new Date();
         Date expireDate = new Date(now.getTime() + expireMinutes * 60 * 1000L);
 
+        // ✅ 重要：必须先设置claims，再设置subject
+        // 因为.claims()会覆盖之前设置的所有标准声明（包括subject）
         return Jwts.builder()
+                .claims(claims)
                 .subject(subject)
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiration(expireDate)
-                .claims(claims)
                 .signWith(getSigningKey(), Jwts.SIG.HS512)
                 .compact();
     }

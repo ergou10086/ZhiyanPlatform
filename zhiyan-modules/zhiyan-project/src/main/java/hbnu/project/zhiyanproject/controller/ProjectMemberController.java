@@ -2,7 +2,10 @@ package hbnu.project.zhiyanproject.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
+import hbnu.project.zhiyanproject.client.AuthServiceClient;
+import hbnu.project.zhiyanproject.model.dto.PageResult;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDTO;
+import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
@@ -39,6 +42,7 @@ import java.util.List;
 public class ProjectMemberController {
 
     private final ProjectMemberService projectMemberService;
+    private final AuthServiceClient authServiceClient;
 
     // ==================== 成员管理相关接口 ====================
 
@@ -155,6 +159,40 @@ public class ProjectMemberController {
         } catch (Exception e) {
             log.error("获取项目成员失败", e);
             return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 搜索用户（用于邀请成员时搜索）
+     * 业务场景：项目成员邀请时搜索用户
+     * 通过Feign调用认证服务的搜索接口
+     */
+    @GetMapping("/users/search")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "搜索用户", description = "根据关键词搜索用户（用于邀请成员）")
+    public R<PageResult<UserDTO>> searchUsers(
+            @RequestParam @Parameter(description = "搜索关键词") String keyword,
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "10") @Parameter(description = "每页大小") int size) {
+        
+        Long currentUserId = SecurityUtils.getUserId();
+        log.info("用户[{}]搜索用户: keyword={}, page={}, size={}", currentUserId, keyword, page, size);
+
+        try {
+            // 通过Feign调用认证服务的搜索接口
+            R<PageResult<UserDTO>> result = authServiceClient.searchUsers(keyword, page, size);
+            
+            if (R.isSuccess(result)) {
+                log.info("搜索用户成功: keyword={}, 结果数={}", keyword, 
+                    result.getData() != null ? result.getData().getTotalElements() : 0);
+                return result;
+            } else {
+                log.warn("搜索用户失败: {}", result.getMsg());
+                return R.fail(result.getMsg());
+            }
+        } catch (Exception e) {
+            log.error("搜索用户异常: keyword={}", keyword, e);
+            return R.fail("搜索用户失败: " + e.getMessage());
         }
     }
 

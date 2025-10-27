@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanauth.controller;
 
+import hbnu.project.zhiyanauth.model.dto.PageResult;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
 import hbnu.project.zhiyanauth.model.response.UserInfoResponse;
@@ -82,33 +83,29 @@ public class UserController {
     }
 
     /**
-     * 根据ID获取用户详细信息（包含角色和权限）
-     * 路径: GET /api/users/{userId}
-     * 角色: DEVELOPER（只有开发者可以查看用户详情）
+     * 根据ID获取用户基本信息
+     * 路径: GET /zhiyan/users/{userId}
+     * 权限: 任何登录用户（用于项目成员搜索等场景）
      */
     @GetMapping("/{userId}")
-    @PreAuthorize("hasRole('DEVELOPER')")
-    @Operation(summary = "获取用户详情", description = "根据ID获取用户详细信息（包含角色和权限）")
-    public R<UserInfoResponse> getUserById(
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取用户基本信息", description = "根据ID获取用户基本信息（用于成员搜索）")
+    public R<UserDTO> getUserById(
             @Parameter(description = "用户ID", required = true)
             @PathVariable Long userId) {
-        log.info("获取用户详情: 用户ID={}", userId);
+        log.info("获取用户基本信息: 用户ID={}", userId);
 
         try {
-            // 调用服务层获取用户详细信息
-            R<UserDTO> result = userService.getUserWithRolesAndPermissions(userId);
+            // 调用服务层获取用户基本信息（不含敏感的角色权限信息）
+            R<UserDTO> result = userService.getCurrentUser(userId);
             if (!R.isSuccess(result)) {
                 return R.fail(result.getMsg());
             }
 
-            // 转换为Response对象（包含角色和权限）
-            UserDTO userDTO = result.getData();
-            UserInfoResponse response = convertToUserInfoResponseWithRoles(userDTO);
-
-            return R.ok(response);
+            return result;
         } catch (Exception e) {
-            log.error("获取用户详情失败: userId={}", userId, e);
-            return R.fail("获取用户详情失败");
+            log.error("获取用户信息失败: userId={}", userId, e);
+            return R.fail("获取用户信息失败");
         }
     }
 
@@ -152,12 +149,13 @@ public class UserController {
 
     /**
      * 搜索用户（用于项目成员邀请等场景）
-     * 路径: GET /api/users/search
+     * 路径: GET /zhiyan/users/search
      * 权限: 所有已登录用户
      */
     @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "搜索用户", description = "根据关键词搜索用户（用于成员邀请等场景）")
-    public R<Page<UserInfoResponse>> searchUsers(
+    public R<PageResult<UserInfoResponse>> searchUsers(
             @Parameter(description = "搜索关键词", required = true)
             @RequestParam String keyword,
             @Parameter(description = "页码，从0开始")
@@ -177,7 +175,10 @@ public class UserController {
             Page<UserDTO> userPage = result.getData();
             Page<UserInfoResponse> responsePage = userPage.map(this::convertToUserInfoResponse);
 
-            return R.ok(responsePage);
+            // 转换为PageResult
+            PageResult<UserInfoResponse> pageResult = PageResult.fromPage(responsePage);
+
+            return R.ok(pageResult);
         } catch (Exception e) {
             log.error("搜索用户失败: keyword={}", keyword, e);
             return R.fail("搜索用户失败");
@@ -408,10 +409,9 @@ public class UserController {
     }
 
     /**
-     * 根据姓名查询用户信息（服务间调用接口）
-     * 路径: GET /api/users/name
-     * 用于其他微服务通过Feign调用查询用户
-     * 无需权限校验（内部调用）
+     * 根据姓名查询用户信息
+     * 路径: GET /zhiyan/users/name
+     * 权限: 任何登录用户（用于项目成员搜索等场景）
      */
     @GetMapping("/name")
     @Operation(summary = "根据姓名查询用户", description = "根据姓名查询用户基本信息（服务间调用）")

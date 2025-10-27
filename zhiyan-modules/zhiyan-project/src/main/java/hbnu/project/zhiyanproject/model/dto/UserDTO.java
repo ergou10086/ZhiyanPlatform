@@ -56,6 +56,11 @@ public class UserDTO {
     private Boolean isLocked;
 
     /**
+     * 用户状态
+     */
+    private String status;
+
+    /**
      * 用户角色列表
      */
     private List<String> roles;
