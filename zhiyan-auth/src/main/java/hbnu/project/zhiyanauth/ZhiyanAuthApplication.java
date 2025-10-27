@@ -12,7 +12,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyanauth",
         "hbnu.project.zhiyancommonbasic",
         "hbnu.project.zhiyancommonredis",
-        "hbnu.project.zhiyancommonsecurity"
+        "hbnu.project.zhiyancommonsecurity",
+        "hbnu.project.zhiyancommonoss",
 })
 @EnableJpaRepositories(basePackages = "hbnu.project.zhiyanauth.repository")
 @EntityScan(basePackages = "hbnu.project.zhiyanauth.model.entity")
