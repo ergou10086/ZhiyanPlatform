@@ -2,6 +2,8 @@ package hbnu.project.zhiyancommonbasic.exception;
 
 import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
 
+import java.io.Serial;
+
 /**
  * 业务异常
  * 用于Controller层和Service层的业务异常
@@ -10,6 +12,7 @@ import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
  */
 public class BusinessException extends BaseException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public BusinessException(String module, String code, Object[] args, String defaultMessage) {

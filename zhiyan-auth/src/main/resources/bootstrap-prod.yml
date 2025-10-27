@@ -17,9 +17,13 @@ spring:
         username: nacos  # 用户名
         password: nacos  # 密码
 
-        # 加载redis配置
+        # 加载redis配置和oss配置
         shared-configs:
           - data-id: zhiyan-common-redis-prod.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+
+          - data-id: zhiyan-common-oss-prod.yaml
             group: DEFAULT_GROUP
             refresh: true
 
