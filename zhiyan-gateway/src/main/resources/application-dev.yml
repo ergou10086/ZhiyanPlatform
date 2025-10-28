@@ -25,6 +25,8 @@ spring:
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
+        username: nacos  # 用户名
+        password: nacos  # 密码
         import-check:
           enabled: true
 
@@ -35,6 +37,8 @@ spring:
         # Nacos命名空间，用于环境隔离
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+        username: nacos  # 用户名
+        password: nacos  # 密码
 
     # Spring Cloud Gateway配置
     gateway:

@@ -20,6 +20,8 @@ spring:
         group: DEFAULT_GROUP
         # 权重
         weight: 1
+        username: nacos  # 用户名
+        password: nacos  # 密码
 
       # Nacos配置中心
       config:
@@ -28,6 +30,8 @@ spring:
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
+        username: nacos  # 用户名
+        password: nacos  # 密码
 
     # OpenFeign配置
     openfeign:
@@ -47,7 +51,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/zhiyan_userauth_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
     username: root
-    password: zjm10086
+    password: YzBdPnDl1212
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 连接池
     hikari:

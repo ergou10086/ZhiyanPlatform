@@ -1,6 +1,8 @@
 package hbnu.project.zhiyanproject.service.impl;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyanproject.client.AuthServiceClient;
+import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
@@ -18,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 项目服务实现类
@@ -32,6 +37,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectMemberService projectMemberService;
+    private final AuthServiceClient authServiceClient;
 
     @Override
     @Transactional
@@ -223,6 +229,42 @@ public class ProjectServiceImpl implements ProjectService {
     public R<Page<Project>> getPublicActiveProjects(Pageable pageable) {
         try {
             Page<Project> projects = projectRepository.findPublicActiveProjects(pageable);
+            
+            // 批量查询创建者姓名并填充到项目对象中
+            if (projects.hasContent()) {
+                // 提取所有唯一的创建者ID
+                List<Long> creatorIds = projects.getContent().stream()
+                        .map(Project::getCreatorId)
+                        .distinct()
+                        .collect(Collectors.toList());
+                
+                // 批量查询创建者信息
+                try {
+                    R<List<UserDTO>> usersResponse = authServiceClient.getUsersByIds(creatorIds);
+                    if (usersResponse != null && usersResponse.getData() != null) {
+                        // 创建 userId -> userName 的映射
+                        Map<Long, String> userNameMap = usersResponse.getData().stream()
+                                .collect(Collectors.toMap(UserDTO::getId, UserDTO::getName));
+                        
+                        // 填充创建者姓名
+                        projects.getContent().forEach(project -> {
+                            String creatorName = userNameMap.get(project.getCreatorId());
+                            project.setCreatorName(creatorName != null ? creatorName : "未知用户");
+                        });
+                        
+                        log.debug("成功填充 {} 个项目的创建者姓名", projects.getContent().size());
+                    } else {
+                        log.warn("批量查询用户信息失败，将使用默认值");
+                        // 如果批量查询失败，设置默认值
+                        projects.getContent().forEach(project -> project.setCreatorName("未知用户"));
+                    }
+                } catch (Exception userQueryException) {
+                    log.error("批量查询用户信息时发生异常，将使用默认值", userQueryException);
+                    // 发生异常时，设置默认值
+                    projects.getContent().forEach(project -> project.setCreatorName("未知用户"));
+                }
+            }
+            
             return R.ok(projects);
         } catch (Exception e) {
             log.error("获取公开活跃项目失败", e);

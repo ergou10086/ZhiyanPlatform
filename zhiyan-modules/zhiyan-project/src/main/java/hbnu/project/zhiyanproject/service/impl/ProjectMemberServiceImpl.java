@@ -442,19 +442,40 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             // 3. 批量查询用户信息
             List<Long> userIds = members.getContent().stream()
                     .map(ProjectMember::getUserId)
+                    .distinct()
                     .collect(Collectors.toList());
+
+            log.debug("准备批量查询用户信息，用户ID列表: {}", userIds);
 
             Map<Long, UserDTO> userMap = new HashMap<>();
             if (!userIds.isEmpty()) {
                 try {
                     R<List<UserDTO>> userResponse = userCacheService.getUsersByIds(userIds);
+                    log.debug("批量查询用户响应: code={}, hasData={}", 
+                             userResponse != null ? userResponse.getCode() : null,
+                             userResponse != null && userResponse.getData() != null);
+                    
                     if (R.isSuccess(userResponse) && userResponse.getData() != null) {
+                        List<UserDTO> users = userResponse.getData();
+                        log.debug("成功获取 {} 个用户信息", users.size());
+                        
+                        // 打印每个用户的详细信息（调试用）
+                        users.forEach(user -> {
+                            log.debug("用户信息: id={}, name={}, email={}, avatarUrl={}", 
+                                     user.getId(), user.getName(), user.getEmail(), user.getAvatarUrl());
+                        });
+                        
                         // 将List转换为Map
-                        userMap = userResponse.getData().stream()
+                        userMap = users.stream()
+                                .filter(user -> user.getId() != null)
                                 .collect(Collectors.toMap(UserDTO::getId, user -> user));
+                    } else {
+                        log.warn("批量查询用户信息失败: code={}, msg={}", 
+                                userResponse != null ? userResponse.getCode() : null,
+                                userResponse != null ? userResponse.getMsg() : null);
                     }
                 } catch (Exception e) {
-                    log.warn("批量查询用户信息失败", e);
+                    log.error("批量查询用户信息异常", e);
                 }
             }
             final Map<Long, UserDTO> finalUserMap = userMap;
@@ -464,13 +485,21 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 UserDTO user = finalUserMap.get(member.getUserId());
                 ProjectMemberRole role = member.getProjectRole();
                 
+                // 如果查询不到用户信息，记录警告
+                if (user == null) {
+                    log.warn("无法获取用户信息: userId={}, 将使用默认值", member.getUserId());
+                }
+                
+                String username = user != null && user.getName() != null ? user.getName() : "未知用户";
+                String email = user != null && user.getEmail() != null ? user.getEmail() : "";
+                String avatar = user != null && user.getAvatarUrl() != null ? user.getAvatarUrl() : "";
+                
                 return ProjectMemberDTO.builder()
                         .id(member.getId())
                         .userId(member.getUserId())
-                        .username(user != null ? user.getName() : "未知用户")
-                        .nickname(user != null ? user.getName() : "") // 使用 name 代替 nickname
-                        .email(user != null ? user.getEmail() : "")
-                        .avatar(user != null ? user.getAvatarUrl() : "") // 使用 avatarUrl 代替 avatar
+                        .username(username)
+                        .email(email)
+                        .avatar(avatar)
                         .projectId(member.getProjectId())
                         .roleCode(role.name())
                         .roleName(role.getRoleName())

@@ -70,13 +70,4 @@ public class UserDTO {
      */
     private List<String> permissions;
 
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createdAt;
-
-    /**
-     * 最后更新时间
-     */
-    private LocalDateTime updatedAt;
 }
