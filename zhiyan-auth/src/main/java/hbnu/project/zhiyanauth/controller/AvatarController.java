@@ -44,14 +44,24 @@ public class AvatarController {
             // 获取用户ID
             Long userId = SecurityUtils.getUserId();
             if (userId == null) {
+                log.warn("上传头像失败: 用户未登录");
                 return R.fail("用户未登录");
             }
 
             // 调用服务层上传头像
-            return avatarService.uploadAvatar(userId, file);
+            R<AvatarDTO> result = avatarService.uploadAvatar(userId, file);
+            log.info("上传头像结果: code={}, msg={}, hasData={}", result.getCode(), result.getMsg(), result.getData() != null);
+            if (result.getData() != null) {
+                log.info("头像响应数据 - minioUrl: {}, cdnUrl: {}", 
+                    result.getData().getMinioUrl(), result.getData().getCdnUrl());
+            }
+            return result;
         }catch (ControllerException e){
-            log.error("上传头像失败", e);
+            log.error("上传头像失败 - ControllerException", e);
             return R.fail("上传头像失败: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("上传头像异常 - Exception", e);
+            return R.fail("上传头像异常: " + e.getMessage());
         }
     }
 

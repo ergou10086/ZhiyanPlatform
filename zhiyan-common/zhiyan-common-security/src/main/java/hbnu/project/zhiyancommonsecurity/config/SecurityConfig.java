@@ -143,6 +143,18 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/zhiyan/auth/check-permissions"    // 批量权限校验
                         ).permitAll()
 
+                        // 用户项目头像管理接口 - 认证用户可以访问
+                        .requestMatchers(
+                                "/zhiyan/users/avatar/**",
+                                "/zhiyan/projects/upload-image",
+                                "/zhiyan/projects/delete-image",
+                                "/zhiyan/projects/get-image",
+                                "/zhiyan/projects/get-images",
+                                "/zhiyan/projects/get-image-url",
+                                "/zhiyan/projects/get-image-urls",
+                                "/zhiyan/projects/get-image-url"
+                        ).authenticated()
+
                         // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/permissions/**").permitAll()
                         // TODO: 临时开放权限管理接口，用于初始化角色数据 - 开发完成后需要删除此行

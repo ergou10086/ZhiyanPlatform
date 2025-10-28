@@ -1,10 +1,12 @@
 package hbnu.project.zhiyanauth.mapper;
 
+import hbnu.project.zhiyanauth.model.dto.AvatarDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.entity.UserRole;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
+import hbnu.project.zhiyancommonbasic.utils.JsonUtils;
 import org.mapstruct.*;
 
 import java.util.ArrayList;
@@ -24,10 +26,12 @@ public interface UserMapper {
     /**
      * 将User实体转换为UserDTO
      * 基础转换，不包含角色和权限信息
+     * 特别处理 avatarUrl：从JSON中提取可直接访问的URL
      */
     @Named("toDTO")
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "permissions", ignore = true)
+    @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
     UserDTO toDTO(User user);
 
     /**
@@ -37,6 +41,7 @@ public interface UserMapper {
     @Named("toDTOWithRolesAndPermissions")
     @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
     @Mapping(target = "permissions", expression = "java(extractPermissionNames(user.getUserRoles()))")
+    @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
     UserDTO toDTOWithRolesAndPermissions(User user);
 
     /**
@@ -46,7 +51,40 @@ public interface UserMapper {
     @Named("toDTOWithRoles")
     @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
     @Mapping(target = "permissions", ignore = true)
+    @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
     UserDTO toDTOWithRoles(User user);
+
+    /**
+     * 从avatarUrl JSON中提取可直接访问的URL
+     * avatarUrl可能是两种格式：
+     * 1. JSON格式：{"minioUrl":"...", "cdnUrl":"...", "sizes":{...}}
+     * 2. 直接URL：http://...
+     * 优先返回 cdnUrl，其次是 minioUrl，最后返回原始值
+     */
+    default String extractAvatarUrlFromJson(String avatarUrl) {
+        if (avatarUrl == null || avatarUrl.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // 尝试解析为JSON
+            AvatarDTO avatarDTO = JsonUtils.parseObject(avatarUrl, AvatarDTO.class);
+            if (avatarDTO != null) {
+                // 优先返回 cdnUrl，其次是 minioUrl
+                if (avatarDTO.getCdnUrl() != null && !avatarDTO.getCdnUrl().isEmpty()) {
+                    return avatarDTO.getCdnUrl();
+                }
+                if (avatarDTO.getMinioUrl() != null && !avatarDTO.getMinioUrl().isEmpty()) {
+                    return avatarDTO.getMinioUrl();
+                }
+            }
+        } catch (Exception e) {
+            // JSON解析失败，说明是直接的URL，直接返回
+        }
+
+        // 如果不是JSON或解析失败，直接返回原值（可能是URL）
+        return avatarUrl;
+    }
 
     /**
      * 从UserRole关联中提取角色名称列表
@@ -126,6 +164,7 @@ public interface UserMapper {
     @Named("toSimpleDTO")
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "permissions", ignore = true)
+    @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
     UserDTO toSimpleDTO(User user);
 }
 
