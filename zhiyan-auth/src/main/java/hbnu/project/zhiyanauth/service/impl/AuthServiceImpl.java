@@ -2,6 +2,7 @@ package hbnu.project.zhiyanauth.service.impl;
 
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
+import hbnu.project.zhiyanauth.model.dto.AvatarDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.UserStatus;
 import hbnu.project.zhiyanauth.model.enums.VerificationCodeType;
@@ -21,6 +22,7 @@ import hbnu.project.zhiyancommonbasic.constants.CacheConstants;
 import hbnu.project.zhiyancommonbasic.constants.TokenConstants;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.utils.JwtUtils;
+import hbnu.project.zhiyancommonbasic.utils.JsonUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonredis.service.RedisService;
 import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
@@ -190,7 +192,7 @@ public class AuthServiceImpl implements AuthService {
                     .id(loginUser.getUserId())
                     .email(loginUser.getEmail())
                     .name(loginUser.getName())
-                    .avatarUrl(loginUser.getAvatarUrl())
+                    .avatarUrl(extractAvatarUrlFromJson(loginUser.getAvatarUrl()))
                     .title(loginUser.getTitle())
                     .institution(loginUser.getInstitution())
                     .roles(loginUser.getRoles())
@@ -797,6 +799,34 @@ public class AuthServiceImpl implements AuthService {
             log.error("堆栈跟踪:", e);
             log.error("========================================");
         }
+    }
+
+    /**
+     * 从 JSON 字符串中提取 avatarUrl
+     * 尝试解析为 AvatarDTO 对象，优先返回 cdnUrl，其次返回 minioUrl
+     */
+    private String extractAvatarUrlFromJson(String json) {
+        if (StringUtils.isBlank(json)) {
+            return null;
+        }
+        try {
+            // 尝试解析为 AvatarDTO
+            AvatarDTO avatarDTO = JsonUtils.parseObject(json, AvatarDTO.class);
+            if (avatarDTO != null) {
+                // 优先返回 cdnUrl
+                if (StringUtils.isNotBlank(avatarDTO.getCdnUrl())) {
+                    return avatarDTO.getCdnUrl();
+                }
+                // 其次返回 minioUrl
+                if (StringUtils.isNotBlank(avatarDTO.getMinioUrl())) {
+                    return avatarDTO.getMinioUrl();
+                }
+            }
+        } catch (Exception e) {
+            log.debug("从JSON字符串提取avatarUrl失败，假设它是直接URL - JSON: {}, 错误: {}", json, e.getMessage());
+        }
+        // 如果解析失败或字段都为空，直接返回原值（可能已经是URL）
+        return json;
     }
 
 }

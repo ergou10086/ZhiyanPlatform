@@ -22,6 +22,13 @@ spring:
         weight: 1
         username: nacos  # 用户名
         password: nacos  # 密码
+        # 心跳配置
+        heart-beat-interval: 5000
+        heart-beat-timeout: 15000
+        # 注册配置
+        register-enabled: true
+        # 超时配置（毫秒）
+        timeout: 10000
 
       # Nacos配置中心
       config:
@@ -32,6 +39,10 @@ spring:
         file-extension: yaml
         username: nacos  # 用户名
         password: nacos  # 密码
+        # 超时配置（毫秒）
+        timeout: 10000
+        # 配置刷新时间（毫秒）
+        refresh-enabled: true
 
     # OpenFeign配置
     openfeign:
@@ -191,3 +202,44 @@ security:
       - /favicon.ico
       - /zhiyan/auth/send-verfcode
       - /zhiyan/auth/verify-code
+
+# MinIO 配置 - 用户头像存储
+minio:
+  # MinIO服务地址
+  endpoint: http://10.7.10.98:9000
+  # 访问密钥
+  accessKey: root
+  # 密钥
+  secretKey: rootroot
+  # 是否使用HTTPS
+  secure: false
+  # 桶配置
+  buckets:
+    # 用户头像
+    userAvatars: user-avatars
+    # 项目封面
+    projectCovers: project-covers
+    # Wiki资源
+    wikiAssets: wiki-assets
+    # 成果附件
+    achievementFiles: achievement-files
+    # 临时上传
+    tempUploads: temp-uploads
+  # 文件上传配置
+  upload:
+    # 最大文件大小 (512MB)
+    maxFileSize: 536870912
+    # 最大图片大小 (10MB)
+    maxImageSize: 10485760
+    # 临时文件保留时间 (小时)
+    tempFileRetentionHours: 24
+    # 允许的图片类型
+    allowedImageTypes: jpg,jpeg,png,gif,bmp,webp
+    # 允许的文件类型 (* 表示所有)
+    allowedFileTypes: "*"
+  # 图片处理配置
+  image:
+    # 图片质量 (0.0-1.0)
+    quality: 0.85
+    # 是否生成WebP格式
+    generateWebP: true
