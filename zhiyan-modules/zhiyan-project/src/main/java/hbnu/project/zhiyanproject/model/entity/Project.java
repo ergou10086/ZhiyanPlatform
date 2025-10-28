@@ -95,6 +95,13 @@ public class Project extends BaseAuditEntity {
     private Long creatorId;
 
     /**
+     * 创建人姓名（临时字段，不存储到数据库）
+     * 用于前端显示，在查询时从用户服务获取并填充
+     */
+    @Transient
+    private String creatorName;
+
+    /**
      * 是否已删除（软删除标记）
      */
     @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否已删除'")

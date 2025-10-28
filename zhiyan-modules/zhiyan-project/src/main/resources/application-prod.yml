@@ -179,10 +179,10 @@ swagger:
   
 # MinIO配置
 minio:
-  endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket:
+  endpoint: http://10.7.10.98:9000
+  access-key: root
+  secret-key: rootroot
+  buckets:
     project-covers: project-covers
     user-avatars: user-avatars
     achievement-files: achievement-files

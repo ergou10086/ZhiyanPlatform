@@ -108,6 +108,9 @@ public class AvatarServiceImpl implements AvatarService {
                     .cdnUrl(originalUpload.getUrl())
                     .sizes(thumbnailUrls)
                     .build();
+            
+            log.info("构建AvatarDTO成功: minioUrl={}, cdnUrl={}, sizes={}", 
+                avatarDTO.getMinioUrl(), avatarDTO.getCdnUrl(), avatarDTO.getSizes().keySet());
 
             // 8.更新用户头像URL字段（存储JSON）
             String avatarJson = JsonUtils.toJsonString(avatarDTO);
@@ -115,11 +118,17 @@ public class AvatarServiceImpl implements AvatarService {
             userRepository.save(user);
 
             log.info("用户头像上传成功: userId={}, originalUrl={}", userId, originalUpload.getUrl());
-            return R.ok(avatarDTO, "头像上传成功");
-        }catch (ServiceException e) {
+            R<AvatarDTO> result = R.ok(avatarDTO, "头像上传成功");
+            log.info("准备返回响应: code={}, msg={}, data不为空={}", result.getCode(), result.getMsg(), result.getData() != null);
+            return result;
+        } catch (ServiceException e) {
             // 处理异常
             log.error("头像上传失败: userId={}", userId, e);
             return R.fail("头像上传失败: " + e.getMessage());
+        } catch (Exception e) {
+            // 捕获所有其他异常
+            log.error("头像上传异常: userId={}, 异常信息: {}", userId, e.getMessage(), e);
+            return R.fail("头像上传异常: " + e.getMessage());
         }
     }
 

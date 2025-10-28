@@ -1,11 +1,11 @@
 package hbnu.project.zhiyanproject.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -18,6 +18,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDTO {
 
     /**
@@ -69,15 +70,5 @@ public class UserDTO {
      * 用户权限列表
      */
     private List<String> permissions;
-
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createdAt;
-
-    /**
-     * 最后更新时间
-     */
-    private LocalDateTime updatedAt;
 }
 

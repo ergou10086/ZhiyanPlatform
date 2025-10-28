@@ -161,4 +161,38 @@ public interface TaskRepository extends JpaRepository<Tasks, Long> {
      */
     @Query(value = "SELECT * FROM tasks WHERE JSON_CONTAINS(assignee_id, :userId, '$')", nativeQuery = true)
     Page<Tasks> findByAssigneeId(@Param("userId") String userId, Pageable pageable);
+
+    /**
+     * 查询用户在所有项目中即将到期的任务
+     *
+     * @param userId 用户ID
+     * @param dueDate 截止日期
+     * @param pageable 分页参数
+     * @return 任务分页列表
+     */
+    @Query(value = "SELECT * FROM tasks WHERE JSON_CONTAINS(assignee_id, :userId, '$') " +
+                   "AND due_date <= :dueDate AND due_date >= CURDATE() " +
+                   "AND status != 'DONE' AND is_deleted = false " +
+                   "ORDER BY due_date ASC", 
+           nativeQuery = true)
+    Page<Tasks> findMyUpcomingTasks(@Param("userId") String userId,
+                                     @Param("dueDate") LocalDate dueDate,
+                                     Pageable pageable);
+
+    /**
+     * 查询用户在所有项目中已逾期的任务
+     *
+     * @param userId 用户ID
+     * @param currentDate 当前日期
+     * @param pageable 分页参数
+     * @return 任务分页列表
+     */
+    @Query(value = "SELECT * FROM tasks WHERE JSON_CONTAINS(assignee_id, :userId, '$') " +
+                   "AND due_date < :currentDate " +
+                   "AND status != 'DONE' AND is_deleted = false " +
+                   "ORDER BY due_date DESC", 
+           nativeQuery = true)
+    Page<Tasks> findMyOverdueTasks(@Param("userId") String userId,
+                                    @Param("currentDate") LocalDate currentDate,
+                                    Pageable pageable);
 }

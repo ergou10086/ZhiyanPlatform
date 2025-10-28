@@ -370,6 +370,23 @@ public class TaskServiceImpl implements TaskService {
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
     }
 
+    @Override
+    public Page<TaskDetailDTO> getMyUpcomingTasks(Long userId, int days, Pageable pageable) {
+        LocalDate targetDate = LocalDate.now().plusDays(days);
+        Page<Tasks> tasks = taskRepository.findMyUpcomingTasks(String.valueOf(userId), targetDate, pageable);
+        // 使用优化后的批量转换，避免N+1查询
+        List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
+        return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
+    }
+
+    @Override
+    public Page<TaskDetailDTO> getMyOverdueTasks(Long userId, Pageable pageable) {
+        Page<Tasks> tasks = taskRepository.findMyOverdueTasks(String.valueOf(userId), LocalDate.now(), pageable);
+        // 使用优化后的批量转换，避免N+1查询
+        List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
+        return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
+    }
+
     // ==================== 统计相关 ====================
 
     @Override
