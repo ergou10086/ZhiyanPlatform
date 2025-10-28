@@ -53,6 +53,12 @@
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-jackson</artifactId>
         </dependency>
+
+        <!-- 添加Feign客户端依赖 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
