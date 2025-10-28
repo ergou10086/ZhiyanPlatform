@@ -2,6 +2,7 @@ package hbnu.project.zhiyanproject.service.impl;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
+import hbnu.project.zhiyanproject.service.UserCacheService;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDTO;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
 import hbnu.project.zhiyanproject.model.dto.RoleInfoDTO;
@@ -39,6 +40,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRepository projectRepository;
     private final AuthServiceClient authServiceClient;
+    private final UserCacheService userCacheService;
 
     // ==================== 成员管理相关 ====================
 
@@ -85,7 +87,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             }
             throw e;
         }
-
+        
         log.info("项目[{}]负责人[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
 
         // TODO: 发送通知给被添加的用户（通过消息队列），告知已被添加到项目
@@ -445,7 +447,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             Map<Long, UserDTO> userMap = new HashMap<>();
             if (!userIds.isEmpty()) {
                 try {
-                    R<List<UserDTO>> userResponse = authServiceClient.getUsersByIds(userIds);
+                    R<List<UserDTO>> userResponse = userCacheService.getUsersByIds(userIds);
                     if (R.isSuccess(userResponse) && userResponse.getData() != null) {
                         // 将List转换为Map
                         userMap = userResponse.getData().stream()

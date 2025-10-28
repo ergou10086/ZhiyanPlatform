@@ -72,7 +72,6 @@ public class AuthController {
         return authService.register(request);
     }
 
-
     /**
      * 用户登录
      */

@@ -83,6 +83,12 @@
             <artifactId>zhiyan-common-oss</artifactId>
         </dependency>
 
+        <!--zhiyan-common-redis Redis缓存模块-->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-redis</artifactId>
+        </dependency>
+
         <!-- OpenFeign 用于服务间调用 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

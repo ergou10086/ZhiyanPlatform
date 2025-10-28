@@ -2,7 +2,6 @@ package hbnu.project.zhiyanknowledge.model.entity;
 
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 
-import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +34,7 @@ public class AchievementFile{
      * 文件唯一标识
      */
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @LongToString
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '文件唯一标识'")
     private Long id;
@@ -130,23 +130,12 @@ public class AchievementFile{
 
 
     /**
-     * 在持久化之前设置上传时间和ID
+     * 在持久化之前设置上传时间
      */
     @PrePersist
-    public void prePersist() {
-        generateId();
-        setUploadAt();
-    }
-
     public void setUploadAt() {
         if (this.uploadAt == null) {
             this.uploadAt = LocalDateTime.now();
-        }
-    }
-
-    public void generateId() {
-        if (this.id == null) {
-            this.id = SnowflakeIdUtil.nextId();
         }
     }
 }

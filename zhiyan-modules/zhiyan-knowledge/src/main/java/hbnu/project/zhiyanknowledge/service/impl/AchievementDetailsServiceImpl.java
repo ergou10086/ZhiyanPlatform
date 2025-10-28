@@ -6,7 +6,7 @@ import hbnu.project.zhiyancommonbasic.utils.JsonUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonbasic.utils.container.MapUtils;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
-import hbnu.project.zhiyanknowledge.converter.AchievementConverter;
+import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
