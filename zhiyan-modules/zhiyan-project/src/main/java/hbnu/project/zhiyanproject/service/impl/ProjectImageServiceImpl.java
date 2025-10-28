@@ -30,6 +30,7 @@ import java.util.UUID;
 public class ProjectImageServiceImpl implements ProjectImageService {
 
     private final MinioService minioService;
+    private final hbnu.project.zhiyanproject.repository.ProjectRepository projectRepository;
 
     /**
      * 允许的图片格式
@@ -72,7 +73,25 @@ public class ProjectImageServiceImpl implements ProjectImageService {
                     objectKey
             );
 
-            // 6. 构建响应
+            // 6. 如果提供了projectId，更新项目的imageUrl字段
+            if (projectId != null) {
+                try {
+                    var project = projectRepository.findById(projectId);
+                    if (project.isPresent()) {
+                        var proj = project.get();
+                        proj.setImageUrl(uploadResult.getUrl());
+                        projectRepository.save(proj);
+                        log.info("已更新项目[{}]的图片URL: {}", projectId, uploadResult.getUrl());
+                    } else {
+                        log.warn("项目[{}]不存在，无法更新图片URL", projectId);
+                    }
+                } catch (Exception e) {
+                    log.error("更新项目图片URL失败: projectId={}", projectId, e);
+                    // 不影响图片上传的成功返回
+                }
+            }
+            
+            // 7. 构建响应
             ImageUploadResponse response = ImageUploadResponse.builder()
                     .imageUrl(uploadResult.getUrl())
                     .originalFilename(uploadResult.getFilename())
