@@ -6,7 +6,10 @@ import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
@@ -18,7 +21,6 @@ import java.util.List;
  *
  * @author ErgouTree
  */
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "users")
 @Data
@@ -59,8 +61,8 @@ public class User extends BaseAuditEntity {
     /**
      * 头像URL
      */
-    @Column(name = "avatar_url", length = 2000,
-            columnDefinition = "VARCHAR(2000) COMMENT '用户头像URL（JSON格式存储多尺寸）'")
+    @Column(name = "avatar_url", length = 500,
+            columnDefinition = "VARCHAR(500) COMMENT '用户头像URL'")
     private String avatarUrl;
 
     /**

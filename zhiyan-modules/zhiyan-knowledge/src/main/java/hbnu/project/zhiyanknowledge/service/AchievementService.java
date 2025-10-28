@@ -25,7 +25,7 @@ public interface AchievementService {
 
 
     /**
-     * 统计项目成果数量的各种情况
+     * 统计项目成果数量
      *
      * @param projectId 项目ID
      * @return 统计信息

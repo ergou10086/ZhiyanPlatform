@@ -16,6 +16,7 @@ import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyancommonoss.util.MinioUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,10 +35,16 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AvatarServiceImpl implements AvatarService {
 
+    @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
     private final MinioService minioService;
+
+    @Autowired
     private final ImageService imageService;
-    private final MinioUtils minioUtils;
+
+    private MinioUtils minioUtils;
 
     // 支持的图片尺寸
     private static final int[] THUMBNAIL_SIZES = {32, 64, 128, 256};

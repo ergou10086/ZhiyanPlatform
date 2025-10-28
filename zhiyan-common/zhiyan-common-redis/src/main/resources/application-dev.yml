@@ -15,7 +15,7 @@ spring:
       # Redis 服务器连接端口
       port: 6379
       # Redis 服务器连接密码（如果没有密码请删除此行）
-      password: zjm10086
+      password: YzBdPnDl1212
       # 连接超时时间（毫秒）
       timeout: 5000
       lettuce:

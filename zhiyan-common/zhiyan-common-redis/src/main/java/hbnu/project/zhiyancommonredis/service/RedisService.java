@@ -11,11 +11,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * spring redis 服务类
+ * spring redis 工具类
  * 
  * @author ErgouTree
  **/
-//@SuppressWarnings(value = { "unchecked", "rawtypes" })
+@SuppressWarnings(value = { "unchecked", "rawtypes" })
 @Component
 public class RedisService {
 

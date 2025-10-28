@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanknowledge.converter;
+package hbnu.project.zhiyanknowledge.mapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -14,6 +14,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;

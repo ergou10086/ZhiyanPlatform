@@ -11,12 +11,16 @@ spring:
         server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+        username: nacos  # 用户名
+        password: nacos  # 密码
       # 配置中心配置
       config:
         server-addr: 127.0.0.1:8848
         file-extension: yaml
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
+        username: nacos  # 用户名
+        password: nacos  # 密码
         # 启用配置自动刷新
         refresh-enabled: true
         import-check:
