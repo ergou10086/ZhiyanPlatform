@@ -56,15 +56,15 @@
             <artifactId>langchain4j-open-ai</artifactId>
         </dependency>
 
-        <!-- Feign Client for N8N API -->
-        <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.openfeign</groupId>
-            <artifactId>feign-jackson</artifactId>
-        </dependency>
+<!--        &lt;!&ndash; Feign Client for N8N API &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.openfeign</groupId>-->
+<!--            <artifactId>feign-core</artifactId>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>io.github.openfeign</groupId>-->
+<!--            <artifactId>feign-jackson</artifactId>-->
+<!--        </dependency>-->
 
         <!-- Feign 客户端依赖 -->
         <dependency>

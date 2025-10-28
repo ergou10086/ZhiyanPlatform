@@ -83,11 +83,5 @@ public class FileContextDTO {
      * 文件扩展名
      */
     private String extension;
-
-    /**
-     * MIME 类型
-     */
-    @JsonProperty("mime_type")
-    private String mimeType;
 }
 

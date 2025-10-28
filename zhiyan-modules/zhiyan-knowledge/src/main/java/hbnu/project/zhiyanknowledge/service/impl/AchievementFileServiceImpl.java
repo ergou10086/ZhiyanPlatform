@@ -11,6 +11,7 @@ import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyancommonoss.util.MinioUtils;
 import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
+import hbnu.project.zhiyanknowledge.model.dto.FileContextDTO;
 import hbnu.project.zhiyanknowledge.model.dto.UploadFileDTO;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
@@ -386,16 +387,21 @@ public class AchievementFileServiceImpl implements AchievementFileService {
         // 生成预签名 URL
         String fileUrl = null;
         try {
-            fileUrl = minioUtils.getPresignedObjectUrl(
-                    file.getBucketName(),
+            // 使用 MinioService 的 getPresignedUrl 方法
+            BucketType bucketType = BucketType.ACHIEVEMENT_FILES;
+            fileUrl = minioService.getPresignedUrl(
+                    bucketType,
                     file.getObjectKey(),
                     DEFAULT_EXPIRY_SECONDS
             );
         } catch (Exception e) {
             log.error("[文件上下文] 生成文件 URL 失败: fileId={}", fileId, e);
+            // 失败时使用 MinIO URL 作为备用
+            fileUrl = file.getMinioUrl();
         }
 
-        return hbnu.project.zhiyanknowledge.model.dto.FileContextDTO.builder()
+
+        return FileContextDTO.builder()
                 .fileId(String.valueOf(file.getId()))
                 .achievementId(String.valueOf(file.getAchievementId()))
                 .fileName(file.getFileName())
@@ -405,8 +411,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
                 .fileUrl(fileUrl)
                 .uploaderName(null) // TODO: 获取上传者姓名
                 .uploadAt(file.getUploadAt())
-                .extension(file.getFileExtension())
-                .mimeType(file.getMimeType())
+                .extension(file.getFileType())  // fileType 就是扩展名
                 .content(null) // TODO: 如果需要提取文件内容/摘要
                 .build();
     }

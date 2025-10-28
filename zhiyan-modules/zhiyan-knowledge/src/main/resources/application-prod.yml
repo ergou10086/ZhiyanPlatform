@@ -8,25 +8,25 @@ spring:
   application:
     name: zhiyan-knowledge  # 服务名（业务标识，用于服务发现）
 
-  cloud:
-    nacos:
-      # Nacos服务发现配置
-      discovery:
-        username: nacos
-        password: nacos
-        server-addr: 10.7.10.98:8848  # Nacos服务地址
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
-        group: DEFAULT_GROUP  # 业务服务的注册分组
-        weight: 1
-
-      # Nacos配置中心配置
-      config:
-        username: nacos
-        password: nacos
-        server-addr: 10.7.10.98:8848
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        group: DEFAULT_GROUP  # 业务服务的配置分组
-        file-extension: yaml
+#  cloud:
+#    nacos:
+#      # Nacos服务发现配置
+#      discovery:
+#        username: nacos
+#        password: nacos
+#        server-addr: 10.7.10.98:8848  # Nacos服务地址
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
+#        group: DEFAULT_GROUP  # 业务服务的注册分组
+#        weight: 1
+#
+#      # Nacos配置中心配置
+#      config:
+#        username: nacos
+#        password: nacos
+#        server-addr: 10.7.10.98:8848
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+#        group: DEFAULT_GROUP  # 业务服务的配置分组
+#        file-extension: yaml
 
     # OpenFeign配置
     openfeign:
@@ -78,7 +78,7 @@ spring:
 
 # Seata 分布式事务配置
 seata:
-  enabled: true  # 生产环境启用Seata
+  enabled: false  # 生产环境启用Seata,先关了
 
   # 1. application-id：当前服务在Seata中的唯一标识
   # 作用：Seata用于区分不同的微服务实例，在事务日志和追踪中标识事务发起者/参与者
