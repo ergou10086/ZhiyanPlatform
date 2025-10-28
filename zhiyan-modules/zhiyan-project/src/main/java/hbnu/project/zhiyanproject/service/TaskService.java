@@ -171,6 +171,27 @@ public interface TaskService {
      */
     Page<TaskDetailDTO> getOverdueTasks(Long projectId, Pageable pageable);
 
+    /**
+     * 获取当前用户在所有参与项目中即将到期的任务
+     * 业务场景：首页提醒用户快要截止的任务
+     *
+     * @param userId   用户ID
+     * @param days     未来天数
+     * @param pageable 分页参数
+     * @return 任务详情分页列表
+     */
+    Page<TaskDetailDTO> getMyUpcomingTasks(Long userId, int days, Pageable pageable);
+
+    /**
+     * 获取当前用户在所有参与项目中已逾期的任务
+     * 业务场景：首页提醒用户已逾期的任务
+     *
+     * @param userId   用户ID
+     * @param pageable 分页参数
+     * @return 任务详情分页列表
+     */
+    Page<TaskDetailDTO> getMyOverdueTasks(Long userId, Pageable pageable);
+
     // ==================== 统计相关 ====================
 
     /**

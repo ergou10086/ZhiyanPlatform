@@ -380,6 +380,53 @@ public class TaskController {
         }
     }
 
+    /**
+     * 获取我的即将到期的任务（所有参与项目）
+     * 业务场景：首页提醒用户快要截止的任务
+     */
+    @GetMapping("/my-upcoming")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取我的即将到期任务", description = "获取当前用户在所有参与项目中即将到期的任务")
+    public R<Page<TaskDetailDTO>> getMyUpcomingTasks(
+            @RequestParam(defaultValue = "7") @Parameter(description = "未来天数") int days,
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "10") @Parameter(description = "每页大小") int size) {
+
+        Long currentUserId = SecurityUtils.getUserId();
+        Pageable pageable = PageRequest.of(page, size);
+
+        try {
+            Page<TaskDetailDTO> tasks = taskService.getMyUpcomingTasks(currentUserId, days, pageable);
+            return R.ok(tasks);
+        } catch (Exception e) {
+            log.error("获取我的即将到期任务失败", e);
+            return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取我的已逾期任务（所有参与项目）
+     * 业务场景：首页提醒用户已逾期的任务
+     */
+    @GetMapping("/my-overdue")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取我的已逾期任务", description = "获取当前用户在所有参与项目中已逾期的任务")
+    public R<Page<TaskDetailDTO>> getMyOverdueTasks(
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "10") @Parameter(description = "每页大小") int size) {
+
+        Long currentUserId = SecurityUtils.getUserId();
+        Pageable pageable = PageRequest.of(page, size);
+
+        try {
+            Page<TaskDetailDTO> tasks = taskService.getMyOverdueTasks(currentUserId, pageable);
+            return R.ok(tasks);
+        } catch (Exception e) {
+            log.error("获取我的已逾期任务失败", e);
+            return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
     // ==================== 统计接口 ====================
 
     /**

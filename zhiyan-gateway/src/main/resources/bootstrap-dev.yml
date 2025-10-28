@@ -11,8 +11,6 @@ spring:
     nacos:
       # Nacos 配置中心配置（优先初始化，用于拉取后续配置）
       config:
-        username: nacos  # 用户名
-        password: nacos  # 密码
         server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
@@ -20,8 +18,6 @@ spring:
 
       # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
       discovery:
-        username: nacos  # 用户名
-        password: nacos  # 密码
         server-addr: 127.0.0.1:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
@@ -29,7 +25,7 @@ spring:
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
     import:
-      - nacos:zhiyan-gateway-dev.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
+      - nacos:zhiyan-gateway.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
 
 # 日志基础配置（启动阶段日志，避免日志配置加载延迟）
 logging:

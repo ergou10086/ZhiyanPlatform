@@ -2,9 +2,8 @@
 
 spring:
   profiles:
-    # 默认使用dev环境，可通过环境变量覆盖
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-    #active: ${SPRING_PROFILES_ACTIVE:prod}
+    # 默认使用prod环境，可通过环境变量覆盖
+    active: ${SPRING_PROFILES_ACTIVE:prod}
 
 # 通用配置
 app:

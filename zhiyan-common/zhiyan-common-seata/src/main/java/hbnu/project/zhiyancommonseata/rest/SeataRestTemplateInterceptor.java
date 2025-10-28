@@ -27,8 +27,6 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 
 /**
- * Seata 分布式事务框架中用于REST 请求拦截的组件
- *
  * @author xiaojing
  */
 public class SeataRestTemplateInterceptor implements ClientHttpRequestInterceptor {
@@ -38,14 +36,11 @@ public class SeataRestTemplateInterceptor implements ClientHttpRequestIntercepto
 			ClientHttpRequestExecution clientHttpRequestExecution) throws IOException {
 		HttpRequestWrapper requestWrapper = new HttpRequestWrapper(httpRequest);
 
-        // 获取当前全局事务 ID
 		String xid = RootContext.getXID();
 
-        // 将 XID 添加到请求头
 		if (StringUtils.hasLength(xid)) {
 			requestWrapper.getHeaders().add(RootContext.KEY_XID, xid);
 		}
-        // 继续
 		return clientHttpRequestExecution.execute(requestWrapper, bytes);
 	}
 
