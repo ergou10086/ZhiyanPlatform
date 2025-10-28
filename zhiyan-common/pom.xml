@@ -20,6 +20,8 @@
         <module>zhiyan-common-loadbalancer</module>
         <module>zhiyan-common-bus</module>
         <module>zhiyan-common-swagger</module>
+        <module>zhiyan-common-sse</module>
+        <module>zhiyan-common-ratelimiter</module>
     </modules>
 
     <artifactId>zhiyan-common</artifactId>

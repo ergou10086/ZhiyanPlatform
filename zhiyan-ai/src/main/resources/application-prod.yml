@@ -1,30 +1,134 @@
-# 远程配置
-
 server:
-  port: 8094
+  port: 8097
 
-## N8N 工作流配置
-#n8n:
-#  base-url: http://localhost:5678  # N8N 服务地址
-#  api-key: ${N8N_API_KEY:your-api-key-here}  # API Key
-#  timeout: 30000  # 请求超时时间（毫秒）
+spring:
+  application:
+    name: zhiyan-ai
+
+#  cloud:
+#    nacos:
+#      # Nacos服务发现配置
+#      discovery:
+#        username: nacos
+#        password: nacos
+#        server-addr: 10.7.10.98:8848  # Nacos服务地址
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
+#        group: DEFAULT_GROUP  # 业务服务的注册分组
+#        weight: 1
 #
-#  # 工作流配置
-#  workflows:
-#    # RAG 工作流
-#    rag:
-#      webhook-url: ${n8n.base-url}/webhook/rag-query
-#      workflow-id: rag-workflow-001
-#      enabled: true
-#
-#    # 文献检索工作流
-#    literature-search:
-#      webhook-url: ${n8n.base-url}/webhook/literature-search
-#      workflow-id: literature-search-001
-#      enabled: true
+#      # Nacos配置中心配置
+#      config:
+#        username: nacos
+#        password: nacos
+#        server-addr: 10.7.10.98:8848
+#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+#        group: DEFAULT_GROUP  # 业务服务的配置分组
+#        file-extension: yaml
+
+    # OpenFeign配置
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 60000
+            read-timeout: 120000
+            logger-level: basic
+          # Dify API 特殊配置
+          dify-api:
+            connect-timeout: 60000
+            read-timeout: 240000  # 分钟，用于 AI 响应
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+
+  # Jackson配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+  # Redis 配置（用于缓存对话历史）
+  data:
+    redis:
+      host: 10.7.10.98
+      port: 6379
+      password: zjm10086
+      database: 3  # 使用独立的数据库索引
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-wait: -1ms
+          max-idle: 10
+          min-idle: 5
+
+# Dify 配置
+dify:
+  api-url: https://dify.aipfuture.com/v1
+  chat-url: https://dify.aipfuture.com/chat/RtOy1uQ5x1tTWfV5
+  api-key: app-Z0Uo6XAytf94sGkSO7oYMQV5
+  timeout: 120000
+  max-tokens: 4096
+  temperature: 0.7
+  stream-enabled: true
+
+# JWT配置
+jwt:
+  secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
+  issuer: "zhiyan-platform"
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always  # 改为 always，不需要认证
+    info:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+  health:
+    redis:
+      enabled: true
+  # 禁用 Actuator 的 Security 配置
+  security:
+    enabled: false
 
 # 日志配置
 logging:
   level:
-    hbnu.project.zhiyanai: DEBUG
-    org.springframework.web.reactive: DEBUG
+    com.alibaba.nacos: WARN
+    org.springframework.cloud: INFO
+    root: INFO
+    hbnu.project.zhiyan: INFO
+    hbnu.project.zhiyanai: INFO
+    org.springframework.web: INFO
+    org.springframework.cloud.openfeign: INFO
+    feign: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-ai.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+
+# Swagger配置
+swagger:
+  enabled: false  # 生产环境关闭
+  title: "智研平台的AI模块"
+  description: "AI对话、Dify工作流集成"

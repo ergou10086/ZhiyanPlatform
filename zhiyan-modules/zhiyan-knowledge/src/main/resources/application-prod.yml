@@ -1,36 +1,31 @@
 # 生产环境（服务器环境）
 
-# zhiyan-knowledge
+# zhiyan-knowledge 服务配置
 server:
   port: 8093
 
 spring:
   application:
-    name: zhiyan-knowledge
+    name: zhiyan-knowledge  # 服务名（业务标识，用于服务发现）
 
   cloud:
     nacos:
-      # Nacos服务发现
+      # Nacos服务发现配置
       discovery:
-        username: nacos  # 用户名
-        password: nacos  # 密码
-        # Nacos地址
-        server-addr: 10.7.10.98:8848
-        # 命名空间
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        # 组
-        group: DEFAULT_GROUP
-        # 权重
+        username: nacos
+        password: nacos
+        server-addr: 10.7.10.98:8848  # Nacos服务地址
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
+        group: DEFAULT_GROUP  # 业务服务的注册分组
         weight: 1
 
-      # Nacos配置中心
+      # Nacos配置中心配置
       config:
-        username: nacos  # 用户名
-        password: nacos  # 密码
-        # 和服务发现的一样
+        username: nacos
+        password: nacos
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        group: DEFAULT_GROUP
+        group: DEFAULT_GROUP  # 业务服务的配置分组
         file-extension: yaml
 
     # OpenFeign配置
@@ -53,7 +48,6 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # 连接池
     hikari:
       pool-name: KnowledgeServiceHikariPool
       minimum-idle: 5
@@ -81,7 +75,55 @@ spring:
     show-sql: false
     open-in-view: false
 
-# JWT配置（需与认证服务保持一致）
+
+# Seata 分布式事务配置
+seata:
+  enabled: true  # 生产环境启用Seata
+
+  # 1. application-id：当前服务在Seata中的唯一标识
+  # 作用：Seata用于区分不同的微服务实例，在事务日志和追踪中标识事务发起者/参与者
+  # 建议：通常与spring.application.name保持一致（便于关联业务服务），也可自定义（需唯一）
+  application-id: zhiyan-knowledge  # 此处修改为与服务名一致，更易维护
+
+  # 2. tx-service-group：事务服务分组（核心配置）
+  # 作用：用于将多个微服务划分到同一个事务组，Seata Server根据该分组路由事务协调请求
+  # 配置规则：
+  #   - 同一业务域的服务建议使用相同分组（如订单相关服务都用order-tx-group）
+  #   - 命名格式推荐：[业务模块名]-tx-group（清晰区分业务）
+  tx-service-group: zhiyan-knowledge-tx-group  # 知识模块专属事务组
+
+  # 3. 注册中心配置（Seata客户端向注册中心注册，用于发现Seata Server）
+  registry:
+    type: nacos  # 注册中心类型（与服务发现一致，这里用Nacos）
+    nacos:
+      application: seata-server  # Seata Server在Nacos中的服务名（固定，与Seata Server配置一致）
+      server-addr: 10.7.10.98:8848  # Nacos服务地址（与业务服务共用）
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间（与业务服务共用）
+      group: SEATA_GROUP  # Seata专属注册分组（与业务服务的DEFAULT_GROUP隔离）
+      username: nacos  # Nacos登录账号
+      password: nacos  # Nacos登录密码
+
+  # 4. 配置中心配置（Seata客户端从配置中心获取Seata Server的核心配置）
+  config:
+    type: nacos  # 配置中心类型（与业务配置一致，这里用Nacos）
+    nacos:
+      server-addr: 10.7.10.98:8848  # Nacos服务地址
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间
+      group: SEATA_GROUP  # Seata专属配置分组（与业务配置的DEFAULT_GROUP隔离）
+      data-id: seataServer.properties  # Seata Server的配置文件名（固定，与Seata Server配置一致）
+      username: nacos
+      password: nacos
+
+  # 5. 服务映射配置（事务组与Seata Server集群的映射关系）
+  service:
+    vgroup-mapping:
+      # 格式：[tx-service-group]: [Seata Server集群名]
+      # 作用：指定当前事务组对应的Seata Server集群（需与Seata Server的集群名一致）
+      # 这里"default"是Seata Server默认集群名，若Server配置了自定义集群名需同步修改
+      zhiyan-knowledge-tx-group: default
+
+
+# JWT配置
 jwt:
   secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
   issuer: "zhiyan-platform"
@@ -116,9 +158,7 @@ management:
 # 日志配置
 logging:
   level:
-    # Nacos客户端日志级别
     com.alibaba.nacos: WARN
-    # Spring Cloud相关日志级别
     org.springframework.cloud: INFO
     root: INFO
     hbnu.project.zhiyan: INFO
@@ -126,9 +166,7 @@ logging:
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
     com.zaxxer.hikari: INFO
-    # 关闭特定框架的冗余日志
     org.springframework.data.redis.repository: WARN
-    # 关闭 Sentinel 控制台输出
     com.alibaba.csp.sentinel: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
@@ -145,9 +183,3 @@ swagger:
   enabled: false
   title: "智研平台的知识管理模块"
   description: "学术成果、文献、专利管理"
-
-
-
-
-
-

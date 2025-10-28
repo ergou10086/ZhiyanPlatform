@@ -364,4 +364,96 @@ public class AchievementFileServiceImpl implements AchievementFileService {
 //        return isUploader || isCreator;
         return false;
     }
+
+    /**
+     * 获取文件上下文（用于 AI 对话）
+     *
+     * @param fileId 文件 ID
+     * @return 文件上下文信息
+     */
+    @Override
+    public hbnu.project.zhiyanknowledge.model.dto.FileContextDTO getFileContext(Long fileId) {
+        log.info("[文件上下文] 获取文件信息: fileId={}", fileId);
+
+        AchievementFile file = achievementFileRepository.findById(fileId)
+                .orElse(null);
+
+        if (file == null) {
+            log.warn("[文件上下文] 文件不存在: fileId={}", fileId);
+            return null;
+        }
+
+        // 生成预签名 URL
+        String fileUrl = null;
+        try {
+            fileUrl = minioUtils.getPresignedObjectUrl(
+                    file.getBucketName(),
+                    file.getObjectKey(),
+                    DEFAULT_EXPIRY_SECONDS
+            );
+        } catch (Exception e) {
+            log.error("[文件上下文] 生成文件 URL 失败: fileId={}", fileId, e);
+        }
+
+        return hbnu.project.zhiyanknowledge.model.dto.FileContextDTO.builder()
+                .fileId(String.valueOf(file.getId()))
+                .achievementId(String.valueOf(file.getAchievementId()))
+                .fileName(file.getFileName())
+                .fileType(file.getFileType())
+                .fileSize(file.getFileSize())
+                .fileSizeFormatted(formatFileSize(file.getFileSize()))
+                .fileUrl(fileUrl)
+                .uploaderName(null) // TODO: 获取上传者姓名
+                .uploadAt(file.getUploadAt())
+                .extension(file.getFileExtension())
+                .mimeType(file.getMimeType())
+                .content(null) // TODO: 如果需要提取文件内容/摘要
+                .build();
+    }
+
+    /**
+     * 批量获取文件上下文（用于 AI 对话）
+     *
+     * @param fileIds 文件 ID 列表
+     * @return 文件上下文列表
+     */
+    @Override
+    public List<hbnu.project.zhiyanknowledge.model.dto.FileContextDTO> getFileContexts(List<Long> fileIds) {
+        log.info("[文件上下文批量] 获取文件信息: fileIds={}, count={}", fileIds, fileIds.size());
+
+        if (fileIds == null || fileIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<hbnu.project.zhiyanknowledge.model.dto.FileContextDTO> contexts = new ArrayList<>();
+
+        for (Long fileId : fileIds) {
+            hbnu.project.zhiyanknowledge.model.dto.FileContextDTO context = getFileContext(fileId);
+            if (context != null) {
+                contexts.add(context);
+            }
+        }
+
+        log.info("[文件上下文批量] 成功获取 {} 个文件信息", contexts.size());
+        return contexts;
+    }
+
+    /**
+     * 格式化文件大小
+     */
+    private String formatFileSize(Long size) {
+        if (size == null) {
+            return null;
+        }
+
+        if (size < 1024) {
+            return size + " B";
+        } else if (size < 1024 * 1024) {
+            return String.format("%.2f KB", size / 1024.0);
+        } else if (size < 1024 * 1024 * 1024) {
+            return String.format("%.2f MB", size / (1024.0 * 1024.0));
+        } else {
+            return String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0));
+        }
+    }
 }

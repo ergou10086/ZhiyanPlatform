@@ -1,6 +1,7 @@
 package hbnu.project.zhiyanknowledge.service;
 
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
+import hbnu.project.zhiyanknowledge.model.dto.FileContextDTO;
 import hbnu.project.zhiyanknowledge.model.dto.UploadFileDTO;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -99,4 +100,20 @@ public interface AchievementFileService {
      * @return 是否有权限
      */
     boolean hasFilePermission(Long fileId, Long userId);
+
+    /**
+     * 获取文件上下文（用于 AI 对话）
+     *
+     * @param fileId 文件 ID
+     * @return 文件上下文信息
+     */
+    FileContextDTO getFileContext(Long fileId);
+
+    /**
+     * 批量获取文件上下文（用于 AI 对话）
+     *
+     * @param fileIds 文件 ID 列表
+     * @return 文件上下文列表
+     */
+    List<FileContextDTO> getFileContexts(List<Long> fileIds);
 }
