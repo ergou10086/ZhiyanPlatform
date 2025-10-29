@@ -115,11 +115,11 @@ public class ProjectController {
 
     /**
      * 更新项目
-     * 权限要求：已登录 + 项目内有管理权限（通过方法内部检查）
+     * 权限要求：已登录 + 项目创建人（拥有者）
      */
     @PutMapping("/{projectId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "更新项目", description = "更新项目信息，需要是项目成员")
+    @Operation(summary = "更新项目", description = "更新项目信息，只有项目创建人可以编辑")
     public R<Project> updateProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
             @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectRequest request) {
@@ -127,8 +127,8 @@ public class ProjectController {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]更新项目[{}]", userId, projectId);
 
-        // 项目级权限检查：必须是项目成员且有管理权限
-        projectSecurityUtils.requirePermission(projectId, ProjectPermission.PROJECT_MANAGE);
+        // 项目级权限检查：只有项目创建人（拥有者）才能编辑
+        projectSecurityUtils.requireOwner(projectId);
 
         return projectService.updateProject(projectId, request.getName(), request.getDescription(), 
                 request.getVisibility(), request.getStatus(), request.getStartDate(), request.getEndDate(),
