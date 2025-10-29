@@ -6,6 +6,8 @@ import io.seata.rm.tcc.api.BusinessActionContextParameter;
 import io.seata.rm.tcc.api.LocalTCC;
 import io.seata.rm.tcc.api.TwoPhaseBusinessAction;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -14,12 +16,15 @@ import java.util.Map;
 /**
  * MongoDB TCC 事务适配器
  * 将 MongoDB 操作适配到 Seata TCC 模式
+ * 只有在 MongoTemplate 存在时才会启用
  *
  * @author ErgouTree
  */
 @Slf4j
 @Component
 @LocalTCC
+@ConditionalOnClass(MongoTemplate.class)
+@ConditionalOnBean(MongoTemplate.class)
 public class MongoTccTransactionAdapter {
 
     private final MongoTemplate mongoTemplate;

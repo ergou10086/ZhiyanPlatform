@@ -2,4 +2,3 @@ hbnu.project.zhiyancommonseata.config.SeataConfiguration
 hbnu.project.zhiyancommonseata.config.properties.SeataProperties
 hbnu.project.zhiyancommonseata.feign.SeataFeignInterceptor
 hbnu.project.zhiyancommonseata.listener.SeataTransactionListener
-hbnu.project.zhiyancommonseata.adapter.MongoTccTransactionAdapter

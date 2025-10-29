@@ -5,10 +5,13 @@ spring:
     # 默认使用prod环境，可通过环境变量覆盖
     active: ${SPRING_PROFILES_ACTIVE:prod}
 
-    autoconfigure:
-      exclude:
-        - org.springdoc.core.configuration.SpringDocUIConfiguration
-        - org.springdoc.core.configuration.SpringDocConfiguration
+  autoconfigure:
+    exclude:
+      - org.springdoc.core.configuration.SpringDocUIConfiguration
+      - org.springdoc.core.configuration.SpringDocConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
 
 
 # 通用配置

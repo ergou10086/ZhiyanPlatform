@@ -80,40 +80,6 @@ spring:
     show-sql: false
     open-in-view: false
 
-# Seata 配置
-seata:
-  enabled: false     # 先不用））
-
-  # 当前服务在Seata中的唯一标识
-  application-id: zhiyan-project-service
-  # 将多个微服务划分到同一个事务组，Seata Server根据该分组路由事务协调请求
-  tx-service-group: zhiyan-project-service-group
-
-  # 注册中心配置（Seata客户端向注册中心注册，用于发现Seata Server）
-  registry:
-    type: nacos
-    nacos:
-      application: seata-server
-      server-addr: 10.7.10.98:8848
-      namespace: $3936229d-c8b3-4947-9192-6b984dca44bf
-      group: SEATA_GROUP
-      username: nacos
-      password: nacos
-
-  config:
-    type: nacos
-    nacos:
-      server-addr: 10.7.10.98:8848
-      namespace: $3936229d-c8b3-4947-9192-6b984dca44bf
-      group: SEATA_GROUP
-      data-id: seataServer.properties
-      username: nacos
-      password: nacos
-
-  service:
-    vgroup-mapping:
-      zhiyan-knowledge-tx-group: default
-
 # JWT配置（需与认证服务保持一致）
 jwt:
   secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
@@ -131,6 +97,9 @@ management:
       show-details: when-authorized
     info:
       enabled: true
+  health:
+    mongo:
+      enabled: false  # 禁用MongoDB健康检查
   info:
     env:
       enabled: true
@@ -160,11 +129,11 @@ logging:
     org.springframework.cloud.alibaba.nacos: WARN
     # 关闭 Sentinel 控制台输出
     com.alibaba.csp.sentinel: WARN
+  file:
+    name: logs/zhiyan-project-service.log
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/zhiyan-project-service.log
   logback:
     rollingpolicy:
       max-file-size: 100MB
@@ -177,17 +146,46 @@ swagger:
   description: "项目、任务、团队成员管理"
 
   
-# MinIO配置
+# MinIO 配置 - 用户头像存储
 minio:
+  # MinIO服务地址
   endpoint: http://10.7.10.98:9000
-  access-key: root
-  secret-key: rootroot
+  # 访问密钥
+  accessKey: root
+  # 密钥
+  secretKey: rootroot
+  # 是否使用HTTPS
+  secure: false
+  # 桶配置
   buckets:
-    project-covers: project-covers
-    user-avatars: user-avatars
-    achievement-files: achievement-files
-    wiki-assets: wiki-assets
-    temp-uploads: temp-uploads
+    # 用户头像
+    userAvatars: user-avatars
+    # 项目封面
+    projectCovers: project-covers
+    # Wiki资源
+    wikiAssets: wiki-assets
+    # 成果附件
+    achievementFiles: achievement-files
+    # 临时上传
+    tempUploads: temp-uploads
+  # 文件上传配置
+  upload:
+    # 最大文件大小 (512MB)
+    maxFileSize: 536870912
+    # 最大图片大小 (10MB)
+    maxImageSize: 10485760
+    # 临时文件保留时间 (小时)
+    tempFileRetentionHours: 24
+    # 允许的图片类型
+    allowedImageTypes: jpg,jpeg,png,gif,bmp,webp
+    # 允许的文件类型 (* 表示所有)
+    allowedFileTypes: "*"
+  # 图片处理配置
+  image:
+    # 图片质量 (0.0-1.0)
+    quality: 0.85
+    # 是否生成WebP格式
+    generateWebP: true
 
 
 
