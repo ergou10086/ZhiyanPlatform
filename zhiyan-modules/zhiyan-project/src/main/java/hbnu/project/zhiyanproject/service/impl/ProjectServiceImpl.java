@@ -184,7 +184,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public R<Page<Project>> getProjectsByCreator(Long creatorId, Pageable pageable) {
         try {
-            Page<Project> projects = projectRepository.findByCreatorId(creatorId, pageable);
+            // 只查询未删除的项目
+            Page<Project> projects = projectRepository.findByCreatorIdAndIsDeleted(creatorId, false, pageable);
             return R.ok(projects);
         } catch (Exception e) {
             log.error("获取用户创建的项目列表失败: creatorId={}", creatorId, e);
@@ -195,7 +196,8 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public R<Page<Project>> getProjectsByStatus(ProjectStatus status, Pageable pageable) {
         try {
-            Page<Project> projects = projectRepository.findByStatus(status, pageable);
+            // 只查询未删除的项目
+            Page<Project> projects = projectRepository.findByStatusAndIsDeleted(status, false, pageable);
             return R.ok(projects);
         } catch (Exception e) {
             log.error("根据状态获取项目列表失败: status={}", status, e);

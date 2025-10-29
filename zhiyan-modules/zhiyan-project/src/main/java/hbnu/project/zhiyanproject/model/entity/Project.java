@@ -82,7 +82,7 @@ public class Project extends BaseAuditEntity {
     /**
      * 项目图片URL
      */
-    @Column(name = "image_url", nullable = false, length = 500, columnDefinition = "VARCHAR(500) NOT NULL DEFAULT '' COMMENT '项目图片URL'")
+    @Column(name = "image_url", nullable = false, length = 1000, columnDefinition = "VARCHAR(1000) NOT NULL DEFAULT '' COMMENT '项目图片URL'")
     @lombok.Builder.Default
     private String imageUrl = "";
 

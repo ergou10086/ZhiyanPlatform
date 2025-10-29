@@ -31,39 +31,43 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Optional<Project> findByName(String name);
 
     /**
-     * 根据创建者ID查询项目列表
+     * 根据创建者ID查询项目列表（不包含已删除的项目）
      *
      * @param creatorId 创建者ID
+     * @param isDeleted 是否删除标记
      * @param pageable 分页参数
      * @return 项目分页列表
      */
-    Page<Project> findByCreatorId(Long creatorId, Pageable pageable);
+    Page<Project> findByCreatorIdAndIsDeleted(Long creatorId, Boolean isDeleted, Pageable pageable);
 
     /**
-     * 根据创建者ID查询项目列表
+     * 根据创建者ID查询项目列表（不包含已删除的项目）
      *
      * @param creatorId 创建者ID
+     * @param isDeleted 是否删除标记
      * @return 项目列表
      */
-    List<Project> findByCreatorId(Long creatorId);
+    List<Project> findByCreatorIdAndIsDeleted(Long creatorId, Boolean isDeleted);
 
     /**
-     * 根据项目状态查询项目列表
+     * 根据项目状态查询项目列表（不包含已删除的项目）
      *
      * @param status 项目状态
+     * @param isDeleted 是否删除标记
      * @param pageable 分页参数
      * @return 项目分页列表
      */
-    Page<Project> findByStatus(ProjectStatus status, Pageable pageable);
+    Page<Project> findByStatusAndIsDeleted(ProjectStatus status, Boolean isDeleted, Pageable pageable);
 
     /**
-     * 根据可见性查询项目列表
+     * 根据可见性查询项目列表（不包含已删除的项目）
      *
      * @param visibility 可见性
+     * @param isDeleted 是否删除标记
      * @param pageable 分页参数
      * @return 项目分页列表
      */
-    Page<Project> findByVisibility(ProjectVisibility visibility, Pageable pageable);
+    Page<Project> findByVisibilityAndIsDeleted(ProjectVisibility visibility, Boolean isDeleted, Pageable pageable);
 
     /**
      * 根据项目名称模糊查询
@@ -148,24 +152,24 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Page<Project> findAllActive(Pageable pageable);
 
     /**
-     * 根据关键字搜索项目（名称或描述）
+     * 根据关键字搜索项目（名称或描述，不包含已删除的项目）
      *
      * @param keyword 关键字
      * @param pageable 分页参数
      * @return 项目分页列表
      */
-    @Query("SELECT p FROM Project p WHERE p.name LIKE %:keyword% OR p.description LIKE %:keyword%")
+    @Query("SELECT p FROM Project p WHERE p.isDeleted = false AND (p.name LIKE %:keyword% OR p.description LIKE %:keyword%)")
     Page<Project> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     /**
-     * 查询用户参与的项目（包括创建的和加入的）
+     * 查询用户参与的项目（包括创建的和加入的，不包含已删除的项目）
      *
      * @param userId 用户ID
      * @param pageable 分页参数
      * @return 项目分页列表
      */
     @Query("SELECT DISTINCT p FROM Project p LEFT JOIN ProjectMember pm ON p.id = pm.projectId " +
-           "WHERE p.creatorId = :userId OR pm.userId = :userId")
+           "WHERE (p.creatorId = :userId OR pm.userId = :userId) AND p.isDeleted = false")
     Page<Project> findUserProjects(@Param("userId") Long userId, Pageable pageable);
 
     /**

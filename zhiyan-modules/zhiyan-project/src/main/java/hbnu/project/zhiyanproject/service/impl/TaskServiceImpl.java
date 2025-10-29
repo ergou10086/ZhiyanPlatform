@@ -267,8 +267,8 @@ public class TaskServiceImpl implements TaskService {
         projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("项目不存在"));
 
-        // 2. 查询所有任务（一次查询）
-        List<Tasks> allTasks = taskRepository.findByProjectId(projectId);
+        // 2. 查询所有未删除的任务（一次查询）
+        List<Tasks> allTasks = taskRepository.findByProjectIdAndIsDeleted(projectId, false);
 
         // 3. 批量转换所有任务为DTO（只查询一次用户信息，避免重复查询）
         List<TaskDetailDTO> allTaskDTOs = convertListToDetailDTO(allTasks);
@@ -307,7 +307,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getProjectTasks(Long projectId, Pageable pageable) {
-        Page<Tasks> tasks = taskRepository.findByProjectId(projectId, pageable);
+        // 只查询未删除的任务
+        Page<Tasks> tasks = taskRepository.findByProjectIdAndIsDeleted(projectId, false, pageable);
         // 使用优化后的批量转换，避免N+1查询
         List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
@@ -315,7 +316,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getTasksByStatus(Long projectId, TaskStatus status, Pageable pageable) {
-        Page<Tasks> tasks = taskRepository.findByProjectIdAndStatus(projectId, status, pageable);
+        // 只查询未删除的任务
+        Page<Tasks> tasks = taskRepository.findByProjectIdAndStatusAndIsDeleted(projectId, status, false, pageable);
         // 使用优化后的批量转换，避免N+1查询
         List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
@@ -323,7 +325,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getTasksByPriority(Long projectId, TaskPriority priority, Pageable pageable) {
-        Page<Tasks> tasks = taskRepository.findByProjectIdAndPriority(projectId, priority, pageable);
+        // 只查询未删除的任务
+        Page<Tasks> tasks = taskRepository.findByProjectIdAndPriorityAndIsDeleted(projectId, priority, false, pageable);
         // 使用优化后的批量转换，避免N+1查询
         List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
@@ -331,6 +334,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getMyAssignedTasks(Long userId, Pageable pageable) {
+        // findByAssigneeId 已经在 Repository 层过滤了已删除的任务
         Page<Tasks> tasks = taskRepository.findByAssigneeId(String.valueOf(userId), pageable);
         // 使用优化后的批量转换，避免N+1查询
         List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
@@ -339,7 +343,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getMyCreatedTasks(Long userId, Pageable pageable) {
-        Page<Tasks> tasks = taskRepository.findByCreatedBy(userId, pageable);
+        // 只查询未删除的任务
+        Page<Tasks> tasks = taskRepository.findByCreatedByAndIsDeleted(userId, false, pageable);
         // 使用优化后的批量转换，避免N+1查询
         List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
