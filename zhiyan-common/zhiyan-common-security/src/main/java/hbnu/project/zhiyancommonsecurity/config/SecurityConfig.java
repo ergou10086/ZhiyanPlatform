@@ -153,7 +153,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/zhiyan/projects/get-image-url",
                                 "/zhiyan/projects/get-image-urls",
                                 "/zhiyan/projects/get-image-url"
-                        ).authenticated()
+                        )
+                        .authenticated()
 
                         // TODO: 临时开放权限管理接口，用于初始化权限数据 - 开发完成后需要删除此行
                         .requestMatchers("/auth/permissions/**").permitAll()
@@ -179,9 +180,19 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/api/projects/members/*/permissions/check"  // 检查权限
                         ).permitAll()
 
+                        // AI 流式接口 - 使用 permitAll，权限在 Controller 层通过 @PreAuthorize 控制
+                        // 这样可以避免异步请求时的二次权限检查导致的 AccessDeniedException
+                        .requestMatchers("/api/ai/**").permitAll()
+
                         // 其他所有接口需要认证，具体权限由 @PreAuthorize 注解控制
                         .anyRequest().authenticated()
                 )
+
+                // 禁用 CSRF 检查（针对流式接口和异步请求）
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/ai/**")
+                )
+
                 // 认证提供者
                 .authenticationProvider(authenticationProvider())
                 // 添加JWT认证过滤器

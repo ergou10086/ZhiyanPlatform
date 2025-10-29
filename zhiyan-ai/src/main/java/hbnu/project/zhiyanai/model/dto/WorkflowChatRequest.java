@@ -1,7 +1,7 @@
 package hbnu.project.zhiyanai.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * 工作流对话请求 DTO
- * 用于调用 Dify 工作流，支持文件上传
+ * 用于调用 Dify 工作流
  *
  * @author ErgouTree
  */
@@ -20,27 +20,12 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)  // ✅ 忽略 null 字段
 public class WorkflowChatRequest {
 
     /**
-     * 用户输入的问题
-     */
-    @NotBlank(message = "问题不能为空")
-    private String query;
-
-    /**
-     * 对话 ID（用于维持上下文）
-     */
-    @JsonProperty("conversation_id")
-    private String conversationId;
-
-    /**
-     * 用户标识
-     */
-    private String user;
-
-    /**
      * 输入参数（工作流变量）
+     * ⚠️ 必填字段，即使为空也要传 {}
      */
     private Map<String, Object> inputs;
 
@@ -51,21 +36,12 @@ public class WorkflowChatRequest {
     private String responseMode = "streaming";
 
     /**
-     * 已上传到 Dify 的文件 ID 列表
+     * 用户标识
      */
-    @JsonProperty("file_ids")
-    private List<String> fileIds;
+    private String user;
 
     /**
-     * 文件上传类型（local/remote）
+     * 文件列表（如果工作流支持文件）
      */
-    @JsonProperty("file_upload_type")
-    private String fileUploadType = "local";
-
-    /**
-     * 自动播放（用于音频）
-     */
-    @JsonProperty("auto_play")
-    private Boolean autoPlay = false;
+    private List<Map<String, Object>> files;
 }
-

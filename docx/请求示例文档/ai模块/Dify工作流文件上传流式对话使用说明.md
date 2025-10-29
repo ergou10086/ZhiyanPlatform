@@ -49,6 +49,7 @@ http://localhost:{port}/api/ai
 ---
 
 ### 2. 上传单个文件到 Dify
+
 **接口**: `POST /files/upload`
 
 **请求参数**:
@@ -61,6 +62,7 @@ Authorization: Bearer {token}
 ```
 
 **响应示例**:
+
 ```json
 {
   "code": 200,
@@ -108,6 +110,7 @@ Authorization: Bearer {token}
 ---
 
 ### 4. 从知识库上传文件
+
 **接口**: `POST /files/upload/knowledge`
 
 **请求体** (JSON):

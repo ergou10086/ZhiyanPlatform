@@ -5,25 +5,25 @@ spring:
   application:
     name: zhiyan-ai
 
-#  cloud:
-#    nacos:
-#      # Nacos服务发现配置
-#      discovery:
-#        username: nacos
-#        password: nacos
-#        server-addr: 10.7.10.98:8848  # Nacos服务地址
-#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
-#        group: DEFAULT_GROUP  # 业务服务的注册分组
-#        weight: 1
-#
-#      # Nacos配置中心配置
-#      config:
-#        username: nacos
-#        password: nacos
-#        server-addr: 10.7.10.98:8848
-#        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-#        group: DEFAULT_GROUP  # 业务服务的配置分组
-#        file-extension: yaml
+  cloud:
+    nacos:
+      # Nacos服务发现配置
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 10.7.10.98:8848  # Nacos服务地址
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
+        group: DEFAULT_GROUP  # 业务服务的注册分组
+        weight: 1
+
+      # Nacos配置中心配置
+      config:
+        username: nacos
+        password: nacos
+        server-addr: 10.7.10.98:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP  # 业务服务的配置分组
+        file-extension: yaml
 
     # OpenFeign配置
     openfeign:
@@ -32,7 +32,12 @@ spring:
           default:
             connect-timeout: 60000
             read-timeout: 120000
-            logger-level: basic
+            logger-level: full  # 开启详细日志以调试
+          # 知识库服务配置
+          zhiyan-knowledge:
+            connect-timeout: 10000
+            read-timeout: 30000
+            logger-level: full
           # Dify API 特殊配置
           dify-api:
             connect-timeout: 60000
@@ -42,6 +47,14 @@ spring:
           enabled: true
         response:
           enabled: true
+    
+    # LoadBalancer 配置（用于服务发现）
+    loadbalancer:
+      enabled: true
+      ribbon:
+        enabled: false  # 禁用旧的 Ribbon，使用新的 LoadBalancer
+      nacos:
+        enabled: true
 
   # Jackson配置
   jackson:
@@ -72,6 +85,7 @@ dify:
   api-url: https://dify.aipfuture.com/v1
   chat-url: https://dify.aipfuture.com/chat/RtOy1uQ5x1tTWfV5
   api-key: app-Z0Uo6XAytf94sGkSO7oYMQV5
+  mcp-serve-point: https://dify.aipfuture.com/mcp/server/4XVPiwaSpJWf2EJx/mcp
   timeout: 120000
   max-tokens: 4096
   temperature: 0.7
@@ -109,14 +123,15 @@ management:
 # 日志配置
 logging:
   level:
-    com.alibaba.nacos: WARN
-    org.springframework.cloud: INFO
+    com.alibaba.nacos: INFO  # 提升 Nacos 日志级别以调试服务发现
+    org.springframework.cloud: DEBUG  # 提升 Spring Cloud 日志级别
+    org.springframework.cloud.loadbalancer: DEBUG  # LoadBalancer 详细日志
     root: INFO
     hbnu.project.zhiyan: INFO
     hbnu.project.zhiyanai: INFO
     org.springframework.web: INFO
-    org.springframework.cloud.openfeign: INFO
-    feign: INFO
+    org.springframework.cloud.openfeign: DEBUG  # Feign 详细日志
+    feign: DEBUG  # Feign 客户端详细日志
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

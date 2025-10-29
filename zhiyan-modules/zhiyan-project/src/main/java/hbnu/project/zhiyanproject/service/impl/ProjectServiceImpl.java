@@ -163,6 +163,10 @@ public class ProjectServiceImpl implements ProjectService {
             if (project == null) {
                 return R.fail("项目不存在");
             }
+            
+            // 填充创建人姓名
+            fillCreatorName(project);
+            
             return R.ok(project);
         } catch (Exception e) {
             log.error("获取项目失败: projectId={}", projectId, e);
@@ -174,6 +178,12 @@ public class ProjectServiceImpl implements ProjectService {
     public R<Page<Project>> getAllProjects(Pageable pageable) {
         try {
             Page<Project> projects = projectRepository.findAll(pageable);
+            
+            // 填充创建人姓名
+            if (projects.hasContent()) {
+                fillCreatorNames(projects.getContent());
+            }
+            
             return R.ok(projects);
         } catch (Exception e) {
             log.error("获取项目列表失败", e);
@@ -186,6 +196,12 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             // 只查询未删除的项目
             Page<Project> projects = projectRepository.findByCreatorIdAndIsDeleted(creatorId, false, pageable);
+            
+            // 填充创建人姓名
+            if (projects.hasContent()) {
+                fillCreatorNames(projects.getContent());
+            }
+            
             return R.ok(projects);
         } catch (Exception e) {
             log.error("获取用户创建的项目列表失败: creatorId={}", creatorId, e);
@@ -198,6 +214,12 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             // 只查询未删除的项目
             Page<Project> projects = projectRepository.findByStatusAndIsDeleted(status, false, pageable);
+            
+            // 填充创建人姓名
+            if (projects.hasContent()) {
+                fillCreatorNames(projects.getContent());
+            }
+            
             return R.ok(projects);
         } catch (Exception e) {
             log.error("根据状态获取项目列表失败: status={}", status, e);
@@ -209,6 +231,12 @@ public class ProjectServiceImpl implements ProjectService {
     public R<Page<Project>> getUserProjects(Long userId, Pageable pageable) {
         try {
             Page<Project> projects = projectRepository.findUserProjects(userId, pageable);
+            
+            // 填充创建人姓名
+            if (projects.hasContent()) {
+                fillCreatorNames(projects.getContent());
+            }
+            
             return R.ok(projects);
         } catch (Exception e) {
             log.error("获取用户参与的项目列表失败: userId={}", userId, e);
@@ -220,6 +248,12 @@ public class ProjectServiceImpl implements ProjectService {
     public R<Page<Project>> searchProjects(String keyword, Pageable pageable) {
         try {
             Page<Project> projects = projectRepository.searchByKeyword(keyword, pageable);
+            
+            // 填充创建人姓名
+            if (projects.hasContent()) {
+                fillCreatorNames(projects.getContent());
+            }
+            
             return R.ok(projects);
         } catch (Exception e) {
             log.error("搜索项目失败: keyword={}", keyword, e);
@@ -360,6 +394,79 @@ public class ProjectServiceImpl implements ProjectService {
         } catch (Exception e) {
             log.error("统计用户参与的项目数量失败: userId={}", userId, e);
             return R.fail("统计失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 填充单个项目的创建人姓名
+     * 
+     * @param project 项目对象
+     */
+    private void fillCreatorName(Project project) {
+        if (project == null || project.getCreatorId() == null) {
+            return;
+        }
+        
+        try {
+            R<UserDTO> userResponse = authServiceClient.getUserById(project.getCreatorId());
+            if (userResponse != null && userResponse.getData() != null) {
+                project.setCreatorName(userResponse.getData().getName());
+                log.debug("成功填充项目 {} 的创建者姓名: {}", project.getId(), project.getCreatorName());
+            } else {
+                project.setCreatorName("未知用户");
+                log.warn("查询用户信息失败，项目 {} 的创建者姓名设置为默认值", project.getId());
+            }
+        } catch (Exception e) {
+            log.error("查询用户信息时发生异常，项目 {} 的创建者姓名设置为默认值", project.getId(), e);
+            project.setCreatorName("未知用户");
+        }
+    }
+    
+    /**
+     * 批量填充项目列表的创建人姓名
+     * 
+     * @param projects 项目列表
+     */
+    private void fillCreatorNames(List<Project> projects) {
+        if (projects == null || projects.isEmpty()) {
+            return;
+        }
+        
+        // 提取所有唯一的创建者ID
+        List<Long> creatorIds = projects.stream()
+                .map(Project::getCreatorId)
+                .filter(id -> id != null)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        if (creatorIds.isEmpty()) {
+            return;
+        }
+        
+        // 批量查询创建者信息
+        try {
+            R<List<UserDTO>> usersResponse = authServiceClient.getUsersByIds(creatorIds);
+            if (usersResponse != null && usersResponse.getData() != null) {
+                // 创建 userId -> userName 的映射
+                Map<Long, String> userNameMap = usersResponse.getData().stream()
+                        .collect(Collectors.toMap(UserDTO::getId, UserDTO::getName));
+                
+                // 填充创建者姓名
+                projects.forEach(project -> {
+                    if (project.getCreatorId() != null) {
+                        String creatorName = userNameMap.get(project.getCreatorId());
+                        project.setCreatorName(creatorName != null ? creatorName : "未知用户");
+                    }
+                });
+                
+                log.debug("成功填充 {} 个项目的创建者姓名", projects.size());
+            } else {
+                log.warn("批量查询用户信息失败，将使用默认值");
+                projects.forEach(project -> project.setCreatorName("未知用户"));
+            }
+        } catch (Exception e) {
+            log.error("批量查询用户信息时发生异常，将使用默认值", e);
+            projects.forEach(project -> project.setCreatorName("未知用户"));
         }
     }
 }
