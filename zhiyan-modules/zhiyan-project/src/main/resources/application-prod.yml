@@ -7,6 +7,11 @@ server:
 spring:
   application:
     name: zhiyan-project
+  
+  # 启动性能优化：懒加载Bean
+  main:
+    lazy-initialization: false  # 暂不启用全局懒加载，避免首次请求慢
+    allow-circular-references: false
 
   cloud:
     nacos:
@@ -60,6 +65,10 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
       connection-timeout: 20000
+      # 启动优化：延迟初始化连接池
+      initialization-fail-timeout: 1
+      # 性能优化
+      connection-test-query: SELECT 1
 
   # Jackson配置
   jackson:
@@ -75,8 +84,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+        # 性能优化：禁用启动时的schema验证（生产环境）
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
     hibernate:
-      ddl-auto: update
+      # 生产环境建议使用 validate 或 none，避免每次启动检查DDL
+      ddl-auto: validate
     show-sql: false
     open-in-view: false
 

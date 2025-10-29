@@ -15,6 +15,8 @@ spring:
       - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
       - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
       - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
+      # 排除Redis Repositories自动配置，避免无效扫描（项目只使用JPA Repository）
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 
 
 # 通用配置

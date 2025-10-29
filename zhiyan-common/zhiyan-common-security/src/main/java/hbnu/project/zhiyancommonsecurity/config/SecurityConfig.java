@@ -188,11 +188,6 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .anyRequest().authenticated()
                 )
 
-                // 禁用 CSRF 检查（针对流式接口和异步请求）
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/ai/**")
-                )
-
                 // 认证提供者
                 .authenticationProvider(authenticationProvider())
                 // 添加JWT认证过滤器
