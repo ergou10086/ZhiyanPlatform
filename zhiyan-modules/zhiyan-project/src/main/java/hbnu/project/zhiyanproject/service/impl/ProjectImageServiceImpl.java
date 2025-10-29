@@ -8,6 +8,7 @@ import hbnu.project.zhiyancommonoss.enums.BucketType;
 import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyanproject.model.dto.ImageUploadResponse;
 import hbnu.project.zhiyanproject.service.ProjectImageService;
+import hbnu.project.zhiyanproject.utils.ProjectSecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class ProjectImageServiceImpl implements ProjectImageService {
 
     private final MinioService minioService;
     private final hbnu.project.zhiyanproject.repository.ProjectRepository projectRepository;
+    private final ProjectSecurityUtils projectSecurityUtils;
 
     /**
      * 允许的图片格式
@@ -76,6 +78,9 @@ public class ProjectImageServiceImpl implements ProjectImageService {
             // 6. 如果提供了projectId，更新项目的imageUrl字段
             if (projectId != null) {
                 try {
+                    // ✅ 权限检查：只有项目拥有者才能上传项目图片
+                    projectSecurityUtils.requireOwner(projectId);
+                    
                     var project = projectRepository.findById(projectId);
                     if (project.isPresent()) {
                         var proj = project.get();
@@ -84,10 +89,14 @@ public class ProjectImageServiceImpl implements ProjectImageService {
                         log.info("已更新项目[{}]的图片URL: {}", projectId, uploadResult.getUrl());
                     } else {
                         log.warn("项目[{}]不存在，无法更新图片URL", projectId);
+                        return R.fail("项目不存在");
                     }
+                } catch (SecurityException e) {
+                    log.warn("用户[{}]无权上传项目[{}]的图片: {}", userId, projectId, e.getMessage());
+                    return R.fail("只有项目创建者可以上传项目图片");
                 } catch (Exception e) {
                     log.error("更新项目图片URL失败: projectId={}", projectId, e);
-                    // 不影响图片上传的成功返回
+                    return R.fail("更新项目图片失败: " + e.getMessage());
                 }
             }
             
