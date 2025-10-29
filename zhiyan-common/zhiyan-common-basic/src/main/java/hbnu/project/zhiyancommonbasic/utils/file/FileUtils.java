@@ -26,7 +26,11 @@ public class FileUtils
     /** 字符常量：反斜杠 {@code '\\'} */
     public static final char BACKSLASH = '\\';
 
-    public static String FILENAME_PATTERN = "[a-zA-Z0-9_\\-\\|\\.\\u4e00-\\u9fa5]+";
+    /** 
+     * 文件名验证正则
+     * 允许：字母、数字、中文、空格、连字符、下划线、点号、括号、竖线
+     */
+    public static String FILENAME_PATTERN = "[a-zA-Z0-9_\\-\\s()\\[\\]\\|\\u4e00-\\u9fa5.]+";
 
     /**
      * 输出指定文件的byte数组
