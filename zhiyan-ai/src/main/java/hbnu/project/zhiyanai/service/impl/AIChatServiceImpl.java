@@ -134,7 +134,7 @@ public class AIChatServiceImpl implements AIChatService {
                 .user(String.valueOf(userId))
                 .inputs(inputs)
                 .responseMode(Boolean.TRUE.equals(request.getStreamMode()) ? "streaming" : "blocking")
-                .files(fileContexts)
+                // 注意：files 字段用于 Dify 上传的文件，这里的文件信息已经放在 inputs 中了
                 .build();
     }
 

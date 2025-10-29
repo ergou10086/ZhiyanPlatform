@@ -4,18 +4,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hbnu.project.zhiyanai.config.properties.DifyProperties;
 import hbnu.project.zhiyanai.model.dto.ChatRequest;
-import hbnu.project.zhiyanai.model.dto.WorkflowChatRequest;
 import hbnu.project.zhiyanai.service.DifyStreamService;
 import hbnu.project.zhiyancommonsse.dto.DifyStreamMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Dify 流式调用服务
- * 使用 WebClient 实现 SSE 流式响应
+ * 使用 WebClient 实现 SSE 流式响应（Chatflow）
  *
  * @author ErgouTree
  */
@@ -29,81 +30,45 @@ public class DifyStreamServiceImpl implements DifyStreamService {
     private final ObjectMapper objectMapper;
 
     /**
-     * 流式发送聊天消息
-     *
-     * @param request 聊天请求
-     * @return SSE 事件流
-     */
-    @Override
-    public Flux<String> sendChatMessageStream(ChatRequest request) {
-        WebClient webClient = webClientBuilder
-                .baseUrl(difyProperties.getApiUrl())
-                .defaultHeader("Authorization", "Bearer " + difyProperties.getApiKey())
-                .defaultHeader("Content-Type", "application/json")
-                .build();
-
-        // 设置流式模式
-        request.setResponseMode("streaming");
-
-        return webClient.post()
-                .uri("/chat-messages")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToFlux(String.class)
-                .doOnNext(data -> log.debug("收到流式数据: {}", data))
-                .doOnError(error -> log.error("流式调用错误: ", error))
-                .doOnComplete(() -> log.info("流式调用完成"));
-    }
-
-    /**
-     * 调用工作流并返回流式响应
-     *
-     * @param request 工作流请求
-     * @return 流式消息
-     */
-    @Override
-    public Flux<DifyStreamMessage> callWorkflowStream(WorkflowChatRequest request) {
-        log.info("[Dify 工作流] 开始流式调用: query={}, conversationId={}",
-                request.getQuery(), request.getConversationId());
-
-        WebClient webClient = webClientBuilder
-                .baseUrl(difyProperties.getApiUrl())
-                .defaultHeader("Authorization", "Bearer " + difyProperties.getApiKey())
-                .defaultHeader("Content-Type", "application/json")
-                .build();
-
-        // 确保是流式模式
-        request.setResponseMode("streaming");
-
-        return webClient.post()
-                .uri("/workflows/run")
-                .bodyValue(request)
-                .retrieve()
-                .bodyToFlux(String.class)
-                .map(this::parseDifyStreamData)
-                .filter(msg -> msg != null)
-                .doOnNext(msg -> log.debug("[Dify 工作流] 收到消息: event={}", msg.getEvent()))
-                .doOnError(error -> log.error("[Dify 工作流] 调用错误", error))
-                .doOnComplete(() -> log.info("[Dify 工作流] 调用完成"));
-    }
-
-    /**
      * 解析 Dify 流式数据
      * Dify 返回格式: data: {"event": "...", ...}
      */
     private DifyStreamMessage parseDifyStreamData(String data) {
         try {
-            // Dify SSE 格式: "data: {...}"
-            if (data.startsWith("data: ")) {
-                String jsonData = data.substring(6).trim();
+            log.debug("[Dify 解析] 开始解析数据: {}", data);
+            
+            String jsonData;
+            
+            // 格式1: 纯 JSON 格式（Workflow 模式）: {"event":"..."}
+            if (data.trim().startsWith("{")) {
+                jsonData = data.trim();
+                log.debug("[Dify 解析] 检测到纯 JSON 格式");
+            }
+            // 格式2: SSE 格式: "data: {...}"
+            else if (data.startsWith("data: ")) {
+                jsonData = data.substring(6).trim();
+                log.debug("[Dify 解析] 检测到 SSE 格式");
+            }
+            // 格式3: 事件行（SSE）: "event: message"
+            else if (data.startsWith("event:")) {
+                log.debug("[Dify 解析] 跳过事件行: {}", data);
+                return null;
+            }
+            // 其他格式：空行或未知
+            else {
+                log.debug("[Dify 解析] 跳过非数据行: {}", data);
+                return null;
+            }
 
-                // 跳过心跳包
-                if ("[DONE]".equals(jsonData) || jsonData.isEmpty()) {
-                    return null;
-                }
+            // 跳过心跳包或空数据
+            if (jsonData.isEmpty() || "[DONE]".equals(jsonData)) {
+                log.debug("[Dify 解析] 跳过心跳包或空数据");
+                return null;
+            }
 
-                // 解析 JSON
-                JsonNode jsonNode = objectMapper.readTree(jsonData);
+            log.debug("[Dify 解析] JSON 数据: {}", jsonData);
+            // 解析 JSON
+            JsonNode jsonNode = objectMapper.readTree(jsonData);
 
                 DifyStreamMessage.DifyStreamMessageBuilder builder = DifyStreamMessage.builder()
                         .timestamp(System.currentTimeMillis());
@@ -163,13 +128,12 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                     builder.createdAt(jsonNode.get("created_at").asLong());
                 }
 
-                return builder.build();
-            }
-
-            return null;
+            DifyStreamMessage result = builder.build();
+            log.debug("[Dify 解析] 解析成功，事件类型: {}", result.getEvent());
+            return result;
 
         } catch (Exception e) {
-            log.error("[Dify 工作流] 解析流式数据失败: data={}", data, e);
+            log.error("[Dify 解析] 解析流式数据失败: data={}", data, e);
             return DifyStreamMessage.builder()
                     .event("error")
                     .errorMessage("解析数据失败: " + e.getMessage())
@@ -178,15 +142,94 @@ public class DifyStreamServiceImpl implements DifyStreamService {
         }
     }
 
+
     /**
-     * 提取文本内容（用于简化的流式输出）
+     * 调用 Chatflow 并返回流式响应（适用于聊天流应用）
+     *
+     * @param request 聊天请求
+     * @return 流式消息
      */
     @Override
-    public Flux<String> callWorkflowStreamSimple(WorkflowChatRequest request) {
-        return callWorkflowStream(request)
+    public Flux<DifyStreamMessage> callChatflowStream(ChatRequest request) {
+        log.info("[Dify Chatflow] 开始流式调用: query={}, conversationId={}, user={}",
+                request.getQuery(), request.getConversationId(), request.getUser());
+
+        // 打印完整的请求体用于调试
+        try {
+            String requestJson = objectMapper.writeValueAsString(request);
+            log.info("[Dify Chatflow] 请求体: {}", requestJson);
+        } catch (Exception e) {
+            log.warn("[Dify Chatflow] 无法序列化请求体", e);
+        }
+
+        WebClient webClient = webClientBuilder
+                .baseUrl(difyProperties.getApiUrl())
+                .defaultHeader("Authorization", "Bearer " + difyProperties.getApiKey())
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("Accept", "text/event-stream")  // ✅ 关键：告诉 Dify 我们要 SSE 流式响应
+                .build();
+
+        // 确保是流式模式
+        request.setResponseMode("streaming");
+
+        log.info("[Dify Chatflow] 发送请求到: {}/chat-messages", difyProperties.getApiUrl());
+
+        return webClient.post()
+                .uri("/chat-messages")
+                .bodyValue(request)
+                .retrieve()
+                .onStatus(
+                    status -> !status.is2xxSuccessful(),
+                    response -> {
+                        log.error("[Dify Chatflow] HTTP 错误: status={}", response.statusCode());
+                        return response.bodyToMono(String.class)
+                                .doOnNext(body -> log.error("[Dify Chatflow] 错误响应体: {}", body))
+                                .then(Mono.error(new RuntimeException("Dify API 返回错误: " + response.statusCode())));
+                    }
+                )
+                .bodyToFlux(String.class)
+                .doOnSubscribe(sub -> log.info("[Dify Chatflow] 开始订阅流式响应"))
+                .doOnComplete(() -> log.info("[Dify Chatflow] 流式响应完成（可能没有数据）"))
+                // 打印 Dify 返回的原始数据（用于调试）
+                .doOnNext(rawData -> log.info("[Dify Chatflow] 收到原始数据: {}", rawData))
+                // 使用 handle 而不是 map + filter，因为 map 不允许返回 null
+                .<DifyStreamMessage>handle((data, sink) -> {
+                    DifyStreamMessage message = parseDifyStreamData(data);
+                    if (message != null) {
+                        log.info("[Dify Chatflow] 解析成功: event={}, data={}", 
+                                message.getEvent(), message.getData());
+                        sink.next(message);  // 只有非 null 时才发出
+                    } else {
+                        log.warn("[Dify Chatflow] 解析返回 null，原始数据: {}", data);
+                    }
+                })
+                .doOnNext(msg -> log.debug("[Dify Chatflow] 发送消息: event={}", msg.getEvent()))
+                .doOnError(error -> {
+                    log.error("[Dify Chatflow] 调用错误", error);
+                    // 如果是 WebClientResponseException，打印响应体
+                    if (error instanceof WebClientResponseException ex) {
+                        log.error("[Dify Chatflow] 错误响应: status={}, body={}",
+                                ex.getStatusCode(), ex.getResponseBodyAsString());
+                    }
+                })
+                .doOnComplete(() -> log.info("[Dify Chatflow] 调用完成"));
+    }
+
+
+    /**
+     * 调用 Chatflow 并返回简化的文本流
+     */
+    @Override
+    public Flux<String> callChatflowStreamSimple(ChatRequest request) {
+        return callChatflowStream(request)
                 .filter(msg -> "message".equals(msg.getEvent()) ||
-                        "chunk".equals(msg.getEvent()) ||
-                        "answer".equals(msg.getEvent()))
-                .map(msg -> msg.getData() != null ? msg.getData() : "");
+                        "agent_message".equals(msg.getEvent()) ||
+                        "agent_thought".equals(msg.getEvent()))
+                .handle((msg, sink) -> {
+                    // 只发出非空的数据
+                    if (msg.getData() != null && !msg.getData().isEmpty()) {
+                        sink.next(msg.getData());
+                    }
+                });
     }
 }
