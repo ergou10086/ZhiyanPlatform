@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN" monitorInterval="30">
     <Properties>
-        <!-- 日志输出目录，使用系统属性或默认值 -->
-        <Property name="LOG_PATH">${sys:LOG_PATH:-logs}</Property>
+        <!-- 日志输出目录 -->
+        <Property name="LOG_HOME">logs</Property>
         <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Property>
     </Properties>
 
@@ -14,8 +14,8 @@
 
         <!-- 文件输出 -->
         <RollingFile name="File" 
-                     fileName="${LOG_PATH}/zhiyan-project.log"
-                     filePattern="${LOG_PATH}/$${date:yyyy-MM}/zhiyan-project-%d{yyyy-MM-dd}-%i.log.gz">
+                     fileName="${LOG_HOME}/zhiyan-project.log"
+                     filePattern="${LOG_HOME}/$${date:yyyy-MM}/zhiyan-project-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="${LOG_PATTERN}"/>
             <Policies>
                 <!-- 每天滚动 -->

@@ -12,6 +12,9 @@ spring:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
 
 
 # 通用配置
