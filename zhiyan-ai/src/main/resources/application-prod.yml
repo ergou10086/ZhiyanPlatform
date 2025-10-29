@@ -32,7 +32,12 @@ spring:
           default:
             connect-timeout: 60000
             read-timeout: 120000
-            logger-level: basic
+            logger-level: full  # 开启详细日志以调试
+          # 知识库服务配置
+          zhiyan-knowledge:
+            connect-timeout: 10000
+            read-timeout: 30000
+            logger-level: full
           # Dify API 特殊配置
           dify-api:
             connect-timeout: 60000
@@ -42,6 +47,14 @@ spring:
           enabled: true
         response:
           enabled: true
+    
+    # LoadBalancer 配置（用于服务发现）
+    loadbalancer:
+      enabled: true
+      ribbon:
+        enabled: false  # 禁用旧的 Ribbon，使用新的 LoadBalancer
+      nacos:
+        enabled: true
 
   # Jackson配置
   jackson:
@@ -110,14 +123,15 @@ management:
 # 日志配置
 logging:
   level:
-    com.alibaba.nacos: WARN
-    org.springframework.cloud: INFO
+    com.alibaba.nacos: INFO  # 提升 Nacos 日志级别以调试服务发现
+    org.springframework.cloud: DEBUG  # 提升 Spring Cloud 日志级别
+    org.springframework.cloud.loadbalancer: DEBUG  # LoadBalancer 详细日志
     root: INFO
     hbnu.project.zhiyan: INFO
     hbnu.project.zhiyanai: INFO
     org.springframework.web: INFO
-    org.springframework.cloud.openfeign: INFO
-    feign: INFO
+    org.springframework.cloud.openfeign: DEBUG  # Feign 详细日志
+    feign: DEBUG  # Feign 客户端详细日志
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

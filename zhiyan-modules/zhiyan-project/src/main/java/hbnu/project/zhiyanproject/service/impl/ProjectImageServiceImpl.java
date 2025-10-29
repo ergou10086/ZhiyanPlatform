@@ -44,6 +44,7 @@ public class ProjectImageServiceImpl implements ProjectImageService {
      */
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+
     @Override
     public R<ImageUploadResponse> uploadProjectImage(MultipartFile file, Long projectId, Long userId) {
         try {

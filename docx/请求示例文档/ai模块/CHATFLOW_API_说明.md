@@ -82,6 +82,7 @@ data: 有什么可以帮助你的吗？
 ### 3. 文件上传 + 对话
 
 #### 步骤1: 上传文件到 Dify
+
 ```bash
 curl -X POST "http://localhost:8097/api/ai/files/upload" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -153,6 +154,7 @@ dify:
 ```
 
 **重要说明**:
+
 - ✅ Chatflow 使用 `/chat-messages` 端点（已实现）
 - ❌ Workflow 使用 `/workflows/run` 端点（已删除）
 

@@ -37,7 +37,7 @@ public class AchievementFileController {
      * 上传成果文件
      * 上传单个文件到指定成果
      */
-    @PostMapping("/file/upload")
+    @PostMapping("/upload")
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
     public R<AchievementFileDTO> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
@@ -64,7 +64,7 @@ public class AchievementFileController {
      * 批量上传成果文件
      * 批量上传多个文件到指定成果
      */
-    @PostMapping("/file/upload/batch")
+    @PostMapping("/upload/batch")
     @Operation(summary = "批量上传成果文件", description = "为指定成果批量上传多个文件")
     public R<List<AchievementFileDTO>> uploadFilesBatch(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
@@ -103,7 +103,7 @@ public class AchievementFileController {
      * 删除成果文件
      * 删除指定的文件
      */
-    @DeleteMapping("/file/{fileId}")
+    @DeleteMapping("/{fileId}")
     @Operation(summary = "删除成果文件", description = "删除指定的成果文件")
     public R<Void> deleteAchievementFile(
             @Parameter(description = "文件ID")  @PathVariable Long fileId
@@ -123,7 +123,7 @@ public class AchievementFileController {
      * 获取文件下载URL
      * 生成临时的文件下载链接
      */
-    @GetMapping("/file/{fileId}/download-url")
+    @GetMapping("/{fileId}/download-url")
     @Operation(summary = "获取文件下载URL", description = "生成文件的临时下载链接")
     public R<String> getFileDownloadUrl(
             @Parameter(description = "文件ID") @PathVariable Long fileId,

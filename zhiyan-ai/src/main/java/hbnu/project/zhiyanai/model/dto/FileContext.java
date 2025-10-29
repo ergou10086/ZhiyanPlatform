@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanai.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -77,5 +78,6 @@ public class FileContext {
      * 上传时间
      */
     @JsonProperty("upload_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
     private LocalDateTime uploadAt;
 }
