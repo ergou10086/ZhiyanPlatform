@@ -44,8 +44,8 @@ public class ProjectServiceImpl implements ProjectService {
     public R<Project> createProject(String name, String description, ProjectVisibility visibility,
                                     LocalDate startDate, LocalDate endDate, String imageUrl, Long creatorId) {
         try {
-            // 验证项目名称是否已存在
-            if (projectRepository.existsByName(name)) {
+            // 验证项目名称是否已存在（只检查未删除的项目）
+            if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
                 return R.fail("项目名称已存在: " + name);
             }
 
@@ -91,7 +91,7 @@ public class ProjectServiceImpl implements ProjectService {
 
             // 更新项目信息
             if (StringUtils.hasText(name) && !name.equals(project.getName())) {
-                if (projectRepository.existsByNameAndIdNot(name, projectId)) {
+                if (projectRepository.existsByNameAndIdNotAndIsDeleted(name, projectId, false)) {
                     return R.fail("项目名称已存在: " + name);
                 }
                 project.setName(name);

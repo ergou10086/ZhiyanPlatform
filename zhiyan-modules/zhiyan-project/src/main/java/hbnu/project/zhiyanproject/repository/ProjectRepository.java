@@ -96,6 +96,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     boolean existsByName(String name);
 
     /**
+     * 检查未删除的项目名称是否存在
+     *
+     * @param name 项目名称
+     * @return 是否存在
+     */
+    boolean existsByNameAndIsDeletedFalse(String name);
+
+    /**
      * 检查项目名称是否存在（排除指定ID）
      *
      * @param name 项目名称
@@ -103,6 +111,16 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
      * @return 是否存在
      */
     boolean existsByNameAndIdNot(String name, Long excludeId);
+
+    /**
+     * 检查未删除的项目名称是否存在（排除指定ID）
+     *
+     * @param name 项目名称
+     * @param excludeId 排除的项目ID
+     * @param isDeleted 是否删除标记
+     * @return 是否存在
+     */
+    boolean existsByNameAndIdNotAndIsDeleted(String name, Long excludeId, Boolean isDeleted);
 
     /**
      * 统计创建者的项目数量
