@@ -3,36 +3,34 @@
 spring:
   # 1. 应用基础信息
   application:
-    name: zhiyan-knowledge
+    name: zhiyan-ai-dify
 
   # 2. 配置中心核心配置（Nacos 连接信息，启动必需）
   cloud:
     nacos:
       # Nacos 配置中心配置（优先初始化，用于拉取后续配置）
       config:
-        username: nacos  # 用户名
-        password: nacos  # 密码
         server-addr: 10.7.10.98:8848
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
-        # Spring Cloud Alibaba 会自动加载以下配置文件：
-        # 1. banner.txt.yaml (根据 application.name + file-extension)
-        # 2. banner.txt-${profile}.yaml (如果配置了 spring.profiles.active)
-
-      # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
-      discovery:
         username: nacos  # 用户名
         password: nacos  # 密码
-        server-addr: 10.7.10.98:8848
-        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
-        group: DEFAULT_GROUP
+
+        # Nacos服务发现配置
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 10.7.10.98:8848  # Nacos服务地址
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
+        group: DEFAULT_GROUP  # 业务服务的注册分组
+        weight: 1
+
 
   # 3. 配置导入规则（简化配置中心引入，Spring Boot 2.4+ 推荐）
   config:
     import:
-      - nacos:banner.txt-prod.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
-      - nacos:zhiyan-common-oss-prod.yaml?group=DEFAULT_GROUP&refresh=true
+      - nacos:zhiyan-ai-dify-prod.yaml?refresh=true  # 导入 Nacos 中当前应用的核心配置
 
 
 # 日志基础配置（启动阶段日志，避免日志配置加载延迟）
@@ -44,10 +42,3 @@ logging:
     com.alibaba.nacos.shaded.io.grpc: WARN  # 关闭 gRPC 调试日志
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [BOOTSTRAP] %-5level %logger{36} - %msg%n"
-
-
-
-
-
-
-

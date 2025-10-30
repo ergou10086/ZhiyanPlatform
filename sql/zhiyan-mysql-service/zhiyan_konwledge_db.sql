@@ -82,7 +82,7 @@ CREATE TABLE achievement_review (
 ) COMMENT='评审记录表';
 
 
-
+-- 元数据
 CREATE TABLE `wiki_page` (
                              `id` BIGINT NOT NULL COMMENT 'Wiki页面唯一标识（雪花ID）',
                              `project_id` BIGINT NOT NULL COMMENT '所属项目ID',

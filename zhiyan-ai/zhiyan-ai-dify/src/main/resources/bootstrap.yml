@@ -1,0 +1,8 @@
+# 主 bootstrap 配置文件 - 通用配置
+
+spring:
+  application:
+    name: zhiyan-ai-dify
+  profiles:
+    # 默认使用 prod 环境，开发时通过参数指定为 dev
+    active: prod

@@ -1,6 +1,6 @@
 # 生产环境（服务器环境）
 
-# zhiyan-knowledge 服务配置
+# banner.txt 服务配置
 server:
   port: 8093
 
