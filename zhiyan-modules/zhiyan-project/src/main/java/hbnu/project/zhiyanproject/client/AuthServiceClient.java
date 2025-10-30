@@ -42,12 +42,12 @@ public interface AuthServiceClient {
     R<UserDTO> getUserByName(@RequestParam("name") String name);
 
     /**
-     * 根据用户ID查询用户信息
+     * 根据用户ID查询用户信息（使用内部接口，无需权限）
      *
      * @param id 用户ID
      * @return 用户信息
      */
-    @GetMapping("/{id}")
+    @GetMapping("/internal/{id}")
     R<UserDTO> getUserById(@PathVariable("id") Long id);
 
     /**

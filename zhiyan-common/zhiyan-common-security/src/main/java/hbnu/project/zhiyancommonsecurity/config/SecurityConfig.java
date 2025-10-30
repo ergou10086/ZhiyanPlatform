@@ -131,6 +131,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(
                                 "/zhiyan/users/email",              // 根据邮箱查询用户
                                 "/zhiyan/users/name",               // 根据姓名查询用户
+                                "/zhiyan/users/internal/**",        // 内部接口（按ID查询用户）
                                 "/zhiyan/users/batch-query",        // 批量查询用户
                                 "/zhiyan/users/*/has-permission",   // 检查用户权限
                                 "/zhiyan/users/*/has-permissions",  // 批量检查权限

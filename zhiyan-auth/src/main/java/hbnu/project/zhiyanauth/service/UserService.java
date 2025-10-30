@@ -59,6 +59,15 @@ public interface UserService {
     R<UserDTO> getUserByName(String name);
 
     /**
+     * 根据用户ID查询用户信息（服务间调用接口）
+     * 供项目服务、团队服务等通过Feign调用
+     * 
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    R<UserDTO> getUserByIdInternal(Long userId);
+
+    /**
      * 批量根据用户ID查询用户信息（服务间调用接口）
      * 用于项目服务批量查询成员信息等场景
      * 

@@ -429,6 +429,27 @@ public class UserController {
     }
 
     /**
+     * 根据用户ID查询用户信息（服务间调用接口）
+     * 路径: GET /api/users/internal/{userId}
+     * 用于其他微服务通过Feign调用查询用户
+     * 无需权限校验（内部调用）
+     */
+    @GetMapping("/internal/{userId}")
+    @Operation(summary = "根据ID查询用户（内部调用）", description = "根据用户ID查询用户基本信息（服务间调用，无需权限）")
+    public R<UserDTO> getUserByIdInternal(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable Long userId) {
+        log.info("根据ID查询用户（内部调用）: userId={}", userId);
+
+        try {
+            return userService.getUserByIdInternal(userId);
+        } catch (Exception e) {
+            log.error("根据ID查询用户失败（内部调用）: userId={}", userId, e);
+            return R.fail("查询用户失败");
+        }
+    }
+
+    /**
      * 批量根据ID查询用户信息（服务间调用接口）
      * 路径: POST /api/users/batch-query
      * 用于其他微服务批量查询成员信息
