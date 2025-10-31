@@ -64,7 +64,21 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
             throw new ServiceException("项目ID不能为空");
         }
 
-        Page<Achievement> achievementPage = achievementRepository.findByProjectId(projectId, pageable);
+        // 使用急加载查询避免LazyInitializationException
+        List<Achievement> achievements = achievementRepository.findByProjectIdWithFiles(projectId);
+        
+        // 手动分页
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), achievements.size());
+        List<Achievement> pageContent = achievements.subList(start, end);
+        
+        // 转换为Page对象
+        Page<Achievement> achievementPage = new org.springframework.data.domain.PageImpl<>(
+            pageContent, 
+            pageable, 
+            achievements.size()
+        );
+        
         return achievementPage.map(achievementConverter::toDTO);
     }
 

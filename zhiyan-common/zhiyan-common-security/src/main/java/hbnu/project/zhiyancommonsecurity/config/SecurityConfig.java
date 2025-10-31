@@ -129,7 +129,8 @@ public class SecurityConfig implements WebMvcConfigurer {
 
                         // 用户服务内部接口 - 无需登录（供服务间调用）
                         .requestMatchers(
-                                "/zhiyan/users/email",              // 根据邮箱查询用户
+
+                        "/zhiyan/users/email",              // 根据邮箱查询用户
                                 "/zhiyan/users/name",               // 根据姓名查询用户
                                 "/zhiyan/users/internal/**",        // 内部接口（按ID查询用户）
                                 "/zhiyan/users/batch-query",        // 批量查询用户
@@ -176,9 +177,9 @@ public class SecurityConfig implements WebMvcConfigurer {
 
                         // 项目服务内部接口 - 无需登录（供微服务间调用）
                         .requestMatchers(
-                                "/api/projects/members/*/members/check",     // 检查成员关系
-                                "/api/projects/members/*/owner/check",       // 检查拥有者
-                                "/api/projects/members/*/permissions/check"  // 检查权限
+                                "/api/*/members/check",        // 检查成员关系
+                                "/api/*/owner/check",          // 检查拥有者
+                                "/api/*/permissions/check"     // 检查权限
                         ).permitAll()
 
                         // AI 流式接口 - 使用 permitAll，权限在 Controller 层通过 @PreAuthorize 控制

@@ -32,6 +32,16 @@ public interface AchievementRepository extends JpaRepository<Achievement, Long>,
      * @return 成果分页列表
      */
     Page<Achievement> findByProjectId(Long projectId, Pageable pageable);
+    
+    /**
+     * 根据项目ID查询成果列表（急加载files，避免懒加载异常）
+     *
+     * @param projectId 项目ID
+     * @param pageable  分页参数
+     * @return 成果分页列表
+     */
+    @Query("SELECT DISTINCT a FROM Achievement a LEFT JOIN FETCH a.files WHERE a.projectId = :projectId")
+    List<Achievement> findByProjectIdWithFiles(@Param("projectId") Long projectId);
 
     /**
      * 根据项目ID查询成果列表

@@ -6,7 +6,6 @@ import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils;
 import hbnu.project.zhiyanknowledge.service.AchievementDetailsService;
-import hbnu.project.zhiyanknowledge.service.AchievementSearchService;
 import hbnu.project.zhiyanknowledge.service.AchievementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("zhiyan/achievement")
+@RequestMapping("/zhiyan/achievement")
 @Tag(name = "成果管理", description = "成果创建、详情编辑，成果查询等管理成果的接口")
 public class AchievementManageController {
 

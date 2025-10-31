@@ -4,6 +4,19 @@ spring:
   profiles:
     # 默认使用prod环境，可通过环境变量覆盖
     active: ${SPRING_PROFILES_ACTIVE:prod}
+  
+  autoconfigure:
+    exclude:
+      - org.springdoc.core.configuration.SpringDocUIConfiguration
+      - org.springdoc.core.configuration.SpringDocConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration
+      - io.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration
+      # 排除Redis Repositories自动配置，避免无效扫描（项目只使用JPA Repository）
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 
 # 通用配置
 app:
