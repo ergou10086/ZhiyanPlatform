@@ -134,6 +134,12 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-oss</artifactId>
         </dependency>
+
+        <!-- zhiyan-common-swagger模块 -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-swagger</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

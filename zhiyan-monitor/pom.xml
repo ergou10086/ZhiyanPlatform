@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>hbnu.project</groupId>
+        <artifactId>zhiyan-backend</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <module>zhiyan-sentinel-dashboard</module>
+        <module>zhiyan-skywalking</module>
+    </modules>
+
+    <packaging>pom</packaging>
+    <artifactId>zhiyan-monitor</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>zhiyan-monitor</name>
+    <description>zhiyan-monitor监控父模块，负责管理各个监控部分</description>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencies>
+
+    </dependencies>
+
+</project>

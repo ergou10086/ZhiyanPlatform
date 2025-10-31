@@ -26,6 +26,7 @@
         <module>zhiyan-common</module>
         <module>zhiyan-gateway</module>
         <module>zhiyan-modules</module>
+        <module>zhiyan-monitor</module>
         <module>zhiyan-nacos</module>
     </modules>
 
