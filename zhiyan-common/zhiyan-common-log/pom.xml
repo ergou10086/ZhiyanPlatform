@@ -16,7 +16,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <kotlin.version>2.0.0</kotlin.version>
+        <kotlin.version>1.9.25</kotlin.version>
     </properties>
 
     <dependencies>
@@ -32,7 +32,7 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
-        <!-- Kotlin 核心库 -->
+        <!-- Kotlin 核心库 - 版本由父 POM 管理 -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
@@ -43,7 +43,7 @@
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
 
-        <!-- Kotlin Coroutines (协程支持) -->
+        <!-- Kotlin Coroutines (协程支持) - 版本由父 POM 管理 -->
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
@@ -54,7 +54,7 @@
             <artifactId>kotlinx-coroutines-reactor</artifactId>
         </dependency>
 
-        <!-- Jackson Kotlin Module -->
+        <!-- Jackson Kotlin Module - 版本由父 POM 管理 -->
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
@@ -119,16 +119,28 @@
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+            <!-- Kotlin Maven 插件 -->
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
                 <configuration>
+                    <jvmTarget>${java.version}</jvmTarget>
                     <args>
                         <arg>-Xjsr305=strict</arg>
                     </args>
@@ -136,13 +148,6 @@
                         <plugin>spring</plugin>
                     </compilerPlugins>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-maven-allopen</artifactId>
-                        <version>${kotlin.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>

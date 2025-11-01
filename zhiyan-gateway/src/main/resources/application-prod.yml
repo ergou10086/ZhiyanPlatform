@@ -3,7 +3,7 @@
 # 服务器配置
 server:
   # 网关服务监听端口
-  port: 9005
+  port: 9006
 
 # Spring相关配置
 spring:
