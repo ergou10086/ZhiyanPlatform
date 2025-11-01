@@ -3,9 +3,11 @@ package hbnu.project.zhiyanknowledge.repository;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,8 +40,12 @@ public interface AchievementDetailRepository extends JpaRepository<AchievementDe
 
     /**
      * 删除成果详情
+     * @param achievementId 成果ID
+     * @return 删除的记录数
      */
-    boolean deleteByAchievementId(Long achievementId);
+    @Modifying
+    @Transactional
+    int deleteByAchievementId(Long achievementId);
 
     /**
      * 批量查询成果详情

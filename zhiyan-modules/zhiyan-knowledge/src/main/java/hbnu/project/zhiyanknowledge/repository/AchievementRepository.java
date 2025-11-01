@@ -7,9 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +34,16 @@ public interface AchievementRepository extends JpaRepository<Achievement, Long>,
      * @return 成果分页列表
      */
     Page<Achievement> findByProjectId(Long projectId, Pageable pageable);
+    
+    /**
+     * 根据项目ID查询成果列表（急加载files，避免懒加载异常）
+     *
+     * @param projectId 项目ID
+     * @param pageable  分页参数
+     * @return 成果分页列表
+     */
+    @Query("SELECT DISTINCT a FROM Achievement a LEFT JOIN FETCH a.files WHERE a.projectId = :projectId")
+    List<Achievement> findByProjectIdWithFiles(@Param("projectId") Long projectId);
 
     /**
      * 根据项目ID查询成果列表
@@ -150,6 +162,8 @@ public interface AchievementRepository extends JpaRepository<Achievement, Long>,
      *
      * @param projectId 项目ID
      */
+    @Modifying
+    @Transactional
     void deleteByProjectId(Long projectId);
 
     /**
