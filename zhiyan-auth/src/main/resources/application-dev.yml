@@ -212,3 +212,57 @@ minio:
     quality: 0.85
     # 是否生成WebP格式
     generateWebP: true
+
+
+zhiyan:
+  log:
+    # 启用日志系统
+    enabled: true
+
+    # 启用操作日志（记录用户操作）
+    operation-enabled: true
+
+    # 启用访问日志（记录所有 API 访问）
+    access-enabled: true
+
+    # 启用异常日志（全局异常捕获）
+    exception-enabled: true
+
+    # 记录请求参数（开发环境建议开启）
+    record-request-params: true
+
+    # 记录响应结果（开发环境建议开启，生产环境根据需要）
+    record-response-result: true
+
+    # 记录请求头（开发环境可选）
+    record-headers: true
+
+    # 响应结果最大长度（超过则截断）
+    max-response-length: 3000
+
+    # 请求参数最大长度（超过则截断）
+    max-request-length: 2000
+
+    # 排除的 URL 路径（不记录日志）
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /doc.html
+      - /webjars/**
+      - /zhiyan/auth/validate-token  # 高频接口，不记录
+
+    # 慢请求阈值（毫秒）- 认证服务建议设置较低
+    slow-request-threshold: 1000
+
+    # 异步处理日志（开发环境可设为 false 方便调试）
+    async: false
+
+    # 日志处理线程池配置
+    thread-pool:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 100
+      thread-name-prefix: auth-log-

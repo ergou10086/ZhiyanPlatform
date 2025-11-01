@@ -85,7 +85,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "/actuator/**",
                         "/swagger-ui/**",
                         "/swagger-resources/**",
-                        "/v3/api-docs/**"
+                        "/v3/api-docs/**",
+                        "/doc.html",
+                        "/doc.html/**"
                 );
     }
 
@@ -124,7 +126,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/favicon.ico",
                                 "/actuator/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/doc.html",
+                                "/doc.html/**"
                         ).permitAll()
 
                         // 用户服务内部接口 - 无需登录（供服务间调用）

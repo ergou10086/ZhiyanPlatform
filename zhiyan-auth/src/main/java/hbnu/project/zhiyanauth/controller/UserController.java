@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanauth.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
 import hbnu.project.zhiyanauth.model.response.UserInfoResponse;
@@ -41,6 +44,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "用户管理", description = "用户信息管理相关接口")
+@AccessLog("用户管理")
 public class UserController {
 
     private final UserService userService;
@@ -54,6 +58,7 @@ public class UserController {
      */
     @GetMapping("/me")
     @Operation(summary = "获取当前用户信息", description = "获取当前登录用户的基本信息")
+    @OperationLog(module = "用户管理", type = OperationType.QUERY, description = "获取当前用户信息", recordResult = false)
     public R<UserInfoResponse> getCurrentUser() {
         log.info("获取当前用户信息");
 
@@ -81,6 +86,7 @@ public class UserController {
         }
     }
 
+
     /**
      * 根据ID获取用户详细信息（包含角色和权限）
      * 路径: GET /api/users/{userId}
@@ -89,6 +95,7 @@ public class UserController {
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取用户详情", description = "根据ID获取用户详细信息（包含角色和权限）")
+    @OperationLog(module = "用户管理", type = OperationType.QUERY, description = "查询用户详情")
     public R<UserInfoResponse> getUserById(
             @Parameter(description = "用户ID", required = true)
             @PathVariable Long userId) {
@@ -112,6 +119,7 @@ public class UserController {
         }
     }
 
+
     /**
      * 获取用户列表（管理员功能，分页）
      * 路径: GET /api/users
@@ -120,6 +128,7 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取用户列表", description = "分页查询用户列表（管理员功能）")
+    @OperationLog(module = "用户管理", type = OperationType.QUERY, description = "查询用户列表", recordResult = false)
     public R<Page<UserInfoResponse>> getUserList(
             @Parameter(description = "页码，从0开始")
             @RequestParam(defaultValue = "0") int page,
@@ -149,6 +158,7 @@ public class UserController {
             return R.fail("获取用户列表失败");
         }
     }
+
 
     /**
      * 搜索用户（用于项目成员邀请等场景）
@@ -193,6 +203,7 @@ public class UserController {
      */
     @PutMapping("/me")
     @Operation(summary = "更新个人资料", description = "更新当前登录用户的个人信息")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, description = "更新用户资料")
     public R<UserInfoResponse> updateProfile(
             @Valid @RequestBody UserProfileUpdateBody updateBody) {
         log.info("更新用户资料: {}", updateBody);
@@ -244,6 +255,7 @@ public class UserController {
         }
     }
 
+
     /**
      * 解锁用户
      * 路径: POST /api/users/{userId}/unlock
@@ -265,14 +277,16 @@ public class UserController {
         }
     }
 
+
     /**
-     * 软删除用户
+     * 软删除用户(销号)
      * 路径: DELETE /api/users/{userId}
      * 角色: DEVELOPER（只有开发者可以删除用户）
      */
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "删除用户", description = "软删除指定用户（管理员功能）")
+    @OperationLog(module = "用户管理", type = OperationType.DELETE, description = "删除用户，销号")
     public R<Void> deleteUser(
             @Parameter(description = "用户ID", required = true)
             @PathVariable Long userId) {
@@ -291,6 +305,7 @@ public class UserController {
             return R.fail("删除用户失败");
         }
     }
+
 
     /**
      * 批量更新用户状态（管理员功能）

@@ -1,6 +1,9 @@
 package hbnu.project.zhiyanauth.controller;
 
 import com.alibaba.nacos.api.model.v2.Result;
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.form.*;
 import hbnu.project.zhiyanauth.model.form.TokenRefreshBody;
@@ -37,6 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "用户认证", description = "用户注册、登录、验证等认证相关接口")
+@AccessLog("认证服务")
 public class AuthController {
 
     private final AuthService authService;
@@ -50,6 +54,7 @@ public class AuthController {
      */
     @PostMapping("/send-verfcode")
     @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
+    @OperationLog(module = "认证管理", type = OperationType.OTHER, description = "发送验证码")
     public R<Void> sendVerificationCode(
             @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
         log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
@@ -64,6 +69,9 @@ public class AuthController {
      */
     @PostMapping("/register")
     @Operation(summary = "用户注册", description = "通过邮箱和验证码进行用户注册")
+    @OperationLog(module = "认证管理", type = OperationType.INSERT, description = "用户注册", recordParams = true,
+            recordResult = false  // 不记录响应（包含敏感信息）
+    )
     public R<UserRegisterResponse> register(
             @Valid @RequestBody RegisterBody request) {
         log.info("用户注册请求: 邮箱={}, 姓名={}", request.getEmail(), request.getName());
@@ -72,11 +80,15 @@ public class AuthController {
         return authService.register(request);
     }
 
+
     /**
      * 用户登录
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
+    @OperationLog(module = "认证管理", type = OperationType.LOGIN, description = "用户登录", recordParams = true,
+            recordResult = false  // 不记录 token
+    )
     public R<UserLoginResponse> login(
             @Valid @RequestBody LoginBody loginBody, HttpServletResponse response) {
         log.info("用户登录API请求: 邮箱={}", loginBody.getEmail());
@@ -91,6 +103,9 @@ public class AuthController {
 
         return result;
     }
+
+
+
     /**
      * 自动登录检查接口
      * 前端可以在应用启动时调用此接口检查是否可以通过RememberMe自动登录
@@ -119,6 +134,7 @@ public class AuthController {
         }
     }
 
+
     /**
      * 清除RememberMe token
      */
@@ -146,10 +162,6 @@ public class AuthController {
         log.info("清除RememberMe token成功");
         return R.ok(null, "清除成功");
     }
-
-
-
-
 
 
     /**
@@ -181,16 +193,11 @@ public class AuthController {
 
 
     /**
-     //     * 刷新访问令牌
-     // TODO: 实现令牌刷新逻辑
-     // 1. 校验Refresh Token的有效性
-     // 2. 检查Token是否在黑名单中
-     // 3. 生成新的Access Token（可选择是否生成新的Refresh Token）
-     // 4. 使旧的Refresh Token失效
-     // 5. 返回新的令牌
-     //     */
+     * 刷新访问令牌
+     */
     @PostMapping("/refresh")
     @Operation(summary = "刷新令牌", description = "使用Refresh Token获取新的Access Token")
+    @OperationLog(module = "认证管理", type = OperationType.OTHER, description = "刷新令牌", recordResult = false)
     public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshBody request) {
         log.info("令牌刷新请求 - refreshToken: {}", request.getRefreshToken());
         TokenDTO tokenDTO = authService.refreshToken(request.getRefreshToken());
@@ -212,17 +219,20 @@ public class AuthController {
         return Result.success(response);
     }
 
+
     /**
      * 忘记密码 - 发送重置验证码
      */
     @PostMapping("/forgot-password")
     @Operation(summary = "忘记密码", description = "发送密码重置验证码到邮箱")
+    @OperationLog(module = "认证管理", type = OperationType.UPDATE, description = "重置密码")
     public R<Void> forgotPassword(@Valid @RequestBody ForgotPasswordBody request) {
         log.info("忘记密码请求: 邮箱={}", request.getEmail());
 
         // 调用 service
         return authService.forgotPassword(request.getEmail());
     }
+
 
     /**
      * 重置密码
@@ -236,12 +246,12 @@ public class AuthController {
     }
 
 
-
     /**
      * 用户登出接口
      */
     @PostMapping("/logout")
     @Operation(summary = "用户登出", description = "用户登出，使令牌失效")
+    @OperationLog(module = "认证管理", type = OperationType.LOGOUT, description = "用户登出")
     public R<String> logout(@RequestHeader("Authorization") String tokenHeader) {
         authService.logout(tokenHeader);
         return R.ok(null, "登出成功"); // 返回 R<Void>

@@ -1,0 +1,77 @@
+# ============================================
+# 智研平台日志系统配置模板 (Kotlin)
+# 将此配置复制到你的微服务 application.yml 中
+# ============================================
+
+spring:
+  application:
+    name: your-service-name  # 修改为你的服务名
+
+# ============================================
+# 智研平台日志配置
+# ============================================
+zhiyan:
+  log:
+    # 是否启用日志系统（默认: true）
+    enabled: true
+    
+    # 是否启用操作日志（默认: true）
+    operation-enabled: true
+    
+    # 是否启用访问日志（默认: true）
+    access-enabled: true
+    
+    # 是否启用异常日志（默认: true）
+    exception-enabled: true
+    
+    # 是否记录请求参数（默认: true）
+    record-request-params: true
+    
+    # 是否记录响应结果（默认: true）
+    record-response-result: true
+    
+    # 是否记录请求头（默认: false）
+    record-headers: false
+    
+    # 响应结果最大长度（默认: 2000）
+    max-response-length: 2000
+    
+    # 请求参数最大长度（默认: 2000）
+    max-request-length: 2000
+    
+    # 排除的 URL 路径（不记录日志）
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /doc.html
+      - /webjars/**
+    
+    # 慢请求阈值（毫秒，默认: 3000）
+    slow-request-threshold: 3000
+    
+    # 是否异步处理日志（默认: true）
+    async: true
+    
+    # 日志处理线程池配置
+    thread-pool:
+      core-size: 2
+      max-size: 5
+      queue-capacity: 100
+      thread-name-prefix: zhiyan-log-
+
+# ============================================
+# 日志级别配置（可选）
+# ============================================
+logging:
+  level:
+    root: INFO
+    hbnu.project: DEBUG
+    hbnu.project.common.log: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: logs/${spring.application.name}/app.log
+

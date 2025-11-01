@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanauth.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanauth.model.dto.PermissionDTO;
 import hbnu.project.zhiyanauth.model.form.*;
 import hbnu.project.zhiyanauth.model.response.PermissionDetailResponse;
@@ -44,6 +47,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "权限管理", description = "系统权限管理相关接口")
+@AccessLog("权限管理")
 public class PermissionController {
 
     private final PermissionService permissionService;
@@ -59,6 +63,7 @@ public class PermissionController {
     @GetMapping
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取权限列表", description = "分页查询所有系统权限（管理员功能）")
+    @OperationLog(module = "权限管理", type = OperationType.QUERY, description = "管理员分页查询所有系统权限")
     public R<Page<PermissionInfoResponse>> getAllPermissions(
             @Parameter(description = "页码，从0开始")
             @RequestParam(defaultValue = "0") int page,
@@ -87,6 +92,7 @@ public class PermissionController {
         }
     }
 
+
     /**
      * 根据ID获取权限详情
      * 路径: GET /auth/permissions/{permissionId}
@@ -95,6 +101,7 @@ public class PermissionController {
     @GetMapping("/{permissionId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取权限详情", description = "根据ID获取权限详细信息（包含拥有该权限的角色列表）")
+    @OperationLog(module = "权限管理", type = OperationType.QUERY, description = "根据ID获取权限详细信息，包含拥有该权限的角色列表")
     public R<PermissionDetailResponse> getPermissionById(
             @Parameter(description = "权限ID", required = true)
             @PathVariable Long permissionId) {
@@ -138,6 +145,7 @@ public class PermissionController {
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "创建权限", description = "创建新的系统权限（管理员功能）")
+    @OperationLog(module = "权限管理", type = OperationType.INSERT, description = "管理员创建新的系统权限")
     public R<PermissionInfoResponse> createPermission(
             @Valid @RequestBody CreatePermissionBody request) {
         log.info("创建权限: name={}", request.getName());
@@ -174,6 +182,7 @@ public class PermissionController {
     @PutMapping("/{permissionId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "更新权限", description = "更新权限基本信息（管理员功能）")
+    @OperationLog(module = "权限管理", type = OperationType.UPDATE, description = "管理员更新新的系统权限")
     public R<PermissionInfoResponse> updatePermission(
             @Parameter(description = "权限ID", required = true)
             @PathVariable Long permissionId,
@@ -212,6 +221,7 @@ public class PermissionController {
     @DeleteMapping("/{permissionId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "删除权限", description = "删除指定权限（管理员功能，已被角色使用的权限不可删除）")
+    @OperationLog(module = "权限管理", type = OperationType.DELETE, description = "管理员删除系统权限")
     public R<Void> deletePermission(
             @Parameter(description = "权限ID", required = true)
             @PathVariable Long permissionId) {
@@ -228,6 +238,7 @@ public class PermissionController {
     @PostMapping("/batch")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "批量创建权限", description = "批量创建多个权限（管理员功能）")
+    @OperationLog(module = "权限管理", type = OperationType.INSERT, description = "管理员批量创建权限，如下")
     public R<List<PermissionInfoResponse>> batchCreatePermissions(
             @Valid @RequestBody BatchCreatePermissionsBody request) {
         log.info("批量创建权限: 数量={}", request.getPermissions().size());

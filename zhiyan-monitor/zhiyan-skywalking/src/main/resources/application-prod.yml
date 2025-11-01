@@ -1,0 +1,68 @@
+# 生产环境配置
+
+server:
+  port: 9856
+
+# SkyWalking OAP 服务器配置
+skywalking:
+  oap:
+    # OAP 服务器地址（生产环境）
+    address: ${SKYWALKING_OAP_ADDRESS:http://10.7.10.98:11800}
+    # GraphQL 查询端点
+    graphql-endpoint: ${SKYWALKING_GRAPHQL_ENDPOINT:http://10.7.10.98:12800/graphql}
+  ui:
+    # SkyWalking UI 地址
+    address: ${SKYWALKING_UI_ADDRESS:http://10.7.10.98:8080}
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project.zhiyanskywalking: INFO
+    org.springframework.web: INFO
+  file:
+    name: logs/zhiyan-skywalking/zhiyan-skywalking.log
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health,info,metrics'
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Swagger 配置
+swagger:
+  enabled: true
+  title: 智研平台 SkyWalking 监控管理 API
+  description: 分布式追踪、性能监控和服务拓扑管理接口
+  version: 1.0.0
+  contact:
+    name: 智研平台开发团队
+    email: zjm88822201@126.com
+    url: https://github.com/ergou10086/ZhiyanPlatform
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  auth-enabled: false
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  packages-to-scan: hbnu.project.zhiyanskywalking
+  paths-to-match: /**
+
+# Knife4j 增强配置
+knife4j:
+  enable: true
+  production: true
+  setting:
+    language: zh_CN
+

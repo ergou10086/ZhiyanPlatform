@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanauth.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanauth.model.dto.AvatarDTO;
 import hbnu.project.zhiyanauth.service.AvatarService;
 import hbnu.project.zhiyancommonbasic.domain.R;
@@ -23,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "用户头像管理", description = "用户头像上传、更新、删除相关接口")
+@AccessLog("用户头像管理")
 public class AvatarController {
 
     private final AvatarService avatarService;
@@ -35,6 +39,7 @@ public class AvatarController {
      */
     @PostMapping("/upload")
     @Operation(summary = "上传头像", description = "上传用户头像")
+    @OperationLog(module = "用户头像管理", type = OperationType.UPLOAD, description = "上传用户头像")
     public R<AvatarDTO> uploadAvatar(
             @Parameter(description = "头像图片文件", required = true) @RequestParam("file") MultipartFile file
     ) {
@@ -73,6 +78,7 @@ public class AvatarController {
      */
     @GetMapping("/me_avatar")
     @Operation(summary = "获取头像信息", description = "获取当前用户的头像URL信息（包含所有尺寸）")
+    @OperationLog(module = "用户头像管理", type = OperationType.QUERY, description = "获取当前用户头像信息")
     public R<AvatarDTO> getMyAvatar() {
         log.info("获取当前用户头像信息");
 
@@ -99,6 +105,7 @@ public class AvatarController {
      */
     @GetMapping("/{userId}")
     @Operation(summary = "获取指定用户头像", description = "根据用户ID获取头像信息（服务间调用）")
+    @OperationLog(module = "用户头像管理", type = OperationType.QUERY, description = "服务间调用预留,根据用户ID获取头像信息")
     public R<AvatarDTO> getAvatar(@Parameter(description = "用户ID", required = true) @PathVariable Long userId) {
         log.info("获取用户头像信息: userId={}", userId);
 

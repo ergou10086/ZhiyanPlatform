@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanauth.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanauth.model.dto.RoleDTO;
 import hbnu.project.zhiyanauth.model.form.*;
 import hbnu.project.zhiyanauth.model.response.RoleDetailResponse;
@@ -41,6 +44,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "角色管理", description = "系统角色管理相关接口")
+@AccessLog("角色管理")
 public class RoleController {
 
     private final RoleService roleService;
@@ -55,6 +59,7 @@ public class RoleController {
     @GetMapping
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取角色列表", description = "分页查询所有系统角色（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.QUERY, description = "分页获取所有的角色列表，管理员调用")
     public R<Page<RoleInfoResponse>> getAllRoles(
             @Parameter(description = "页码，从0开始")
             @RequestParam(defaultValue = "0") int page,
@@ -83,6 +88,7 @@ public class RoleController {
         }
     }
 
+
     /**
      * 根据ID获取角色详情
      * 路径: GET /auth/roles/{roleId}
@@ -91,6 +97,7 @@ public class RoleController {
     @GetMapping("/{roleId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取角色详情", description = "根据ID获取角色详细信息（包含权限列表）")
+    @OperationLog(module = "角色管理", type = OperationType.QUERY, description = "根据ID获取角色详细信息及其权限内容")
     public R<RoleDetailResponse> getRoleById(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId) {
@@ -142,6 +149,7 @@ public class RoleController {
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "创建角色", description = "创建新的系统角色（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.INSERT, description = "创建角色")
     public R<RoleInfoResponse> createRole(
             @Valid @RequestBody CreateRoleBody request) {
         log.info("创建角色: name={}", request.getName());
@@ -190,6 +198,7 @@ public class RoleController {
     @PutMapping("/{roleId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "更新角色", description = "更新角色基本信息（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.UPDATE, description = "更新角色")
     public R<RoleInfoResponse> updateRole(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
@@ -228,6 +237,7 @@ public class RoleController {
     @DeleteMapping("/{roleId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "删除角色", description = "删除指定角色（管理员功能，系统默认角色不可删除）")
+    @OperationLog(module = "角色管理", type = OperationType.DELETE, description = "删除角色")
     public R<Void> deleteRole(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId) {
@@ -246,6 +256,7 @@ public class RoleController {
     @PostMapping("/assign-user")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "为用户分配角色", description = "为指定用户分配一个或多个角色（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.INSERT, description = "为用户分配角色")
     public R<Void> assignRolesToUser(
             @Valid @RequestBody AssignUserRoleBody request) {
         log.info("为用户分配角色: userId={}, roleIds={}", request.getUserId(), request.getRoleIds());
@@ -261,6 +272,7 @@ public class RoleController {
     @PostMapping("/remove-user")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "移除用户角色", description = "移除用户的指定角色（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.UPDATE, description = "移除用户的角色")
     public R<Void> removeRolesFromUser(
             @Valid @RequestBody RemoveUserRoleBody request) {
         log.info("移除用户角色: userId={}, roleIds={}", request.getUserId(), request.getRoleIds());
@@ -294,6 +306,7 @@ public class RoleController {
     @PostMapping("/{roleId}/permissions")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "为角色分配权限", description = "为指定角色分配权限（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.GRANT, description = "分配角色权限")
     public R<Void> assignPermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
@@ -311,6 +324,7 @@ public class RoleController {
     @DeleteMapping("/{roleId}/permissions")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "移除角色权限", description = "移除角色的指定权限（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.UPDATE, description = "移除角色权限")
     public R<Void> removePermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId,
@@ -328,6 +342,7 @@ public class RoleController {
     @GetMapping("/{roleId}/permissions")
     @PreAuthorize("hasRole('DEVELOPER')")
     @Operation(summary = "获取角色权限", description = "获取指定角色的所有权限（管理员功能）")
+    @OperationLog(module = "角色管理", type = OperationType.QUERY, description = "获取角色的所有权限")
     public R<Set<String>> getRolePermissions(
             @Parameter(description = "角色ID", required = true)
             @PathVariable Long roleId) {

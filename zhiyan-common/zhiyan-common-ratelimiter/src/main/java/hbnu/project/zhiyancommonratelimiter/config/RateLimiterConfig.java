@@ -7,6 +7,7 @@ import org.springframework.data.redis.connection.RedisConfiguration;
 
 /**
  * 限流配置
+ *
  * @author ErgouTree
  */
 @AutoConfiguration(after = RedisConfiguration.class)

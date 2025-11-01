@@ -45,6 +45,18 @@
         </dependency>
 
 
+        <!-- Spring Cloud Alibaba Sentinel -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+        </dependency>
+
+        <!-- 如果需要规则持久化到 Nacos -->
+        <dependency>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-datasource-nacos</artifactId>
+        </dependency>
+
         <!-- Spring Cloud Loadbalancer -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

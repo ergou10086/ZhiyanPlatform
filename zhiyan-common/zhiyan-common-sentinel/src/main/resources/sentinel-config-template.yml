@@ -1,0 +1,88 @@
+# ============================================
+# Sentinel 配置模板
+# 将此配置复制到你的微服务 application.yml 中
+# ============================================
+
+spring:
+  application:
+    name: your-service-name  # 修改为你的服务名
+  cloud:
+    sentinel:
+      # 开启 Sentinel
+      enabled: true
+      # 饥饿加载（立即初始化）
+      eager: true
+      
+      # Dashboard 配置
+      transport:
+        # Sentinel Dashboard 地址
+        dashboard: localhost:8858
+        # 与 Dashboard 通信的端口（每个服务不同，避免冲突）
+        port: 8719
+        # 心跳发送周期（毫秒）
+        heartbeat-interval-ms: 5000
+      
+      # Web 过滤器配置
+      web-context-unify: false
+      http-method-specify: true
+
+# ============================================
+# 智研平台 Sentinel 扩展配置
+# ============================================
+zhiyan:
+  sentinel:
+    # 是否启用 Sentinel
+    enabled: true
+    # 饥饿加载
+    eager: true
+    
+    # Dashboard 配置
+    dashboard:
+      host: localhost
+      port: 8858
+      client-port: 8719
+      heartbeat-interval-ms: 5000
+    
+    # 日志配置
+    log:
+      dir: logs/sentinel
+      switch-pid: true
+    
+    # 全局配置
+    global:
+      web-context-unify: false
+      http-method-specify: true
+      # 全局 QPS 限制（-1 表示不限制）
+      global-qps: -1
+      # 全局线程数限制（-1 表示不限制）
+      global-thread: -1
+    
+    # Nacos 数据源配置（规则持久化）
+    nacos:
+      enabled: true
+      server-addr: localhost:8848
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+      group-id: SENTINEL_GROUP
+      username: nacos
+      password: nacos
+      data-id-suffix: json
+
+# ============================================
+# Feign 配置（如果使用 Feign）
+# ============================================
+feign:
+  sentinel:
+    enabled: true
+
+# ============================================
+# 管理端点配置（可选）
+# ============================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+

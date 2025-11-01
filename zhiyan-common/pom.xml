@@ -18,7 +18,9 @@
         <module>zhiyan-common-oss</module>
         <module>zhiyan-common-idempotent</module>
         <module>zhiyan-common-loadbalancer</module>
+        <module>zhiyan-common-log</module>
         <module>zhiyan-common-bus</module>
+        <module>zhiyan-common-sentinel</module>
         <module>zhiyan-common-swagger</module>
         <module>zhiyan-common-sse</module>
         <module>zhiyan-common-ratelimiter</module>
