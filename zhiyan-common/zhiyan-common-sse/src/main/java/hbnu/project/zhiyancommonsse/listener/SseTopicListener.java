@@ -12,7 +12,7 @@ import org.springframework.core.Ordered;
 /**
  * SSE 主题订阅监听器
  *
- * @author Lion Li
+ * @author yui,ErgouTree
  */
 @Slf4j
 @RequiredArgsConstructor

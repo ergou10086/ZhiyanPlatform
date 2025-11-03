@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * SSE 配置项
  *
- * @author Lion Li
+ * @author yui
  */
 @Data
 @ConfigurationProperties("sse")

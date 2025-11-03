@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 消息的dto
  *
- * @author zendwang
+ * @author yui
  */
 @Data
 public class SseMessageDto implements Serializable {

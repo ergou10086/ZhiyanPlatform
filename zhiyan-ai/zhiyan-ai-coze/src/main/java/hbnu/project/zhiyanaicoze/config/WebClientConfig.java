@@ -48,7 +48,7 @@ public class WebClientConfig {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .defaultHeader("Authorization", "Bearer " + cozeProperties.getToken())
                 .defaultHeader("Content-Type", "application/json")
-                .defaultHeader("Accept", "application/json")
+                .defaultHeader("Accept", "text/event-stream")  // SSE 流式响应需要此头
                 .build();
     }
 

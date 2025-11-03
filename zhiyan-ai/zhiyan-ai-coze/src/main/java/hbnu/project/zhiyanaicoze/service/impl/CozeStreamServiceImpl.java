@@ -90,10 +90,15 @@ public class CozeStreamServiceImpl implements CozeStreamService {
                 .doOnSubscribe(sub -> log.info("[Coze Chat] 开始订阅流式响应"))
                 .doOnComplete(() -> log.info("[Coze Chat] 流式响应完成"))
                 // 打印 Coze 返回的原始数据（用于调试）
-                .doOnNext(rawData -> log.debug("[Coze Chat] 收到原始数据: {}", rawData))
+                .doOnNext(rawData -> log.debug("[Coze Chat] 收到原始行: {}", rawData))
+                // 组装SSE事件块：bufferUntil在遇到空行时结束缓冲（包含空行）
+                .bufferUntil(String::isEmpty, true)
+                // 过滤掉空的事件块
+                .filter(lines -> lines.size() > 1 || (lines.size() == 1 && !lines.get(0).isEmpty()))
+                .doOnNext(lines -> log.debug("[Coze Chat] 收到SSE事件块，行数: {}", lines.size()))
                 // 解析流式数据
-                .<CozeStreamMessage>handle((data, sink) -> {
-                    CozeStreamMessage message = parseCozeStreamData(data);
+                .<CozeStreamMessage>handle((lines, sink) -> {
+                    CozeStreamMessage message = parseCozeStreamEvent(lines);
                     if (message != null) {
                         log.debug("[Coze Chat] 解析成功: event={}, content={}",
                                 message.getEvent(), message.getContent());
@@ -144,9 +149,155 @@ public class CozeStreamServiceImpl implements CozeStreamService {
 
 
     /**
-     * 解析 Coze 流式数据
+     * 解析 SSE 事件块（多行组成的完整事件）
+     * SSE 格式: event: xxx\ndata: {...}\n\n
+     *
+     * @param lines SSE 事件块的所有行
+     * @return 解析后的消息对象
+     */
+    private CozeStreamMessage parseCozeStreamEvent(java.util.List<String> lines) {
+        try {
+            String eventType = null;
+            StringBuilder dataBuilder = new StringBuilder();
+
+            // 遍历所有行，提取 event 和 data
+            for (String line : lines) {
+                if (line.isEmpty()) {
+                    continue; // 跳过空行
+                }
+
+                if (line.startsWith("event:")) {
+                    eventType = line.substring(6).trim();
+                    log.debug("[Coze 解析] 提取事件类型: {}", eventType);
+                } else if (line.startsWith("data:")) {
+                    String dataLine = line.substring(5).trim();
+                    dataBuilder.append(dataLine);
+                    log.debug("[Coze 解析] 提取数据行: {}", dataLine);
+                }
+            }
+
+            String jsonData = dataBuilder.toString();
+
+            // 跳过心跳包或结束标记
+            if (jsonData.isEmpty() || "[DONE]".equals(jsonData)) {
+                log.debug("[Coze 解析] 检测到结束标记");
+                return CozeStreamMessage.builder()
+                        .event("done")
+                        .timestamp(System.currentTimeMillis())
+                        .build();
+            }
+
+            log.debug("[Coze 解析] 完整JSON数据: {}", jsonData);
+
+            // 解析 JSON
+            JsonNode jsonNode = objectMapper.readTree(jsonData);
+
+            CozeStreamMessage.CozeStreamMessageBuilder builder = CozeStreamMessage.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .rawData(jsonData);
+
+            // 使用提取的事件类型，或从JSON中获取
+            if (eventType != null) {
+                builder.event(eventType);
+            } else if (jsonNode.has("event")) {
+                builder.event(jsonNode.get("event").asText());
+            }
+
+            // 解析基本字段
+            if (jsonNode.has("conversation_id")) {
+                builder.conversationId(jsonNode.get("conversation_id").asText());
+            }
+            if (jsonNode.has("chat_id")) {
+                builder.chatId(jsonNode.get("chat_id").asText());
+            }
+            if (jsonNode.has("id")) {
+                builder.id(jsonNode.get("id").asText());
+            }
+            if (jsonNode.has("bot_id")) {
+                builder.botId(jsonNode.get("bot_id").asText());
+            }
+            if (jsonNode.has("status")) {
+                builder.status(jsonNode.get("status").asText());
+            }
+            if (jsonNode.has("created_at")) {
+                builder.createdAt(jsonNode.get("created_at").asLong());
+            }
+            if (jsonNode.has("completed_at")) {
+                builder.completedAt(jsonNode.get("completed_at").asLong());
+            }
+
+            // 解析消息内容（根据不同事件类型）
+            if (jsonNode.has("content")) {
+                builder.content(jsonNode.get("content").asText());
+            }
+
+            if (jsonNode.has("role")) {
+                builder.role(jsonNode.get("role").asText());
+            }
+
+            if (jsonNode.has("type")) {
+                builder.type(jsonNode.get("type").asText());
+            }
+
+            // 解析 usage（Token 使用情况）
+            if (jsonNode.has("usage")) {
+                JsonNode usageNode = jsonNode.get("usage");
+                CozeStreamMessage.Usage usage = new CozeStreamMessage.Usage();
+
+                if (usageNode.has("input_tokens")) {
+                    usage.setInputTokens(usageNode.get("input_tokens").asInt());
+                }
+                if (usageNode.has("output_tokens")) {
+                    usage.setOutputTokens(usageNode.get("output_tokens").asInt());
+                }
+                if (usageNode.has("total_tokens")) {
+                    usage.setTotalTokens(usageNode.get("total_tokens").asInt());
+                }
+
+                builder.usage(usage);
+            }
+
+            // 解析错误信息
+            if (jsonNode.has("error")) {
+                JsonNode errorNode = jsonNode.get("error");
+                if (errorNode.has("message")) {
+                    builder.errorMessage(errorNode.get("message").asText());
+                }
+                if (errorNode.has("code")) {
+                    builder.errorCode(errorNode.get("code").asText());
+                }
+            }
+
+            // 解析 metadata
+            if (jsonNode.has("metadata")) {
+                Map<String, Object> metadata = objectMapper.convertValue(
+                        jsonNode.get("metadata"),
+                        new TypeReference<>() {}
+                );
+                builder.metadata(metadata);
+            }
+
+            CozeStreamMessage result = builder.build();
+            log.debug("[Coze 解析] 解析成功，事件类型: {}, 内容长度: {}",
+                    result.getEvent(),
+                    result.getContent() != null ? result.getContent().length() : 0);
+            return result;
+
+        } catch (Exception e) {
+            log.error("[Coze 解析] 解析SSE事件块失败: lines={}", lines, e);
+            return CozeStreamMessage.builder()
+                    .event("error")
+                    .errorMessage("解析数据失败: " + e.getMessage())
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+        }
+    }
+
+    /**
+     * 解析 Coze 流式数据（旧方法，保留用于兼容）
      * Coze 返回格式: event: xxx\ndata: {...}\n\n
      */
+    @Deprecated
     private CozeStreamMessage parseCozeStreamData(String data) {
         try {
             log.debug("[Coze 解析] 开始解析数据: {}", data);
