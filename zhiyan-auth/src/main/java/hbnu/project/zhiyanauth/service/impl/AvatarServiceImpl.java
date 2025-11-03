@@ -35,16 +35,13 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AvatarServiceImpl implements AvatarService {
 
-    @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
     private final MinioService minioService;
 
-    @Autowired
     private final ImageService imageService;
 
-    private MinioUtils minioUtils;
+    private final MinioUtils minioUtils;
 
     // 支持的图片尺寸
     private static final int[] THUMBNAIL_SIZES = {32, 64, 128, 256};

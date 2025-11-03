@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanproject.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
@@ -47,7 +48,9 @@ public class Tasks extends BaseAuditEntity {
 
     /**
      * 关联的项目实体（外键关联）
+     * 注意：此字段仅供JPA内部查询使用，不序列化到JSON响应中
      */
+    @JsonIgnore  // ✅ 防止序列化时触发懒加载导致no Session异常
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", insertable = false, updatable = false,
             foreignKey = @ForeignKey(name = "tasks_ibfk_1"))

@@ -53,22 +53,47 @@ spring:
 
   # 数据库配置
   datasource:
-    url: jdbc:mysql://10.7.10.98:3306/zhiyan_projectteam_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    url: jdbc:mysql://10.7.10.98:3306/zhiyan_projectteam_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     # 连接池
     hikari:
       pool-name: ProjectServiceHikariPool
-      minimum-idle: 5
-      maximum-pool-size: 20
-      idle-timeout: 300000
-      max-lifetime: 1200000
-      connection-timeout: 20000
+      # 最小空闲连接数
+      minimum-idle: 10
+      # 最大连接池大小（增加到50以应对高并发）
+      maximum-pool-size: 50
+      # 空闲连接超时时间（10分钟）
+      idle-timeout: 600000
+      # 连接最大生命周期（30分钟，必须小于MySQL的wait_timeout）
+      max-lifetime: 1800000
+      # 连接超时时间（30秒）
+      connection-timeout: 30000
       # 启动优化：延迟初始化连接池
       initialization-fail-timeout: 1
-      # 性能优化
+      # 连接验证超时（5秒）
+      validation-timeout: 5000
+      # 连接泄漏检测（60秒，帮助发现未关闭的连接）
+      leak-detection-threshold: 60000
+      # Keepalive时间（5分钟，保持连接活跃）
+      keepalive-time: 300000
+      # 连接属性
       connection-test-query: SELECT 1
+      # 自动提交
+      auto-commit: true
+      # 数据库连接属性
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
 
   # Jackson配置
   jackson:
@@ -135,7 +160,10 @@ logging:
     org.springframework.security: WARN
     org.springframework.web: INFO
     org.hibernate.SQL: WARN
-    com.zaxxer.hikari: INFO
+    # HikariCP详细日志，帮助诊断连接池问题
+    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari.pool: DEBUG
     # 关闭特定框架的冗余日志
     org.springframework.data.redis.repository: WARN
     # 关闭 Nacos 客户端的频繁日志
