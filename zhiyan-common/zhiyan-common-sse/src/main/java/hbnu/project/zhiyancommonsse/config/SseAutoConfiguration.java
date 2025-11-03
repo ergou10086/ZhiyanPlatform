@@ -13,7 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * SSE 自动装配
  *
- * @author Lion Li, ErgouTree
+ * @author yui, ErgouTree
  */
 @AutoConfiguration
 @ConditionalOnProperty(value = "sse.enabled", havingValue = "true")

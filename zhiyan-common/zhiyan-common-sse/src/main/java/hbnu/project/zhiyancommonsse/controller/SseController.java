@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * SSE 控制器
  *
- * @author Lion Li
+ * @author yui,ErgouTree
  */
 @Slf4j
 @RestController
