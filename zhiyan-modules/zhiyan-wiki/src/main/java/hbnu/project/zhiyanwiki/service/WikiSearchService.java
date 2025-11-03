@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,7 +61,7 @@ public class WikiSearchService {
         // 包含评分信息
         query.fields()
                 .include("wikiPageId", "projectId", "content", "updatedAt", "lastEditorId")
-                .includeScore();  // 包含搜索评分
+                .include("score");  // 包含搜索评分
 
         // 执行搜索
         List<Map> results = mongoTemplate.find(query, Map.class, "wiki_contents");
@@ -100,7 +99,7 @@ public class WikiSearchService {
         query.addCriteria(Criteria.where("projectId").is(projectId));
         query.fields()
                 .include("wikiPageId", "projectId", "content", "updatedAt", "lastEditorId")
-                .includeScore();
+                .include("score");
 
         List<Map> results = mongoTemplate.find(query, Map.class, "wiki_contents");
 
@@ -146,7 +145,7 @@ public class WikiSearchService {
         query.addCriteria(Criteria.where("projectId").is(projectId));
         query.fields()
                 .include("wikiPageId", "projectId", "content", "updatedAt", "lastEditorId")
-                .includeScore();
+                .include("score");
 
         List<Map> results = mongoTemplate.find(query, Map.class, "wiki_contents");
 
