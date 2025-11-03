@@ -72,6 +72,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
+        
+        // 记录所有请求（特别是 Coze API 请求）
+        if (requestURI.contains("/api/coze")) {
+            log.info("[JWT Filter] 处理 Coze API 请求: {} {}, URI: {}", method, requestURI, requestURI);
+            log.info("[JWT Filter] Authorization Header: {}", request.getHeader("Authorization") != null ? "存在" : "不存在");
+        }
+        
         try{
             boolean authenticated = false;
             // 1. 从请求中获取JWT token
