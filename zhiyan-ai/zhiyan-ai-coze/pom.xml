@@ -46,6 +46,11 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-data-redis</artifactId>
                 </exclusion>
+                <!-- 排除 zhiyan-common-security 模块（传递依赖），Coze 模块不需要完整的 Security 配置 -->
+                <exclusion>
+                    <groupId>hbnu.project</groupId>
+                    <artifactId>zhiyan-common-security</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 

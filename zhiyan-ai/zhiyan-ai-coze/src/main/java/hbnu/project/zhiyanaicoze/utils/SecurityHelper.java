@@ -1,20 +1,18 @@
 package hbnu.project.zhiyanaicoze.utils;
 
-import hbnu.project.zhiyancommonbasic.constants.TokenConstants;
-import hbnu.project.zhiyancommonbasic.utils.JwtUtils;
+import hbnu.project.zhiyanaicoze.client.AuthServiceClient;
+import hbnu.project.zhiyanaicoze.model.response.TokenValidateResponse;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.time.Duration;
 
 /**
- * Coze AI 模块安全辅助工具类
- *
- * 功能：从 HTTP 请求中解析 JWT Token，获取用户信息
+ * 安全辅助工具类
+ * 通过调用 Auth 服务来验证 Token 并获取用户信息
+ * Coze 模块不直接解析 JWT，而是通过 HTTP 调用 Auth 服务进行验证
  *
  * @author ErgouTree
  */
@@ -23,143 +21,67 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class SecurityHelper {
 
-    private final JwtUtils jwtUtils;
+    private final AuthServiceClient authServiceClient;
 
     /**
-     * 获取当前用户 ID
+     * 从 Authorization 请求头中提取并验证 Token，获取用户ID
      *
-     * @return 用户 ID，如果未登录或 Token 无效则返回 null
+     * @param authorizationHeader Authorization 请求头（格式：Bearer {token}）
+     * @return 用户ID，如果 Token 无效或未提供则返回 null
+     */
+    public Long getUserId(String authorizationHeader) {
+        if (StringUtils.isBlank(authorizationHeader)) {
+            log.warn("[SecurityHelper] Authorization 头为空");
+            return null;
+        }
+
+        // 确保 Authorization 头包含 Bearer 前缀
+        String token = authorizationHeader;
+        if (!authorizationHeader.startsWith("Bearer ")) {
+            token = "Bearer " + authorizationHeader;
+        }
+
+        log.debug("[SecurityHelper] 开始验证 Token，通过 Auth 服务调用");
+
+        try {
+            // 通过 Auth 服务验证 Token
+            TokenValidateResponse response = authServiceClient.validateToken(token)
+                    .timeout(Duration.ofSeconds(3))
+                    .block();
+
+            if (response == null) {
+                log.warn("[SecurityHelper] Auth 服务返回 null");
+                return null;
+            }
+
+            if (Boolean.TRUE.equals(response.getIsValid()) && StringUtils.isNotBlank(response.getUserId())) {
+                try {
+                    Long userId = Long.parseLong(response.getUserId());
+                    log.debug("[SecurityHelper] Token 验证成功，用户ID: {}", userId);
+                    return userId;
+                } catch (NumberFormatException e) {
+                    log.error("[SecurityHelper] 用户ID格式错误: {}", response.getUserId(), e);
+                    return null;
+                }
+            } else {
+                log.warn("[SecurityHelper] Token 验证失败: {}", response.getMessage());
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("[SecurityHelper] 调用 Auth 服务验证 Token 时发生异常: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 从 Spring Security 上下文中获取当前登录用户ID
+     * 注意：Coze 模块未启用完整的 Spring Security，此方法需要从请求头中获取
+     * 此方法保留用于兼容性，实际应使用 getUserId(String authorizationHeader)
+     *
+     * @return 用户ID，如果无法获取则返回 null
      */
     public Long getUserId() {
-        try {
-            String token = getToken();
-            if (StringUtils.isBlank(token)) {
-                return null;
-            }
-
-            Claims claims = jwtUtils.getClaims(token);
-            if (claims == null) {
-                return null;
-            }
-
-            Object userIdObj = claims.get(TokenConstants.JWT_CLAIM_USER_ID);
-            return switch (userIdObj) {
-                case null -> null;
-                case Integer i -> i.longValue();
-                case Long l -> l;
-                case String s -> Long.parseLong(s);
-                default -> null;
-            };
-
-        } catch (Exception e) {
-            log.debug("获取当前用户ID失败: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * 获取当前请求的 JWT Token
-     *
-     * @return JWT Token，如果没有则返回 null
-     */
-    public String getToken() {
-        try {
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attributes == null) {
-                return null;
-            }
-            HttpServletRequest request = attributes.getRequest();
-            return getToken(request);
-        } catch (Exception e) {
-            log.debug("获取Token失败: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * 从 HttpServletRequest 中获取 JWT Token
-     *
-     * @param request HTTP 请求对象
-     * @return JWT Token，如果没有则返回 null
-     */
-    public String getToken(HttpServletRequest request) {
-        if (request == null) {
-            return null;
-        }
-
-        // 1. 从 Authorization 头获取
-        String token = request.getHeader("Authorization");
-        if (StringUtils.isNotBlank(token)) {
-            return replaceTokenPrefix(token);
-        }
-
-        // 2. 从请求参数获取
-        token = request.getParameter("token");
-        if (StringUtils.isNotBlank(token)) {
-            return token;
-        }
-
+        log.warn("[SecurityHelper] getUserId() 方法需要在 Controller 中传入 Authorization 头，请使用 getUserId(String authorizationHeader)");
         return null;
-    }
-
-    /**
-     * 移除 Token 前缀（如 Bearer）
-     *
-     * @param token 原始 token 字符串
-     * @return 处理后的 token
-     */
-    private String replaceTokenPrefix(String token) {
-        if (StringUtils.isBlank(token)) {
-            return null;
-        }
-
-        // 移除 Bearer 前缀
-        if (token.startsWith(TokenConstants.TOKEN_TYPE_BEARER + " ")) {
-            return token.substring(TokenConstants.TOKEN_TYPE_BEARER.length() + 1);
-        }
-
-        if (token.startsWith("Bearer ")) {
-            return token.substring(7);
-        }
-
-        return token;
-    }
-
-    /**
-     * 获取当前用户名
-     *
-     * @return 用户名
-     */
-    public String getUsername() {
-        try {
-            String token = getToken();
-            if (StringUtils.isNotBlank(token)) {
-                String userId = jwtUtils.parseToken(token);
-                if (StringUtils.isNotBlank(userId)) {
-                    return userId;
-                }
-            }
-        } catch (Exception e) {
-            log.debug("获取当前用户名失败: {}", e.getMessage());
-        }
-        return null;
-    }
-
-    /**
-     * 验证 JWT Token 是否有效
-     *
-     * @param token JWT Token
-     * @return 是否有效
-     */
-    public boolean isValidToken(String token) {
-        try {
-            if (StringUtils.isBlank(token)) {
-                return false;
-            }
-            return jwtUtils.validateToken(token);
-        } catch (Exception e) {
-            log.debug("Token验证失败: {}", e.getMessage());
-            return false;
-        }
     }
 }

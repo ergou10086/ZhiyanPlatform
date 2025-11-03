@@ -74,6 +74,16 @@ public interface TaskService {
      */
     Tasks assignTask(Long taskId, List<Long> assigneeIds, Long operatorId);
 
+    /**
+     * 接取任务
+     * 业务流程：项目成员主动接取任务，将自己添加到任务执行者列表
+     *
+     * @param taskId 任务ID
+     * @param userId 用户ID（当前登录用户）
+     * @return 更新后的任务
+     */
+    Tasks claimTask(Long taskId, Long userId);
+
     // ==================== 任务查询 ====================
 
     /**

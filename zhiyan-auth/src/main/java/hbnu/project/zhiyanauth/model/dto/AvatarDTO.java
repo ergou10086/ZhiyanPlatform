@@ -23,11 +23,9 @@ import java.util.Map;
 public class AvatarDTO {
 
     @Schema(description = "MinIO原图URL")
-    @JsonProperty("minio_url")
     private String minioUrl;
 
     @Schema(description = "CDN URL（如果配置）")
-    @JsonProperty("cdn_url")
     private String cdnUrl;
 
     @Schema(description = "所有尺寸的缩略图URL")

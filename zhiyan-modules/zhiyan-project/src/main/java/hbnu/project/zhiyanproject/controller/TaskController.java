@@ -162,6 +162,26 @@ public class TaskController {
         }
     }
 
+    /**
+     * 接取任务
+     * 业务场景：项目成员主动接取任务
+     */
+    @PostMapping("/{taskId}/claim")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "接取任务", description = "当前用户主动接取任务，成为任务执行者")
+    public R<Tasks> claimTask(@PathVariable @Parameter(description = "任务ID") Long taskId) {
+        Long currentUserId = SecurityUtils.getUserId();
+        log.info("用户[{}]接取任务[{}]", currentUserId, taskId);
+
+        try {
+            Tasks task = taskService.claimTask(taskId, currentUserId);
+            return R.ok(task, "任务接取成功");
+        } catch (IllegalArgumentException e) {
+            log.warn("接取任务失败: {}", e.getMessage());
+            return R.fail(e.getMessage());
+        }
+    }
+
     // ==================== 任务查询接口 ====================
 
     /**
