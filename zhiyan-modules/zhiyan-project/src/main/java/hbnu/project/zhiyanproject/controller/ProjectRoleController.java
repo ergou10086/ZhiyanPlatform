@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanproject.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.dto.*;
@@ -42,6 +45,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Tag(name = "项目角色管理", description = "项目角色查询和分配接口（不允许修改角色定义）")
 @SecurityRequirement(name = "Bearer Authentication")
+@AccessLog("项目角色管理")
 public class ProjectRoleController {
 
     private final ProjectMemberService projectMemberService;
@@ -124,6 +128,7 @@ public class ProjectRoleController {
     @PostMapping("/projects/{projectId}/assign")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "分配用户角色", description = "将用户添加为项目成员并分配角色（需要成员管理权限）")
+    @OperationLog(module = "项目角色管理", type = OperationType.GRANT, description = "分配用户角色", recordParams = true, recordResult = false)
     public R<Void> assignRoleToUser(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @RequestBody @Valid AssignRoleRequest request) {

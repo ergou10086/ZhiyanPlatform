@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanproject.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
@@ -39,6 +42,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "项目成员管理", description = "项目成员管理相关接口，包括成员邀请、角色管理等")
 @SecurityRequirement(name = "Bearer Authentication")
+@AccessLog("项目成员管理")
 public class ProjectMemberController {
 
     private final ProjectMemberService projectMemberService;
@@ -53,6 +57,7 @@ public class ProjectMemberController {
     @PostMapping("/projects/{projectId}/invite")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "邀请成员", description = "项目负责人直接将用户添加到项目中（无需对方同意）")
+    @OperationLog(module = "项目成员管理", type = OperationType.INSERT, description = "邀请成员加入项目", recordParams = true, recordResult = true)
     public R<ProjectMember> inviteMember(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @Valid @RequestBody InviteMemberRequest request) {
@@ -76,6 +81,7 @@ public class ProjectMemberController {
     @DeleteMapping("/projects/{projectId}/members/{userId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "移除成员", description = "项目负责人移除项目成员")
+    @OperationLog(module = "项目成员管理", type = OperationType.DELETE, description = "移除项目成员", recordParams = true, recordResult = false)
     public R<Void> removeMember(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @PathVariable @Parameter(description = "用户ID") Long userId) {
@@ -99,6 +105,7 @@ public class ProjectMemberController {
     @PutMapping("/projects/{projectId}/members/{userId}/role")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新成员角色", description = "项目负责人修改成员的项目角色")
+    @OperationLog(module = "项目成员管理", type = OperationType.GRANT, description = "更新成员角色", recordParams = true, recordResult = true)
     public R<ProjectMember> updateMemberRole(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @PathVariable @Parameter(description = "用户ID") Long userId,
@@ -123,6 +130,7 @@ public class ProjectMemberController {
     @DeleteMapping("/projects/{projectId}/leave")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "退出项目", description = "成员主动退出项目")
+    @OperationLog(module = "项目成员管理", type = OperationType.OTHER, description = "退出项目", recordParams = true, recordResult = false)
     public R<Void> leaveProject(@PathVariable @Parameter(description = "项目ID") Long projectId) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]退出项目[{}]", currentUserId, projectId);

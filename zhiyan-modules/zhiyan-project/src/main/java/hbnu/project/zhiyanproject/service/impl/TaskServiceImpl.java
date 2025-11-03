@@ -241,12 +241,60 @@ public class TaskServiceImpl implements TaskService {
 
         // 4. 更新执行者
         task.setAssigneeId(convertListToJson(assigneeIds));
+        
+        // 5. ✅ 如果任务状态是TODO，自动改为IN_PROGRESS
+        if (task.getStatus() == TaskStatus.TODO) {
+            task.setStatus(TaskStatus.IN_PROGRESS);
+            log.info("任务状态自动从TODO更新为IN_PROGRESS");
+        }
+        
         Tasks saved = taskRepository.save(task);
 
-        log.info("重新分配任务: taskId={}, assigneeIds={}, operator={}", 
-                taskId, assigneeIds, operatorId);
+        log.info("重新分配任务: taskId={}, assigneeIds={}, newStatus={}, operator={}", 
+                taskId, assigneeIds, saved.getStatus(), operatorId);
 
         // TODO: 发布"任务已重新分配"事件，通知新的执行者
+
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public Tasks claimTask(Long taskId, Long userId) {
+        // 1. 查询任务
+        Tasks task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
+
+        // 2. 检查用户是否为项目成员
+        if (!projectMemberService.isMember(task.getProjectId(), userId)) {
+            throw new IllegalArgumentException("只有项目成员才能接取任务");
+        }
+
+        // 3. 获取当前执行者列表
+        List<Long> currentAssignees = convertJsonToList(task.getAssigneeId());
+        // ✅ 创建一个新的可修改列表，避免UnsupportedOperationException
+        List<Long> assigneeIds = new ArrayList<>(currentAssignees != null ? currentAssignees : Collections.emptyList());
+
+        // 4. 检查是否已经是执行者
+        if (assigneeIds.contains(userId)) {
+            throw new IllegalArgumentException("您已经是该任务的执行者");
+        }
+
+        // 5. 将当前用户添加到执行者列表
+        assigneeIds.add(userId);
+        task.setAssigneeId(convertListToJson(assigneeIds));
+        
+        // 6. 如果任务状态是TODO，自动改为IN_PROGRESS
+        if (task.getStatus() == TaskStatus.TODO) {
+            task.setStatus(TaskStatus.IN_PROGRESS);
+        }
+        
+        Tasks saved = taskRepository.save(task);
+
+        log.info("用户接取任务: taskId={}, userId={}, currentAssignees={}", 
+                taskId, userId, assigneeIds);
+
+        // TODO: 发布"任务已接取"事件，通知项目成员
 
         return saved;
     }

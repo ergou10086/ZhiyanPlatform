@@ -89,6 +89,11 @@
             <artifactId>zhiyan-common-redis</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-log</artifactId>
+        </dependency>
+
         <!-- OpenFeign 用于服务间调用 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
