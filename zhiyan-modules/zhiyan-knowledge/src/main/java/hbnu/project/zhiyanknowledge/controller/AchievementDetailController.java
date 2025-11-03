@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
@@ -28,6 +31,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/zhiyan/achievement/detail")
 @Tag(name = "成果详情管理", description = "成果详情编辑、模板管理、数据验证等")
+@AccessLog("成果详情管理")
 public class AchievementDetailController {
 
     @Autowired
@@ -40,6 +44,7 @@ public class AchievementDetailController {
      */
     @PutMapping("/details")
     @Operation(summary = "更新成果详情", description = "更新成果的详细信息JSON和摘要")
+    @OperationLog(module = "成果详情管理", type = OperationType.UPDATE, description = "更新成果的详细信息JSON和摘要")
     public R<Void> updateAchievementDetails(
             @Valid @RequestBody UpdateDetailDataDTO updateDTO
     ){
@@ -59,6 +64,7 @@ public class AchievementDetailController {
      */
     @PatchMapping("/{achievementId}/fields")
     @Operation(summary = "批量更新详情字段", description = "部分更新成果的详情字段")
+    @OperationLog(module = "成果详情管理", type = OperationType.UPDATE, description = "更新成果的部分详情字段")
     public R<AchievementDetailDTO> updateDetailFields(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
             @RequestBody Map<String, Object> fieldUpdates
@@ -83,6 +89,7 @@ public class AchievementDetailController {
      */
     @PatchMapping("/{achievementId}/abstract")
     @Operation(summary = "更新成果摘要", description = "单独更新成果的摘要信息")
+    @OperationLog(module = "成果详情管理", type = OperationType.UPDATE, description = "单独更新成果的摘要信息")
     public R<Void> updateAbstract(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
             @Parameter(description = "摘要内容") @RequestBody String abstractText

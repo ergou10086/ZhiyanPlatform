@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementDTO;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementQueryDTO;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/zhiyan/achievement/search")
 @Tag(name = "成果查询搜索", description = "成果的多条件查询、搜索、列表获取等")
+@AccessLog("成果搜索")
 public class AchievementSearchController {
 
     @Autowired
@@ -40,6 +44,7 @@ public class AchievementSearchController {
      */
     @PostMapping("/query")
     @Operation(summary = "分页查询成果列表", description = "支持多条件组合查询成果")
+    @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "分页查询成果", recordResult = false)  // 列表数据不记录响应
     public R<Page<AchievementDTO>> queryAchievements(
             @Valid @RequestBody AchievementQueryDTO queryDTO
     ){
@@ -69,6 +74,7 @@ public class AchievementSearchController {
      */
     @GetMapping("/project/{projectId}")
     @Operation(summary = "根据项目ID查询成果列表", description = "查询指定项目下的所有成果")
+    @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "根据项目ID查询成果列表", recordResult = false)  // 列表数据不记录响应
     public R<Page<AchievementDTO>> queryAchievements(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
             @Parameter(description = "页码")  @RequestParam(defaultValue = "0") Integer page,
@@ -99,6 +105,7 @@ public class AchievementSearchController {
      */
     @GetMapping("/search")
     @Operation(summary = "组合搜索", description = "根据关键字搜索成果")
+    @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "根据关键字搜索成果", recordResult = false)
     public R<Page<AchievementDTO>> searchAchievements(
             @Parameter(description = "搜索关键字") @RequestParam String keyword,
             @Parameter(description = "页码") @RequestParam(defaultValue = "0") Integer page,
@@ -119,6 +126,7 @@ public class AchievementSearchController {
      */
     @GetMapping("/search/name/{achievementName}")
     @Operation(summary = "根据成果名称查询", description = "模糊匹配成果标题")
+    @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "模糊匹配成果标题", recordResult = false)
     public R<AchievementDTO> getAchievementByName(
             @Parameter(description = "成果名称") @PathVariable String achievementName
     ) {

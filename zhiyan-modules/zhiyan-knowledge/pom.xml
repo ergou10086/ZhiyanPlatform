@@ -103,6 +103,11 @@
 
         <dependency>
             <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-log</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-seata</artifactId>
         </dependency>
     </dependencies>

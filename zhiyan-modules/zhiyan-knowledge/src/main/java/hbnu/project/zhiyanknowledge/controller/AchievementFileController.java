@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationType;
+import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
@@ -28,6 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/zhiyan/achievement/file")
 @Tag(name = "成果的文件管理", description = "成果文件上传等管理")
+@AccessLog("成果文件管理")
 public class AchievementFileController {
 
     @Autowired
@@ -39,6 +43,7 @@ public class AchievementFileController {
      */
     @PostMapping("/upload")
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
+    @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD, description = "上传成果文件", recordParams = false, recordResult = true)
     public R<AchievementFileDTO> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -66,6 +71,7 @@ public class AchievementFileController {
      */
     @PostMapping("/upload/batch")
     @Operation(summary = "批量上传成果文件", description = "为指定成果批量上传多个文件")
+    @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD,description = "批量上传成果文件", recordParams = false, recordResult = true)
     public R<List<AchievementFileDTO>> uploadFilesBatch(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -88,6 +94,7 @@ public class AchievementFileController {
      */
     @GetMapping("/{achievementId}/files")
     @Operation(summary = "查询成果文件列表", description = "获取指定成果下的所有文件")
+    @OperationLog(module = "成果文件管理", type = OperationType.QUERY,description = "获取指定成果下的所有文件", recordParams = true, recordResult = true)
     public R<List<AchievementFileDTO>> getAchievementFiles(
             @Parameter(description = "成果ID") @PathVariable Long achievementId) {
 
@@ -105,6 +112,7 @@ public class AchievementFileController {
      */
     @DeleteMapping("/{fileId}")
     @Operation(summary = "删除成果文件", description = "删除指定的成果文件")
+    @OperationLog(module = "成果文件管理", type = OperationType.DELETE,description = "删除指定成果的文件", recordParams = true, recordResult = true)
     public R<Void> deleteAchievementFile(
             @Parameter(description = "文件ID")  @PathVariable Long fileId
     ){
@@ -125,6 +133,7 @@ public class AchievementFileController {
      */
     @GetMapping("/{fileId}/download-url")
     @Operation(summary = "获取文件下载URL", description = "生成文件的临时下载链接")
+    @OperationLog(module = "成果文件管理", type = OperationType.OTHER, description = "生成文件的临时下载链接", recordParams = false, recordResult = true)
     public R<String> getFileDownloadUrl(
             @Parameter(description = "文件ID") @PathVariable Long fileId,
             @Parameter(description = "过期时间(秒)") @RequestParam(defaultValue = "3600") Integer expirySeconds

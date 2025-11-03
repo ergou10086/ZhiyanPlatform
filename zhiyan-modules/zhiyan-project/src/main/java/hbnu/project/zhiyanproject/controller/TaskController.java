@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanproject.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.dto.TaskBoardDTO;
@@ -38,6 +41,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "任务管理", description = "任务管理相关接口，包括任务创建、分配、状态更新、看板视图等")
 @SecurityRequirement(name = "Bearer Authentication")
+@AccessLog("任务管理")
 public class TaskController {
 
     private final TaskService taskService;
@@ -51,6 +55,7 @@ public class TaskController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建任务", description = "在项目中创建新任务，可指定执行者、优先级、截止日期等")
+    @OperationLog(module = "任务管理",type = OperationType.INSERT, description = "创建任务",recordParams = true,recordResult = true)
     public R<Tasks> createTask(@Valid @RequestBody CreateTaskRequest request) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]在项目[{}]中创建任务: {}", currentUserId, request.getProjectId(), request.getTitle());
@@ -71,6 +76,7 @@ public class TaskController {
     @PutMapping("/{taskId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新任务", description = "更新任务的标题、描述、状态、优先级等信息")
+    @OperationLog(module = "任务管理", type = OperationType.UPDATE, description = "更新任务的标题、描述、状态、优先级等信息")
     public R<Tasks> updateTask(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
             @Valid @RequestBody UpdateTaskRequest request) {
@@ -94,6 +100,7 @@ public class TaskController {
     @DeleteMapping("/{taskId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除任务", description = "软删除任务，仅任务创建者或项目负责人可操作")
+    @OperationLog(module = "任务管理", type = OperationType.DELETE, description = "删除任务", recordParams = true, recordResult = false)
     public R<Void> deleteTask(@PathVariable @Parameter(description = "任务ID") Long taskId) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]删除任务[{}]", currentUserId, taskId);
@@ -114,6 +121,7 @@ public class TaskController {
     @PatchMapping("/{taskId}/status")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新任务状态", description = "更新任务的状态（TODO/IN_PROGRESS/BLOCKED/DONE）")
+    @OperationLog(module = "任务管理", type = OperationType.UPDATE, description = "更新任务状态", recordParams = true, recordResult = true)
     public R<Tasks> updateTaskStatus(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
             @Valid @RequestBody hbnu.project.zhiyanproject.model.form.UpdateTaskStatusRequest request) {
@@ -137,6 +145,7 @@ public class TaskController {
     @PutMapping("/{taskId}/assign")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "分配任务", description = "将任务分配给项目成员")
+    @OperationLog(module = "任务管理", type = OperationType.GRANT, description = "分配任务", recordParams = true, recordResult = true)
     public R<Tasks> assignTask(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
             @RequestBody @Parameter(description = "执行者ID列表") List<Long> assigneeIds) {
@@ -182,6 +191,7 @@ public class TaskController {
     @GetMapping("/{taskId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取任务详情", description = "获取任务的详细信息，包括执行者、创建者等")
+    @OperationLog(module = "任务管理", type = OperationType.QUERY, description = "查询任务详情", recordParams = true, recordResult = false)
     public R<TaskDetailDTO> getTaskDetail(@PathVariable @Parameter(description = "任务ID") Long taskId) {
         log.debug("查询任务详情: taskId={}", taskId);
 

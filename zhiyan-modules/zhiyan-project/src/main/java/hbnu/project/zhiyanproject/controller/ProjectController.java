@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanproject.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.dto.ImageUploadResponse;
@@ -39,6 +42,7 @@ import java.time.LocalDate;
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
 @Tag(name = "项目管理", description = "项目管理相关接口")
+@AccessLog("项目管理")
 public class ProjectController {
 
     private final ProjectService projectService;
@@ -54,6 +58,7 @@ public class ProjectController {
     @PostMapping("/upload-image")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "上传项目图片", description = "上传项目封面图片到MinIO，返回图片URL")
+    @OperationLog(module = "项目管理", type = OperationType.UPLOAD, description = "上传项目封面图片到MinIO")
     public R<ImageUploadResponse> uploadProjectImage(
             @Parameter(description = "图片文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "项目ID（可选）") @RequestParam(required = false) Long projectId) {
@@ -75,6 +80,7 @@ public class ProjectController {
     @DeleteMapping("/delete-image")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除项目图片", description = "从MinIO删除项目图片")
+    @OperationLog(module = "项目管理", type = OperationType.DELETE, description = "从MinIO删除项目图片")
     public R<Void> deleteProjectImage(
             @Parameter(description = "图片URL") @RequestParam String imageUrl) {
 
@@ -93,6 +99,7 @@ public class ProjectController {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建项目", description = "创建新项目，创建者自动成为项目拥有者")
+    @OperationLog(module = "项目管理", type = OperationType.INSERT, description = "创建新项目，创建者自动成为项目拥有者")
     public R<Project> createProject(@RequestBody @Valid CreateProjectRequest request) {
 
         // 从 Spring Security Context 获取当前登录用户ID
@@ -120,6 +127,7 @@ public class ProjectController {
     @PutMapping("/{projectId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目", description = "更新项目信息，只有项目创建人可以编辑")
+    @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "更新项目信息，只有项目创建人可以编辑")
     public R<Project> updateProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
             @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectRequest request) {
@@ -142,6 +150,7 @@ public class ProjectController {
     @DeleteMapping("/{projectId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除项目", description = "软删除项目，只有项目拥有者可以删除")
+    @OperationLog(module = "项目管理", type = OperationType.DELETE, description = "软删除项目，只有项目拥有者可以删除")
     public R<Void> deleteProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]删除项目[{}]", userId, projectId);
@@ -159,6 +168,7 @@ public class ProjectController {
     @GetMapping("/{projectId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取项目详情", description = "根据ID获取项目详细信息")
+    @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "根据ID获取项目详细信息")
     public R<Project> getProjectById(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.debug("用户[{}]查询项目[{}]", userId, projectId);
@@ -173,6 +183,7 @@ public class ProjectController {
     @GetMapping
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "获取所有项目", description = "分页获取所有项目（管理员）")
+    @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "分页获取所有项目（管理员）", recordResult = false)
     public R<Page<Project>> getAllProjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -192,6 +203,7 @@ public class ProjectController {
     @GetMapping("/my-created")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取我创建的项目", description = "获取当前用户创建的所有项目")
+    @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "获取当前用户创建的所有项目", recordResult = false)
     public R<Page<Project>> getMyCreatedProjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -209,6 +221,7 @@ public class ProjectController {
     @GetMapping("/creator/{creatorId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取指定用户创建的项目", description = "根据创建者ID获取项目列表")
+    @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "根据创建者ID获取项目列表", recordResult = false)
     public R<Page<Project>> getProjectsByCreator(
             @PathVariable Long creatorId,
             @RequestParam(defaultValue = "0") int page,
@@ -288,6 +301,7 @@ public class ProjectController {
     @PatchMapping("/{projectId}/status")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目状态", description = "更新项目的状态")
+    @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "更新项目状态", recordParams = true, recordResult = true)
     public R<Project> updateProjectStatus(
             @PathVariable Long projectId,
             @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectStatusRequest request) {
@@ -308,6 +322,7 @@ public class ProjectController {
     @PostMapping("/{projectId}/archive")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "归档项目", description = "将项目归档")
+    @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "归档项目", recordParams = true, recordResult = false)
     public R<Void> archiveProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]归档项目[{}]", userId, projectId);
