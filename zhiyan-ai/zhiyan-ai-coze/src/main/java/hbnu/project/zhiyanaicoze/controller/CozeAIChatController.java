@@ -18,10 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -39,6 +37,7 @@ import java.util.Map;
 @RequestMapping("/api/coze")
 @RequiredArgsConstructor
 @Tag(name = "Coze AI 对话", description = "Coze AI 智能对话接口，支持流式响应")
+@CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")
 public class CozeAIChatController {
 
     private final CozeStreamService cozeStreamService;
@@ -65,14 +64,37 @@ public class CozeAIChatController {
                     "首次对话无需传 conversationId，Coze 会在响应中返回新的对话ID。" +
                     "后续对话使用返回的 conversationId 维持上下文。"
     )
+    @CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")
     public Flux<ServerSentEvent<CozeStreamMessage>> chatStream(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（可选，用于维持会话）") @RequestParam(required = false) String conversationId,
-            @Parameter(description = "自定义变量") @RequestBody(required = false) Map<String, String> customVariables
+            @Parameter(description = "自定义变量") @RequestBody(required = false) Map<String, String> customVariables,
+            @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ){
-        // 获取用户ID
-        Long userId = securityHelper.getUserId();
-        String userIdentifier = getUserIdentifier(userId);
+        log.info("[Coze 对话] ========== 收到请求 ==========");
+        log.info("[Coze 对话] query={}, conversationId={}", query, conversationId);
+        log.info("[Coze 对话] 请求方法: POST, 路径: /api/coze/chat/stream");
+        log.info("[Coze 对话] Authorization 头是否存在: {}", authorizationHeader != null && !authorizationHeader.isEmpty());
+        
+        // 从请求头获取用户ID（WebFlux 支持）
+        Long userId = securityHelper.getUserId(authorizationHeader);
+        log.info("[Coze 对话] 获取到的 userId: {}", userId);
+        
+        // 对于流式响应，如果用户未登录，返回错误事件流
+        if (userId == null) {
+            log.warn("[Coze 访问拒绝] 用户未登录，禁止使用AI功能");
+            CozeStreamMessage errorMessage = CozeStreamMessage.builder()
+                    .event("error")
+                    .errorMessage("请先登录后再使用AI功能")
+                    .status("failed")
+                    .build();
+            return Flux.just(ServerSentEvent.<CozeStreamMessage>builder()
+                    .event("error")
+                    .data(errorMessage)
+                    .build());
+        }
+        
+        String userIdentifier = String.valueOf(userId);
 
         log.info("[Coze 对话] query={}, conversationId={}, userId={}",
                 query, conversationId, userIdentifier);
@@ -169,10 +191,26 @@ public class CozeAIChatController {
             @Parameter(description = "对话 ID（可选）") @RequestParam(required = false) String conversationId,
             @Parameter(description = "本地上传的文件列表") @RequestParam(required = false) List<MultipartFile> localFiles,
             @Parameter(description = "知识库文件 ID 列表") @RequestParam(required = false) List<Long> knowledgeFileIds,
-            @Parameter(description = "自定义变量") @RequestParam(required = false) Map<String, String> customVariables
+            @Parameter(description = "自定义变量") @RequestParam(required = false) Map<String, String> customVariables,
+            @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ){
-        Long userId = securityHelper.getUserId();
-        String userIdentifier = getUserIdentifier(userId);
+        Long userId = securityHelper.getUserId(authorizationHeader);
+        
+        // 对于流式响应，如果用户未登录，返回错误事件流
+        if (userId == null) {
+            log.warn("[Coze 访问拒绝] 用户未登录，禁止使用AI功能");
+            CozeStreamMessage errorMessage = CozeStreamMessage.builder()
+                    .event("error")
+                    .errorMessage("请先登录后再使用AI功能")
+                    .status("failed")
+                    .build();
+            return Flux.just(ServerSentEvent.<CozeStreamMessage>builder()
+                    .event("error")
+                    .data(errorMessage)
+                    .build());
+        }
+        
+        String userIdentifier = String.valueOf(userId);
 
         log.info("[Coze 高级对话] query={}, conversationId={}, localFiles={}, knowledgeFiles={}, userId={}",
                 query, conversationId,
@@ -258,9 +296,10 @@ public class CozeAIChatController {
     @PostMapping("/files/upload")
     @Operation(summary = "上传文件到 Coze", description = "上传单个文件到 Coze 服务器，返回 file_id 供后续对话使用")
     public R<CozeFileUploadResponse> uploadFile(
-            @Parameter(description = "文件") @RequestParam("file") MultipartFile file
+            @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
+            @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) {
-        Long userId = securityHelper.getUserId();
+        Long userId = securityHelper.getUserId(authorizationHeader);
         log.info("[Coze 文件上传] fileName={}, size={}, userId={}",
                 file.getOriginalFilename(), file.getSize(), userId);
 
@@ -280,9 +319,10 @@ public class CozeAIChatController {
     @PostMapping("/files/upload/batch")
     @Operation(summary = "批量上传文件", description = "批量上传多个文件到 Coze")
     public R<List<CozeFileUploadResponse>> uploadFiles(
-            @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files
+            @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
+            @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ){
-        Long userId = securityHelper.getUserId();
+        Long userId = securityHelper.getUserId(authorizationHeader);
         log.info("[Coze 批量上传] fileCount={}, userId={}", files.size(), userId);
 
         List<CozeFileUploadResponse> responses = cozeFileService.uploadFiles(files, userId);
@@ -300,9 +340,10 @@ public class CozeAIChatController {
     @GetMapping("/files/{fileId}")
     @Operation(summary = "查询文件详情", description = "查询已上传到 Coze 的文件详细信息")
     public R<CozeFileDetailResponse> getFileDetail(
-            @Parameter(description = "Coze 文件 ID") @PathVariable String fileId
+            @Parameter(description = "Coze 文件 ID") @PathVariable String fileId,
+            @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ) {
-        Long userId = securityHelper.getUserId();
+        Long userId = securityHelper.getUserId(authorizationHeader);
         log.info("[Coze 文件详情] fileId={}, userId={}", fileId, userId);
 
         CozeFileDetailResponse response = cozeFileService.getFileDetail(fileId);
@@ -325,9 +366,10 @@ public class CozeAIChatController {
     )
     public R<CozeChatResponse> getChatDetail(
             @Parameter(description = "对话ID") @RequestParam String conversationId,
-            @Parameter(description = "聊天ID") @RequestParam String chatId
+            @Parameter(description = "聊天ID") @RequestParam String chatId,
+            @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ){
-        Long userId = securityHelper.getUserId();
+        Long userId = securityHelper.getUserId(authorizationHeader);
         log.info("[Coze 对话详情] conversationId={}, chatId={}, userId={}",
                 conversationId, chatId, userId);
 

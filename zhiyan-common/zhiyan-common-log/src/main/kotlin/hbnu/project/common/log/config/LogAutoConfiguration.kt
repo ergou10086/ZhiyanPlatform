@@ -26,7 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor
 @EnableAspectJAutoProxy
 @EnableConfigurationProperties(LogProperties::class)
 @ConditionalOnProperty(prefix = "zhiyan.log", name = ["enabled"], havingValue = "true", matchIfMissing = true)
-class LogAutoConfiguration(
+open class LogAutoConfiguration(
     private val logProperties: LogProperties
 ) {
 
@@ -49,7 +49,7 @@ class LogAutoConfiguration(
      */
     @Bean
     @ConditionalOnMissingBean(LogHandler::class)
-    fun defaultLogHandler(): LogHandler {
+    open fun defaultLogHandler(): LogHandler {
         logger.info("[日志系统] 注册默认日志处理器")
         return DefaultLogHandler()
     }
@@ -59,7 +59,7 @@ class LogAutoConfiguration(
      */
     @Bean
     @ConditionalOnProperty(prefix = "zhiyan.log", name = ["operation-enabled"], havingValue = "true", matchIfMissing = true)
-    fun operationLogAspect(
+    open fun operationLogAspect(
         logHandlers: List<LogHandler>,
         @Value("\${spring.application.name:unknown}") appName: String
     ): OperationLogAspect {
@@ -72,7 +72,7 @@ class LogAutoConfiguration(
      */
     @Bean
     @ConditionalOnProperty(prefix = "zhiyan.log", name = ["access-enabled"], havingValue = "true", matchIfMissing = true)
-    fun accessLogAspect(
+    open fun accessLogAspect(
         logHandlers: List<LogHandler>,
         @Value("\${spring.application.name:unknown}") appName: String
     ): AccessLogAspect {
@@ -85,7 +85,7 @@ class LogAutoConfiguration(
      */
     @Bean
     @ConditionalOnProperty(prefix = "zhiyan.log", name = ["exception-enabled"], havingValue = "true", matchIfMissing = true)
-    fun globalExceptionHandler(
+    open fun globalExceptionHandler(
         logHandlers: List<LogHandler>,
         @Value("\${spring.application.name:unknown}") appName: String
     ): GlobalExceptionHandler {
@@ -98,7 +98,7 @@ class LogAutoConfiguration(
      */
     @Bean("logTaskExecutor")
     @ConditionalOnProperty(prefix = "zhiyan.log", name = ["async"], havingValue = "true", matchIfMissing = true)
-    fun logTaskExecutor(): Executor {
+    open fun logTaskExecutor(): Executor {
         logger.info("[日志系统] 配置异步日志线程池")
         
         val threadPool = logProperties.threadPool

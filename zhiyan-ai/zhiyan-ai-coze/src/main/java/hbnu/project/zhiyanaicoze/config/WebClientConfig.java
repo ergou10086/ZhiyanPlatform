@@ -51,5 +51,25 @@ public class WebClientConfig {
                 .defaultHeader("Accept", "application/json")
                 .build();
     }
+
+    /**
+     * 配置通用的 WebClient Bean
+     * 用于服务间调用（如调用 Auth 服务）
+     */
+    @Bean
+    public WebClient.Builder webClientBuilder() {
+        HttpClient httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .responseTimeout(Duration.ofSeconds(5))
+                .doOnConnected(conn ->
+                    conn.addHandlerLast(new ReadTimeoutHandler(5, TimeUnit.SECONDS))
+                        .addHandlerLast(new WriteTimeoutHandler(5, TimeUnit.SECONDS))
+                );
+
+        return WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("Accept", "application/json");
+    }
 }
 

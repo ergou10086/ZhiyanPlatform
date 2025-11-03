@@ -189,6 +189,10 @@ public class SecurityConfig implements WebMvcConfigurer {
                         // AI 流式接口 - 使用 permitAll，权限在 Controller 层通过 @PreAuthorize 控制
                         // 这样可以避免异步请求时的二次权限检查导致的 AccessDeniedException
                         .requestMatchers("/api/ai/**").permitAll()
+                        
+                        // Coze AI 接口 - 使用 permitAll，权限在 Controller 层通过 SecurityHelper 控制
+                        // 这样可以避免异步请求时的二次权限检查导致的 AccessDeniedException
+                        .requestMatchers("/api/coze/**").permitAll()
 
                         // 其他所有接口需要认证，具体权限由 @PreAuthorize 注解控制
                         .anyRequest().authenticated()
