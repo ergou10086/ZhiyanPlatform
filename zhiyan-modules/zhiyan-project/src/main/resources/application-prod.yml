@@ -204,7 +204,48 @@ minio:
 
 
 
+# 智研日志系统配置
+zhiyan:
+  log:
+    # 启用日志系统
+    enabled: true
 
+    # 启用操作日志
+    operation-enabled: true
+
+    # 启用访问日志
+    access-enabled: true
+
+    # 启用异常日志
+    exception-enabled: true
+
+    # 记录请求参数
+    record-request-params: true
+
+    # 记录响应结果
+    record-response-result: true
+
+    # 响应结果最大长度
+    max-response-length: 2000
+
+    # 请求参数最大长度
+    max-request-length: 2000
+
+    # 排除的 URL 路径
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /doc.html
+      - /knife4j/**
+
+    # 慢请求阈值（毫秒）
+    slow-request-threshold: 2000
+
+    # 异步处理日志
+    async: true
 
 
 

@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/zhiyan/achievement")
 @Tag(name = "成果管理", description = "成果创建、详情编辑，成果查询等管理成果的接口")
+@AccessLog("成果管理")
 public class AchievementManageController {
 
     @Autowired
@@ -44,6 +48,7 @@ public class AchievementManageController {
      */
     @PostMapping("/create")
     @Operation(summary = "创建成果", description = "为指定项目创建新的成果记录")
+    @OperationLog(module = "成果管理", type = OperationType.INSERT, description = "创建成果", recordParams = true, recordResult = true)
     public R<AchievementDTO> createAchievement(
             @Valid @RequestBody CreateAchievementDTO createDTO
     ){
@@ -72,6 +77,7 @@ public class AchievementManageController {
      */
     @PatchMapping("/{achievementId}/status")
     @Operation(summary = "更新成果状态", description = "修改成果的发布状态")
+    @OperationLog(module = "成果管理", type = OperationType.UPDATE, description = "更新成果状态", recordParams = true, recordResult = false)
     public R<Void> updateAchievementStatus(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
             @Parameter(description = "新状态") @RequestParam AchievementStatus status
@@ -97,6 +103,7 @@ public class AchievementManageController {
      */
     @GetMapping("/{achievementId}")
     @Operation(summary = "获取成果详情", description = "根据ID查询成果的完整信息")
+    @OperationLog(module = "成果管理", type = OperationType.QUERY, description = "查询成果详情", recordParams = true, recordResult = false ) // 查询结果数据量大，不记录响应)
     public R<AchievementDetailDTO>  getAchievementDetail(
             @Parameter(description = "成果ID") @PathVariable Long achievementId) {
 
@@ -116,6 +123,7 @@ public class AchievementManageController {
      */
     @DeleteMapping("/{achievementId}")
     @Operation(summary = "删除成果", description = "删除指定成果及其关联数据")
+    @OperationLog(module = "成果管理", type = OperationType.DELETE, description = "删除成果", recordParams = true, recordResult = false)
     public R<Void> deleteAchievement(
             @Parameter(description = "成果ID") @PathVariable Long achievementId
     ){
