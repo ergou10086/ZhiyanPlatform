@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -159,6 +160,18 @@ public class TaskDetailDTO {
          */
         @Schema(description = "头像URL", example = "https://example.com/avatar.jpg")
         private String avatarUrl;
+        
+        /**
+         * ✅ 分配类型：ASSIGNED-被分配，CLAIMED-主动接取
+         */
+        @Schema(description = "分配类型", example = "ASSIGNED", allowableValues = {"ASSIGNED", "CLAIMED"})
+        private String assignType;
+        
+        /**
+         * ✅ 分配/接取时间
+         */
+        @Schema(description = "分配或接取时间", example = "2025-11-04T10:30:00Z")
+        private Instant assignedAt;
     }
 }
 

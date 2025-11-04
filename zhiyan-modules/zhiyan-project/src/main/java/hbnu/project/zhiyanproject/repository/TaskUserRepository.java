@@ -180,5 +180,34 @@ public interface TaskUserRepository extends JpaRepository<TaskUser, Long> {
            "AND tu.isActive = true " +
            "ORDER BY tu.taskId, tu.assignedAt")
     List<TaskUser> findActiveExecutorsByTaskIds(@Param("taskIds") List<Long> taskIds);
+
+    // ==================== 新增：支持分配类型查询 ====================
+
+    /**
+     * 根据用户ID、分配类型和激活状态查询任务（分页）
+     * 用于区分查询ASSIGNED和CLAIMED类型的任务
+     *
+     * @param userId 用户ID
+     * @param assignType 分配类型
+     * @param isActive 是否有效
+     * @param pageable 分页参数
+     * @return 任务用户关联分页列表
+     */
+    Page<TaskUser> findByUserIdAndAssignTypeAndIsActive(
+        Long userId, 
+        hbnu.project.zhiyanproject.model.enums.AssignType assignType, 
+        Boolean isActive, 
+        Pageable pageable
+    );
+
+    /**
+     * 根据用户ID和激活状态查询所有任务
+     * 用于统计用户任务数据
+     *
+     * @param userId 用户ID
+     * @param isActive 是否有效
+     * @return 任务用户关联列表
+     */
+    List<TaskUser> findByUserIdAndIsActive(Long userId, Boolean isActive);
 }
 
