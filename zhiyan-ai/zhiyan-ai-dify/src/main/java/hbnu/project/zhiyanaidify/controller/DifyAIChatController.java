@@ -19,9 +19,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
-// TODO 方案三优化：取消下面两行的注释以启用响应头设置和延迟发送
-// import org.springframework.http.server.reactive.ServerHttpResponse;
-// import java.time.Duration;
+// ⭐ 启用响应头设置和延迟发送（使用 Servlet API）
+import jakarta.servlet.http.HttpServletResponse;
+import java.time.Duration;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -135,16 +135,17 @@ public class DifyAIChatController {
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（UUID 格式，首次对话不传或传空）") @RequestParam(required = false) String conversationId,
             @Parameter(description = "Dify 文件 ID 列表") @RequestParam(required = false) List<String> fileIds,
-            @Parameter(description = "输入变量") @RequestBody(required = false) Map<String, Object> inputs
-            // TODO 方案三优化：添加 ServerHttpResponse 参数以设置响应头
-            // @Parameter(description = "HTTP响应对象") ServerHttpResponse response
+            @Parameter(description = "输入变量") @RequestBody(required = false) Map<String, Object> inputs,
+            // ⭐ 添加 HttpServletResponse 参数以设置响应头（Servlet API）
+            HttpServletResponse response
     ) {
-        // TODO 方案三优化：设置响应头，确保流式传输不被缓冲
-        // if (response != null) {
-        //     response.getHeaders().set("Cache-Control", "no-cache");
-        //     response.getHeaders().set("X-Accel-Buffering", "no");
-        //     response.getHeaders().set("Connection", "keep-alive");
-        // }
+        // ⭐⭐⭐ 设置响应头，确保流式传输不被缓冲（关键配置）
+        if (response != null) {
+            response.setHeader("Cache-Control", "no-cache, no-transform");
+            response.setHeader("X-Accel-Buffering", "no");
+            response.setHeader("Connection", "keep-alive");
+            log.info("⭐ [Chatflow Stream] 已设置无缓冲响应头");
+        }
         
         // 获取用户ID，如果为null则使用默认值
         Long userId = securityHelper.getUserId();
@@ -153,7 +154,7 @@ public class DifyAIChatController {
         // 验证并处理 conversationId
         String validConversationId = validateConversationId(conversationId);
 
-        log.info("[Chatflow 对话] query={}, conversationId={}, fileIds={}, userId={}",
+        log.info("🚀 [Chatflow 对话] 开始流式对话 - query={}, conversationId={}, fileIds={}, userId={}",
                 query, validConversationId, fileIds, userIdentifier);
 
         // 构建聊天请求
@@ -172,12 +173,21 @@ public class DifyAIChatController {
 
         // 返回流式响应
         return difyStreamService.callChatflowStream(request)
-                .map(message -> ServerSentEvent.<DifyStreamMessage>builder()
-                        .event(message.getEvent())
-                        .data(message)
-                        .build());
-                // TODO 方案三优化：添加延迟确保立即发送，不会批量缓冲
-                // .delayElements(Duration.ofMillis(1));
+                .doOnSubscribe(sub -> log.info("📡 [Chatflow Stream] 客户端开始订阅流"))
+                .map(message -> {
+                    log.info("📤 [Chatflow Stream] 发送SSE消息: event={}, dataLength={}",
+                            message.getEvent(),
+                            message.getData() != null ? message.getData().length() : 0);
+                    return ServerSentEvent.<DifyStreamMessage>builder()
+                            .event(message.getEvent())
+                            .data(message)
+                            .comment("stream")  // 添加注释保持连接
+                            .build();
+                })
+                // ⭐⭐⭐ 添加微小延迟，确保每条消息立即发送，防止批量缓冲
+                .delayElements(Duration.ofMillis(1))
+                .doOnComplete(() -> log.info("🏁 [Chatflow Stream] 流式响应完成"))
+                .doOnError(error -> log.error("❌ [Chatflow Stream] 流式响应错误", error));
     }
 
 

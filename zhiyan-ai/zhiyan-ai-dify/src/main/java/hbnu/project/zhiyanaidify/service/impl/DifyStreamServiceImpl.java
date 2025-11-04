@@ -157,7 +157,7 @@ public class DifyStreamServiceImpl implements DifyStreamService {
      */
     @Override
     public Flux<DifyStreamMessage> callChatflowStream(ChatRequest request) {
-        log.info("[Dify Chatflow] 开始流式调用: query={}, conversationId={}, user={}",
+        log.info("🔄 [Dify Chatflow] 开始流式调用: query={}, conversationId={}, user={}",
                 request.getQuery(), request.getConversationId(), request.getUser());
 
         // 打印完整的请求体用于调试
@@ -173,12 +173,16 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                 .defaultHeader("Authorization", "Bearer " + difyProperties.getApiKey())
                 .defaultHeader("Content-Type", "application/json")
                 .defaultHeader("Accept", "text/event-stream")  // ✅ 关键：告诉 Dify 我们要 SSE 流式响应
+                // ⭐ 设置合理的内存缓冲大小（512 KB）
+                .codecs(configurer -> configurer
+                        .defaultCodecs()
+                        .maxInMemorySize(524288))  // 512 KB（足够处理SSE消息）
                 .build();
 
         // 确保是流式模式
         request.setResponseMode("streaming");
 
-        log.info("[Dify Chatflow] 发送请求到: {}/chat-messages", difyProperties.getApiUrl());
+        log.info("📡 [Dify Chatflow] 发送请求到: {}/chat-messages", difyProperties.getApiUrl());
 
         return webClient.post()
                 .uri("/chat-messages")
@@ -187,40 +191,46 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                 .onStatus(
                     status -> !status.is2xxSuccessful(),
                     response -> {
-                        log.error("[Dify Chatflow] HTTP 错误: status={}", response.statusCode());
+                        log.error("❌ [Dify Chatflow] HTTP 错误: status={}", response.statusCode());
                         return response.bodyToMono(String.class)
                                 .doOnNext(body -> log.error("[Dify Chatflow] 错误响应体: {}", body))
                                 .then(Mono.error(new RuntimeException("Dify API 返回错误: " + response.statusCode())));
                     }
                 )
                 .bodyToFlux(String.class)
-                .doOnSubscribe(sub -> log.info("[Dify Chatflow] 开始订阅流式响应"))
-                .doOnComplete(() -> log.info("[Dify Chatflow] 流式响应完成（可能没有数据）"))
-                // 打印 Dify 返回的原始数据（用于调试）
-                .doOnNext(rawData -> log.info("[Dify Chatflow] 收到原始数据: {}", rawData))
+                .doOnSubscribe(sub -> log.info("🔄 [Dify Chatflow] 开始订阅流式响应"))
+                // ⭐ 打印 Dify 返回的原始数据（用于调试流式传输）
+                .doOnNext(rawData -> {
+                    String preview = rawData.length() > 100 ? rawData.substring(0, 100) + "..." : rawData;
+                    log.info("📦 [Dify Chatflow] 收到原始数据: {}", preview);
+                })
                 // 使用 handle 而不是 map + filter，因为 map 不允许返回 null
                 .<DifyStreamMessage>handle((data, sink) -> {
                     DifyStreamMessage message = parseDifyStreamData(data);
                     if (message != null) {
-                        log.info("[Dify Chatflow] 解析成功: event={}, data={}", 
-                                message.getEvent(), message.getData());
+                        String dataPreview = message.getData() != null && message.getData().length() > 50 
+                            ? message.getData().substring(0, 50) + "..." 
+                            : message.getData();
+                        log.info("✅ [Dify Chatflow] 解析成功: event={}, data={}", 
+                                message.getEvent(), dataPreview);
                         sink.next(message);  // 只有非 null 时才发出
                     } else {
-                        log.warn("[Dify Chatflow] 解析返回 null，原始数据: {}", data);
+                        log.warn("⚠️ [Dify Chatflow] 解析返回 null，原始数据: {}", data);
                     }
                 })
-                // TODO 方案三优化：添加背压策略，确保流式传输不会因缓冲而延迟
-                // .onBackpressureBuffer(100)  // 缓冲区最多100条消息
-                .doOnNext(msg -> log.debug("[Dify Chatflow] 发送消息: event={}", msg.getEvent()))
+                // ⭐⭐⭐ 添加背压策略，确保流式传输不会因缓冲而延迟
+                .onBackpressureBuffer(100,  // 缓冲区最多100条消息
+                    dropped -> log.warn("⚠️ [Dify Chatflow] 缓冲区满，丢弃消息"))
+                .doOnNext(msg -> log.info("📤 [Dify Chatflow] 向上游发送消息: event={}", msg.getEvent()))
                 .doOnError(error -> {
-                    log.error("[Dify Chatflow] 调用错误", error);
+                    log.error("❌ [Dify Chatflow] 调用错误", error);
                     // 如果是 WebClientResponseException，打印响应体
                     if (error instanceof WebClientResponseException ex) {
                         log.error("[Dify Chatflow] 错误响应: status={}, body={}",
                                 ex.getStatusCode(), ex.getResponseBodyAsString());
                     }
                 })
-                .doOnComplete(() -> log.info("[Dify Chatflow] 调用完成"));
+                .doOnComplete(() -> log.info("🏁 [Dify Chatflow] 调用完成"));
     }
 
 
