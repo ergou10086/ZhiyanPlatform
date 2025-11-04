@@ -209,6 +209,8 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                         log.warn("[Dify Chatflow] 解析返回 null，原始数据: {}", data);
                     }
                 })
+                // TODO 方案三优化：添加背压策略，确保流式传输不会因缓冲而延迟
+                // .onBackpressureBuffer(100)  // 缓冲区最多100条消息
                 .doOnNext(msg -> log.debug("[Dify Chatflow] 发送消息: event={}", msg.getEvent()))
                 .doOnError(error -> {
                     log.error("[Dify Chatflow] 调用错误", error);
