@@ -97,6 +97,17 @@ spring:
             username: nacos
             password: nacos
 
+        # 降级规则
+        degrade:
+          nacos:
+            server-addr: 10.7.10.98:8848
+            namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+            group-id: SENTINEL_GROUP
+            data-id: zhiyan-auth-degrade-rules
+            rule-type: degrade
+            username: nacos
+            password: nacos
+
 
 
       # Web 过滤器配置
@@ -343,3 +354,24 @@ zhiyan:
       max-size: 6
       queue-capacity: 200
       thread-name-prefix: auth-log-
+
+
+  # 自定义 Sentinel 配置
+  sentinel:
+    enabled: true
+    eager: true
+    dashboard:
+      host: localhost
+      port: 8858
+    log:
+      dir: logs/sentinel
+    # Nacos 数据源配置（规则持久化）
+    nacos:
+      enabled: true
+      server-addr: 10.7.10.98:8848
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+      group-id: SENTINEL_GROUP
+      username: nacos
+      password: nacos
+      data-id-suffix: json
+

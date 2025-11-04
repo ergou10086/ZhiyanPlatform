@@ -196,6 +196,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- zhiyan-common-sentinel 流控降级模块 -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-sentinel</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
 </project>

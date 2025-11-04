@@ -1,15 +1,16 @@
 package hbnu.project.zhiyanproject.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
+import hbnu.project.zhiyanproject.handler.ProjectSentinelHandler;
 import hbnu.project.zhiyanproject.model.dto.ImageUploadResponse;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
-import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
 import hbnu.project.zhiyanproject.service.ProjectImageService;
 import hbnu.project.zhiyanproject.model.form.CreateProjectRequest;
 import hbnu.project.zhiyanproject.service.ProjectService;
@@ -24,12 +25,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 
 /**
  * 项目控制器
@@ -59,6 +58,11 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "上传项目图片", description = "上传项目封面图片到MinIO，返回图片URL")
     @OperationLog(module = "项目管理", type = OperationType.UPLOAD, description = "上传项目封面图片到MinIO")
+    @SentinelResource(
+        value = "uploadProjectImage",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleUploadImageBlock"
+    )
     public R<ImageUploadResponse> uploadProjectImage(
             @Parameter(description = "图片文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "项目ID（可选）") @RequestParam(required = false) Long projectId) {
@@ -100,6 +104,13 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建项目", description = "创建新项目，创建者自动成为项目拥有者")
     @OperationLog(module = "项目管理", type = OperationType.INSERT, description = "创建新项目，创建者自动成为项目拥有者")
+    @SentinelResource(
+        value = "createProject",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleCreateProjectBlock",
+        fallbackClass = ProjectSentinelHandler.class,
+        fallback = "handleCreateProjectFallback"
+    )
     public R<Project> createProject(@RequestBody @Valid CreateProjectRequest request) {
 
         // 从 Spring Security Context 获取当前登录用户ID
@@ -151,6 +162,11 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除项目", description = "软删除项目，只有项目拥有者可以删除")
     @OperationLog(module = "项目管理", type = OperationType.DELETE, description = "软删除项目，只有项目拥有者可以删除")
+    @SentinelResource(
+        value = "deleteProject",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleDeleteProjectBlock"
+    )
     public R<Void> deleteProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]删除项目[{}]", userId, projectId);
@@ -184,6 +200,11 @@ public class ProjectController {
     @PreAuthorize("hasRole('OWNER')")
     @Operation(summary = "获取所有项目", description = "分页获取所有项目（管理员）")
     @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "分页获取所有项目（管理员）", recordResult = false)
+    @SentinelResource(
+        value = "getAllProjects",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleGetProjectsBlock"
+    )
     public R<Page<Project>> getAllProjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -204,6 +225,11 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取我创建的项目", description = "获取当前用户创建的所有项目")
     @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "获取当前用户创建的所有项目", recordResult = false)
+    @SentinelResource(
+        value = "getMyCreatedProjects",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleGetProjectsBlock"
+    )
     public R<Page<Project>> getMyCreatedProjects(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {

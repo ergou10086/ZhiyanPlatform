@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanaicoze.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanaicoze.config.properties.CozeProperties;
 import hbnu.project.zhiyanaicoze.model.dto.CozeStreamMessage;
 import hbnu.project.zhiyanaicoze.model.request.CozeChatRequest;
@@ -38,6 +41,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Tag(name = "Coze AI 对话", description = "Coze AI 智能对话接口，支持流式响应")
 @CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")
+@AccessLog("Coze AI 对话")
 public class CozeAIChatController {
 
     private final CozeStreamService cozeStreamService;
@@ -65,6 +69,7 @@ public class CozeAIChatController {
                     "后续对话使用返回的 conversationId 维持上下文。"
     )
     @CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")
+    @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体进行流式对话，不涉及文件上传,已废弃", type = OperationType.OTHER)
     public Flux<ServerSentEvent<CozeStreamMessage>> chatStream(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（可选，用于维持会话）") @RequestParam(required = false) String conversationId,
@@ -186,6 +191,7 @@ public class CozeAIChatController {
                     "可同时传递 localFiles（本地文件）和 knowledgeFileIds（知识库文件）。" +
                     "文件会先上传到 Coze，然后在对话中使用。"
     )
+    @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体支持上传本地文件或引用知识库文件进行对话", type = OperationType.OTHER)
     public Flux<ServerSentEvent<CozeStreamMessage>> chatStreamWithFiles(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（可选）") @RequestParam(required = false) String conversationId,
@@ -295,6 +301,7 @@ public class CozeAIChatController {
      */
     @PostMapping("/files/upload")
     @Operation(summary = "上传文件到 Coze", description = "上传单个文件到 Coze 服务器，返回 file_id 供后续对话使用")
+    @OperationLog(module = "Coze AI 对话", type = OperationType.UPLOAD, description = "上传单个文件到 Coze 服务器")
     public R<CozeFileUploadResponse> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
@@ -318,6 +325,7 @@ public class CozeAIChatController {
      */
     @PostMapping("/files/upload/batch")
     @Operation(summary = "批量上传文件", description = "批量上传多个文件到 Coze")
+    @OperationLog(module = "Coze AI 对话", type = OperationType.UPLOAD, description = "批量上传多个文件到 Coze")
     public R<List<CozeFileUploadResponse>> uploadFiles(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
             @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
@@ -339,6 +347,7 @@ public class CozeAIChatController {
      */
     @GetMapping("/files/{fileId}")
     @Operation(summary = "查询文件详情", description = "查询已上传到 Coze 的文件详细信息")
+    @OperationLog(module = "Coze AI 对话", type = OperationType.GRANT, description = "查询已上传到 Coze 的文件详细信息")
     public R<CozeFileDetailResponse> getFileDetail(
             @Parameter(description = "Coze 文件 ID") @PathVariable String fileId,
             @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
@@ -364,6 +373,7 @@ public class CozeAIChatController {
             summary = "查询对话详情",
             description = "查询指定对话的详细信息，包括状态、token使用量等"
     )
+    @OperationLog(module = "Coze AI 对话", type = OperationType.QUERY, description = "查询对话详情")
     public R<CozeChatResponse> getChatDetail(
             @Parameter(description = "对话ID") @RequestParam String conversationId,
             @Parameter(description = "聊天ID") @RequestParam String chatId,

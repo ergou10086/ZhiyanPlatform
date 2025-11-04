@@ -182,5 +182,14 @@ public interface WikiPageRepository extends JpaRepository<WikiPage, Long> {
     @Query("SELECT COALESCE(MAX(w.sortOrder), 0) FROM WikiPage w " +
            "WHERE w.projectId = :projectId AND w.parentId = :parentId")
     Integer findMaxSortOrder(@Param("projectId") Long projectId, @Param("parentId") Long parentId);
+
+    /**
+     * 三项查询
+     * @param projectId
+     * @param title
+     * @param projectId1
+     * @return
+     */
+    List<WikiPage> findByProjectIdAndTitleAndParentId(Long projectId, String title, Long projectId1);
 }
 

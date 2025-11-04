@@ -218,7 +218,7 @@ public class WikiImportExportController {
         if (result.getSuccess()) {
             return R.ok(result, "导入成功");
         } else {
-            return R.fail(result.getMessage(), result);
+            return R.fail(result, result.getMessage());
         }
     }
 

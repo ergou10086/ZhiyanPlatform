@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanauth.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.nacos.api.model.v2.Result;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
@@ -55,6 +57,10 @@ public class AuthController {
     @PostMapping("/send-verfcode")
     @Operation(summary = "发送验证码", description = "向指定邮箱发送验证码，支持注册、重置密码等场景")
     @OperationLog(module = "认证管理", type = OperationType.OTHER, description = "发送验证码")
+    @SentinelResource(
+            value = "auth:send-code",  // 资源名称
+            blockHandler = "sendCodeBlockHandler"  // 限流处理方法
+    )
     public R<Void> sendVerificationCode(
             @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
         log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
@@ -88,6 +94,11 @@ public class AuthController {
     @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
     @OperationLog(module = "认证管理", type = OperationType.LOGIN, description = "用户登录", recordParams = true,
             recordResult = false  // 不记录 token
+    )
+    @SentinelResource(
+            value = "auth:login",
+            blockHandler = "loginBlockHandler",
+            fallback = "loginFallback"  // 异常降级
     )
     public R<UserLoginResponse> login(
             @Valid @RequestBody LoginBody loginBody, HttpServletResponse response) {
@@ -333,6 +344,19 @@ public class AuthController {
                     request.getUserId(), request.getPermissions(), e);
             return R.fail("批量权限校验失败");
         }
+    }
+
+
+    public R<Void> sendCodeBlockHandler(
+            VerificationCodeBody verificationCodeBody, BlockException ex) {
+        log.warn("发送验证码被限流: 邮箱={}", verificationCodeBody.getEmail());
+        return R.fail(429, "验证码发送过于频繁，请稍后再试");
+    }
+
+    public R<UserRegisterResponse> registerBlockHandler(
+            RegisterBody request, BlockException ex) {
+        log.warn("用户注册被限流: 邮箱={}", request.getEmail());
+        return R.fail(429, "注册请求过于频繁，请稍后再试");
     }
 }
 

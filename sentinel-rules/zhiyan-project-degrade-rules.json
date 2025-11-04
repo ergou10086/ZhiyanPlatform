@@ -1,0 +1,37 @@
+[
+  {
+    "resource": "/api/projects",
+    "grade": 0,
+    "count": 1.0,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "slowRatioThreshold": 0.5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/api/projects/tasks",
+    "grade": 0,
+    "count": 1.5,
+    "timeWindow": 10,
+    "minRequestAmount": 5,
+    "slowRatioThreshold": 0.5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "/api/projects/upload-image",
+    "grade": 2,
+    "count": 0.1,
+    "timeWindow": 30,
+    "minRequestAmount": 3,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "POST:/api/projects",
+    "grade": 2,
+    "count": 0.05,
+    "timeWindow": 30,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  }
+]
+
