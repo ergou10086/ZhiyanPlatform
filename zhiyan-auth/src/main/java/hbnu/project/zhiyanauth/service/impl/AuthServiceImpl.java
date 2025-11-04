@@ -473,7 +473,16 @@ public class AuthServiceImpl implements AuthService {
             long cacheTimeSeconds = (long) accessTokenExpireMinutes * 60;
             redisService.setCacheObject(tokenKey, newAccessToken, cacheTimeSeconds, TimeUnit.SECONDS);
 
-            // 10. 返回新的TokenDTO（Refresh Token保持不变）
+            // 10. 如果用户有RememberMe token，刷新其过期时间（保持30天有效期）
+            try {
+                customRememberMeService.refreshRememberMeToken(userId);
+                log.debug("已刷新用户 {} 的RememberMe token过期时间", userId);
+            } catch (Exception e) {
+                // RememberMe token刷新失败不影响token刷新，只记录日志
+                log.debug("刷新RememberMe token失败（可能用户未勾选记住我）: {}", e.getMessage());
+            }
+
+            // 11. 返回新的TokenDTO（Refresh Token保持不变）
             TokenDTO tokenDTO = new TokenDTO();
             tokenDTO.setAccessToken(newAccessToken);
             tokenDTO.setRefreshToken(refreshToken); // 保持不变

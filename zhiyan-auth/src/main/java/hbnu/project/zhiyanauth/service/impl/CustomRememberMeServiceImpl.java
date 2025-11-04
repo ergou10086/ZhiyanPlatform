@@ -84,6 +84,7 @@ public class CustomRememberMeServiceImpl implements RememberMeService, CustomRem
     /**
      * 刷新RememberMe token过期时间
      */
+    @Override
     @Transactional
     public void refreshRememberMeToken(Long userId) {
         rememberMeTokenRepository.findByUserId(userId).ifPresent(token -> {

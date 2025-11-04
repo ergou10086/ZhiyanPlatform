@@ -55,15 +55,16 @@ public class WebClientConfig {
     /**
      * 配置通用的 WebClient Bean
      * 用于服务间调用（如调用 Auth 服务）
+     * 增加超时时间到 10 秒，避免 Auth 服务调用超时
      */
     @Bean
     public WebClient.Builder webClientBuilder() {
         HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .responseTimeout(Duration.ofSeconds(5))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)  // 连接超时 10 秒
+                .responseTimeout(Duration.ofSeconds(10))  // 响应超时 10 秒
                 .doOnConnected(conn ->
-                    conn.addHandlerLast(new ReadTimeoutHandler(5, TimeUnit.SECONDS))
-                        .addHandlerLast(new WriteTimeoutHandler(5, TimeUnit.SECONDS))
+                    conn.addHandlerLast(new ReadTimeoutHandler(10, TimeUnit.SECONDS))  // 读取超时 10 秒
+                        .addHandlerLast(new WriteTimeoutHandler(10, TimeUnit.SECONDS))  // 写入超时 10 秒
                 );
 
         return WebClient.builder()
