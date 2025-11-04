@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * 项目模块 Sentinel 统一处理器
@@ -150,7 +149,6 @@ public class ProjectSentinelHandler {
         log.warn("[Sentinel] 查询任务看板接口被限流, projectId: {}", projectId);
         // 返回空数据而不是错误，提升用户体验
         TaskBoardDTO emptyBoard = new TaskBoardDTO();
-        emptyBoard.setProjectId(projectId);
         emptyBoard.setTodoTasks(Collections.emptyList());
         emptyBoard.setInProgressTasks(Collections.emptyList());
         emptyBoard.setBlockedTasks(Collections.emptyList());
@@ -164,7 +162,6 @@ public class ProjectSentinelHandler {
     public static R<TaskBoardDTO> handleGetTaskBoardFallback(Long projectId, Throwable ex) {
         log.error("[Sentinel] 查询任务看板接口降级, projectId: {}", projectId, ex);
         TaskBoardDTO emptyBoard = new TaskBoardDTO();
-        emptyBoard.setProjectId(projectId);
         emptyBoard.setTodoTasks(Collections.emptyList());
         emptyBoard.setInProgressTasks(Collections.emptyList());
         emptyBoard.setBlockedTasks(Collections.emptyList());
