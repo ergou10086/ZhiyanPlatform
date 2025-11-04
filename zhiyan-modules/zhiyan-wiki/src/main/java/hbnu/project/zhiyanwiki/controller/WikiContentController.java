@@ -1,8 +1,12 @@
 package hbnu.project.zhiyanwiki.controller;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.exception.ServiceException;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanwiki.model.dto.WikiVersionDTO;
+import hbnu.project.zhiyanwiki.model.entity.WikiPage;
+import hbnu.project.zhiyanwiki.model.enums.PageType;
+import hbnu.project.zhiyanwiki.repository.WikiPageRepository;
 import hbnu.project.zhiyanwiki.service.WikiContentService;
 import hbnu.project.zhiyanwiki.utils.WikiSecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +34,7 @@ public class WikiContentController {
 
     private final WikiContentService contentService;
     private final WikiSecurityUtils wikiSecurityUtils;
+    private final WikiPageRepository  wikiPageRepository;
 
     /**
      * 获取Wiki页面的版本历史列表
@@ -108,6 +113,16 @@ public class WikiContentController {
 
         // 权限检查：必须有访问权限
         wikiSecurityUtils.requireAccess(pageId);
+
+        // 先查询页面类型
+        WikiPage page = wikiPageRepository.findById(pageId)
+                .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
+
+        // 如果是目录类型，返回提示
+        if (page.getPageType() == PageType.DIRECTORY) {
+            return R.ok("", "目录类型的页面没有内容");
+        }
+
 
         var content = contentService.getContent(pageId);
 
