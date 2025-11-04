@@ -58,8 +58,8 @@ public class WikiImportService {
             
             // 检查是否存在同名页面
             if (!importDTO.getOverwrite()) {
-                List<WikiPage> existingPages = wikiPageRepository.findByProjectIdAndTitleAndParentId(
-                        importDTO.getProjectId(), mdPage.getTitle(), importDTO.getParentId());
+                List<WikiPage> existingPages = wikiPageRepository.findByProjectIdAndTitleAndParentId((
+                        importDTO.getProjectId()), mdPage.getTitle(), importDTO.getParentId());
                 if (!existingPages.isEmpty()) {
                     result.getErrors().add("页面已存在: " + mdPage.getTitle());
                     result.setMessage("导入失败：页面已存在且未设置覆盖模式");
