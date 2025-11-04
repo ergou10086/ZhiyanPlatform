@@ -8,14 +8,19 @@ import hbnu.project.zhiyanproject.service.UserCacheService;
 import hbnu.project.zhiyanproject.model.dto.TaskBoardDTO;
 import hbnu.project.zhiyanproject.model.dto.TaskDetailDTO;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
+import hbnu.project.zhiyanproject.model.dto.UserTaskStatisticsDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
+import hbnu.project.zhiyanproject.model.entity.TaskUser;
+import hbnu.project.zhiyanproject.model.enums.AssignType;
+import hbnu.project.zhiyanproject.model.enums.RoleType;
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import hbnu.project.zhiyanproject.model.form.CreateTaskRequest;
 import hbnu.project.zhiyanproject.model.form.UpdateTaskRequest;
 import hbnu.project.zhiyanproject.repository.ProjectRepository;
 import hbnu.project.zhiyanproject.repository.TaskRepository;
+import hbnu.project.zhiyanproject.repository.TaskUserRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import hbnu.project.zhiyanproject.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +54,9 @@ public class TaskServiceImpl implements TaskService {
     private final AuthServiceClient authServiceClient;
     private final UserCacheService userCacheService;
     private final ObjectMapper objectMapper;
+    
+    // ✅ 新增：task_user关联表Repository
+    private final TaskUserRepository taskUserRepository;
 
     // ==================== 任务创建与管理 ====================
 
@@ -75,17 +84,14 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        // 4. 将执行者列表转换为JSON
-        String assigneeIdsJson = convertListToJson(assigneeIds);
-
-        // 5. 创建任务
+        // 4. 创建任务（assigneeId设为空，废弃字段）
         Tasks task = Tasks.builder()
                 .projectId(projectId)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .status(TaskStatus.TODO) // 新创建的任务默认为待办
                 .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.MEDIUM)
-                .assigneeId(assigneeIdsJson)
+                .assigneeId("[]")  // ✅ 废弃字段，设为空
                 .dueDate(request.getDueDate())
                 .worktime(request.getWorktime())
                 .createdBy(creatorId)
@@ -93,6 +99,26 @@ public class TaskServiceImpl implements TaskService {
                 .build();
 
         Tasks saved = taskRepository.save(task);
+        
+        // 5. ✅ 创建task_user关联记录
+        if (assigneeIds != null && !assigneeIds.isEmpty()) {
+            List<TaskUser> taskUsers = assigneeIds.stream()
+                    .map(userId -> TaskUser.builder()
+                            .taskId(saved.getId())
+                            .projectId(projectId)  // ✅ 冗余project_id
+                            .userId(userId)
+                            .assignType(AssignType.ASSIGNED)
+                            .assignedBy(creatorId)
+                            .assignedAt(Instant.now())
+                            .isActive(true)
+                            .roleType(RoleType.EXECUTOR)
+                            .build())
+                    .collect(Collectors.toList());
+            
+            taskUserRepository.saveAll(taskUsers);
+            log.info("✅ 创建任务并分配执行者: taskId={}, assignees={}", saved.getId(), assigneeIds);
+        }
+        
         log.info("创建任务成功: taskId={}, projectId={}, title={}, creator={}", 
                 saved.getId(), projectId, request.getTitle(), creatorId);
 
@@ -239,18 +265,63 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        // 4. 更新执行者
-        task.setAssigneeId(convertListToJson(assigneeIds));
+        // 4. ✅ 软删除旧的task_user记录
+        Instant now = Instant.now();
+        taskUserRepository.deactivateTaskAssignees(taskId, now, operatorId);
         
-        // 5. ✅ 如果任务状态是TODO，自动改为IN_PROGRESS
-        if (task.getStatus() == TaskStatus.TODO) {
+        // 5. ✅ 添加新的task_user记录
+        if (assigneeIds != null && !assigneeIds.isEmpty()) {
+            List<TaskUser> newAssignees = new ArrayList<>();
+            
+            for (Long userId : assigneeIds) {
+                // 检查是否已存在记录（避免唯一约束冲突）
+                Optional<TaskUser> existing = taskUserRepository.findByTaskIdAndUserId(taskId, userId);
+                
+                if (existing.isPresent()) {
+                    // 如果存在但被停用，则重新激活
+                    TaskUser taskUser = existing.get();
+                    if (!taskUser.getIsActive()) {
+                        taskUser.setIsActive(true);
+                        taskUser.setAssignedBy(operatorId);
+                        taskUser.setAssignedAt(now);
+                        taskUser.setAssignType(AssignType.ASSIGNED);
+                        taskUser.setRemovedAt(null);
+                        taskUser.setRemovedBy(null);
+                        newAssignees.add(taskUser);
+                    }
+                    // 如果已是有效执行者，跳过
+                } else {
+                    // 不存在，创建新记录
+                    newAssignees.add(TaskUser.builder()
+                            .taskId(taskId)
+                            .projectId(task.getProjectId())  // ✅ 冗余project_id
+                            .userId(userId)
+                            .assignType(AssignType.ASSIGNED)
+                            .assignedBy(operatorId)
+                            .assignedAt(now)
+                            .isActive(true)
+                            .roleType(RoleType.EXECUTOR)
+                            .build());
+                }
+            }
+            
+            if (!newAssignees.isEmpty()) {
+                taskUserRepository.saveAll(newAssignees);
+            }
+        }
+        
+        // 6. 更新assigneeId字段为空（废弃字段）
+        task.setAssigneeId("[]");
+        
+        // 7. 如果任务状态是TODO，自动改为IN_PROGRESS
+        if (task.getStatus() == TaskStatus.TODO && assigneeIds != null && !assigneeIds.isEmpty()) {
             task.setStatus(TaskStatus.IN_PROGRESS);
             log.info("任务状态自动从TODO更新为IN_PROGRESS");
         }
         
         Tasks saved = taskRepository.save(task);
 
-        log.info("重新分配任务: taskId={}, assigneeIds={}, newStatus={}, operator={}", 
+        log.info("✅ 重新分配任务: taskId={}, assigneeIds={}, newStatus={}, operator={}", 
                 taskId, assigneeIds, saved.getStatus(), operatorId);
 
         // TODO: 发布"任务已重新分配"事件，通知新的执行者
@@ -270,20 +341,42 @@ public class TaskServiceImpl implements TaskService {
             throw new IllegalArgumentException("只有项目成员才能接取任务");
         }
 
-        // 3. 获取当前执行者列表
-        List<Long> currentAssignees = convertJsonToList(task.getAssigneeId());
-        // ✅ 创建一个新的可修改列表，避免UnsupportedOperationException
-        List<Long> assigneeIds = new ArrayList<>(currentAssignees != null ? currentAssignees : Collections.emptyList());
-
-        // 4. 检查是否已经是执行者
-        if (assigneeIds.contains(userId)) {
+        // 3. ✅ 检查是否已是执行者（使用task_user表）
+        if (taskUserRepository.isUserActiveExecutor(taskId, userId)) {
             throw new IllegalArgumentException("您已经是该任务的执行者");
         }
 
-        // 5. 将当前用户添加到执行者列表
-        assigneeIds.add(userId);
-        task.setAssigneeId(convertListToJson(assigneeIds));
+        // 4. ✅ 检查是否存在历史记录
+        Optional<TaskUser> existing = taskUserRepository.findByTaskIdAndUserId(taskId, userId);
         
+        Instant now = Instant.now();
+        
+        if (existing.isPresent()) {
+            // 如果存在但被停用，则重新激活
+            TaskUser taskUser = existing.get();
+            taskUser.setIsActive(true);
+            taskUser.setAssignedBy(userId);  // 自己分配给自己
+            taskUser.setAssignedAt(now);
+            taskUser.setAssignType(AssignType.CLAIMED);  // ✅ 标记为主动接取
+            taskUser.setRemovedAt(null);
+            taskUser.setRemovedBy(null);
+            taskUserRepository.save(taskUser);
+        } else {
+            // 5. ✅ 创建新的task_user记录
+            TaskUser taskUser = TaskUser.builder()
+                    .taskId(taskId)
+                    .projectId(task.getProjectId())  // ✅ 冗余project_id
+                    .userId(userId)
+                    .assignType(AssignType.CLAIMED)  // ✅ 标记为主动接取
+                    .assignedBy(userId)  // 自己分配给自己
+                    .assignedAt(now)
+                    .isActive(true)
+                    .roleType(RoleType.EXECUTOR)
+                    .build();
+            
+            taskUserRepository.save(taskUser);
+        }
+
         // 6. 如果任务状态是TODO，自动改为IN_PROGRESS
         if (task.getStatus() == TaskStatus.TODO) {
             task.setStatus(TaskStatus.IN_PROGRESS);
@@ -291,8 +384,7 @@ public class TaskServiceImpl implements TaskService {
         
         Tasks saved = taskRepository.save(task);
 
-        log.info("用户接取任务: taskId={}, userId={}, currentAssignees={}", 
-                taskId, userId, assigneeIds);
+        log.info("✅ 用户接取任务: taskId={}, userId={}", taskId, userId);
 
         // TODO: 发布"任务已接取"事件，通知项目成员
 
@@ -382,11 +474,33 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getMyAssignedTasks(Long userId, Pageable pageable) {
-        // findByAssigneeId 已经在 Repository 层过滤了已删除的任务
-        Page<Tasks> tasks = taskRepository.findByAssigneeId(String.valueOf(userId), pageable);
+        // ✅ 从task_user表查询用户的所有任务（包括ASSIGNED和CLAIMED）
+        Page<TaskUser> taskUserPage = taskUserRepository.findActiveTasksByUserId(userId, pageable);
+        
+        // 提取任务ID并批量查询任务详情
+        List<Long> taskIds = taskUserPage.getContent().stream()
+                .map(TaskUser::getTaskId)
+                .collect(Collectors.toList());
+        
+        if (taskIds.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+        
+        // 批量查询任务
+        List<Tasks> tasks = taskRepository.findAllById(taskIds);
+        
+        // 按照原始分页顺序排序（保持assigned_at排序）
+        Map<Long, Tasks> taskMap = tasks.stream()
+                .collect(Collectors.toMap(Tasks::getId, t -> t));
+        List<Tasks> sortedTasks = taskIds.stream()
+                .map(taskMap::get)
+                .filter(Objects::nonNull)
+                .filter(t -> !t.getIsDeleted())  // 过滤已删除任务
+                .collect(Collectors.toList());
+        
         // 使用优化后的批量转换，避免N+1查询
-        List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
-        return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
+        List<TaskDetailDTO> dtoList = convertListToDetailDTO(sortedTasks);
+        return new PageImpl<>(dtoList, pageable, taskUserPage.getTotalElements());
     }
 
     @Override
@@ -440,6 +554,171 @@ public class TaskServiceImpl implements TaskService {
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
     }
 
+    // ==================== 新增：基于task_user表的查询接口 ====================
+
+    @Override
+    public Page<TaskDetailDTO> getMyClaimedTasks(Long userId, Pageable pageable) {
+        // 从task_user表查询CLAIMED类型的任务
+        Page<TaskUser> taskUserPage = taskUserRepository.findByUserIdAndAssignTypeAndIsActive(
+                userId, AssignType.CLAIMED, true, pageable);
+        
+        return convertTaskUserPageToDTO(taskUserPage, pageable);
+    }
+
+    @Override
+    public Page<TaskDetailDTO> getMyAssignedOnlyTasks(Long userId, Pageable pageable) {
+        // 从task_user表查询ASSIGNED类型的任务
+        Page<TaskUser> taskUserPage = taskUserRepository.findByUserIdAndAssignTypeAndIsActive(
+                userId, AssignType.ASSIGNED, true, pageable);
+        
+        return convertTaskUserPageToDTO(taskUserPage, pageable);
+    }
+
+    @Override
+    public List<TaskDetailDTO> getUserTasksInProject(Long userId, Long projectId) {
+        // 查询用户在特定项目中的任务
+        List<TaskUser> taskUsers = taskUserRepository.findActiveTasksByUserAndProject(userId, projectId);
+        
+        // 提取任务ID并批量查询
+        List<Long> taskIds = taskUsers.stream()
+                .map(TaskUser::getTaskId)
+                .collect(Collectors.toList());
+        
+        if (taskIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        List<Tasks> tasks = taskRepository.findAllById(taskIds);
+        
+        // 过滤已删除任务
+        List<Tasks> activeTasks = tasks.stream()
+                .filter(t -> !t.getIsDeleted())
+                .collect(Collectors.toList());
+        
+        return convertListToDetailDTO(activeTasks);
+    }
+
+    @Override
+    public long countUserActiveTasks(Long userId) {
+        return taskUserRepository.countActiveTasksByUserId(userId);
+    }
+
+    @Override
+    public UserTaskStatisticsDTO getUserTaskStatistics(Long userId) {
+        // 1. 获取用户所有有效任务
+        List<TaskUser> allTaskUsers = taskUserRepository.findByUserIdAndIsActive(userId, true);
+        
+        // 2. 统计分配类型
+        long assignedCount = allTaskUsers.stream()
+                .filter(tu -> tu.getAssignType() == AssignType.ASSIGNED)
+                .count();
+        
+        long claimedCount = allTaskUsers.stream()
+                .filter(tu -> tu.getAssignType() == AssignType.CLAIMED)
+                .count();
+        
+        // 3. 查询任务详情以统计状态
+        List<Long> taskIds = allTaskUsers.stream()
+                .map(TaskUser::getTaskId)
+                .collect(Collectors.toList());
+        
+        if (taskIds.isEmpty()) {
+            return UserTaskStatisticsDTO.builder()
+                    .totalTasks(0L)
+                    .assignedTasks(0L)
+                    .claimedTasks(0L)
+                    .todoTasks(0L)
+                    .inProgressTasks(0L)
+                    .doneTasks(0L)
+                    .overdueTasks(0L)
+                    .upcomingTasks(0L)
+                    .projectCount(0L)
+                    .build();
+        }
+        
+        List<Tasks> tasks = taskRepository.findAllById(taskIds);
+        
+        // 过滤已删除的任务
+        List<Tasks> activeTasks = tasks.stream()
+                .filter(t -> !t.getIsDeleted())
+                .collect(Collectors.toList());
+        
+        // 4. 统计各状态任务数量
+        long todoCount = activeTasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.TODO)
+                .count();
+        
+        long inProgressCount = activeTasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS)
+                .count();
+        
+        long doneCount = activeTasks.stream()
+                .filter(t -> t.getStatus() == TaskStatus.DONE)
+                .count();
+        
+        // 5. 统计逾期任务
+        LocalDate today = LocalDate.now();
+        long overdueCount = activeTasks.stream()
+                .filter(t -> t.getDueDate() != null)
+                .filter(t -> t.getDueDate().isBefore(today))
+                .filter(t -> t.getStatus() != TaskStatus.DONE)
+                .count();
+        
+        // 6. 统计即将到期任务（未来3天内）
+        LocalDate threeDaysLater = today.plusDays(3);
+        long upcomingCount = activeTasks.stream()
+                .filter(t -> t.getDueDate() != null)
+                .filter(t -> !t.getDueDate().isBefore(today))
+                .filter(t -> !t.getDueDate().isAfter(threeDaysLater))
+                .filter(t -> t.getStatus() != TaskStatus.DONE)
+                .count();
+        
+        // 7. 统计参与的项目数量
+        long projectCount = allTaskUsers.stream()
+                .map(TaskUser::getProjectId)
+                .distinct()
+                .count();
+        
+        return UserTaskStatisticsDTO.builder()
+                .totalTasks((long) activeTasks.size())
+                .assignedTasks(assignedCount)
+                .claimedTasks(claimedCount)
+                .todoTasks(todoCount)
+                .inProgressTasks(inProgressCount)
+                .doneTasks(doneCount)
+                .overdueTasks(overdueCount)
+                .upcomingTasks(upcomingCount)
+                .projectCount(projectCount)
+                .build();
+    }
+
+    /**
+     * 辅助方法：将TaskUser分页转换为TaskDetailDTO分页
+     */
+    private Page<TaskDetailDTO> convertTaskUserPageToDTO(Page<TaskUser> taskUserPage, Pageable pageable) {
+        List<Long> taskIds = taskUserPage.getContent().stream()
+                .map(TaskUser::getTaskId)
+                .collect(Collectors.toList());
+        
+        if (taskIds.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+        
+        List<Tasks> tasks = taskRepository.findAllById(taskIds);
+        
+        // 按照原始分页顺序排序并过滤已删除任务
+        Map<Long, Tasks> taskMap = tasks.stream()
+                .collect(Collectors.toMap(Tasks::getId, t -> t));
+        List<Tasks> sortedTasks = taskIds.stream()
+                .map(taskMap::get)
+                .filter(Objects::nonNull)
+                .filter(t -> !t.getIsDeleted())
+                .collect(Collectors.toList());
+        
+        List<TaskDetailDTO> dtoList = convertListToDetailDTO(sortedTasks);
+        return new PageImpl<>(dtoList, pageable, taskUserPage.getTotalElements());
+    }
+
     // ==================== 统计相关 ====================
 
     @Override
@@ -470,8 +749,11 @@ public class TaskServiceImpl implements TaskService {
                 .map(Project::getName)
                 .orElse("未知项目");
 
-        // 解析执行者ID列表
-        List<Long> assigneeIds = convertJsonToList(task.getAssigneeId());
+        // ✅ 从task_user表读取执行者ID列表
+        List<TaskUser> taskUsers = taskUserRepository.findActiveExecutorsByTaskId(task.getId());
+        List<Long> assigneeIds = taskUsers.stream()
+                .map(TaskUser::getUserId)
+                .collect(Collectors.toList());
 
         // 批量查询执行者信息
         List<TaskDetailDTO.TaskAssigneeDTO> assignees = new ArrayList<>();
@@ -482,15 +764,29 @@ public class TaskServiceImpl implements TaskService {
                     // 将List转换为Map
                     Map<Long, UserDTO> userMap = response.getData().stream()
                             .collect(Collectors.toMap(UserDTO::getId, user -> user));
+                    
+                    // ✅ 关联task_user信息，包含assignType等字段
+                    Map<Long, TaskUser> taskUserMap = taskUsers.stream()
+                            .collect(Collectors.toMap(TaskUser::getUserId, tu -> tu));
+                    
                     assignees = assigneeIds.stream()
-                            .map(userMap::get)
+                            .map(userId -> {
+                                UserDTO user = userMap.get(userId);
+                                TaskUser taskUser = taskUserMap.get(userId);
+                                if (user != null && taskUser != null) {
+                                    return TaskDetailDTO.TaskAssigneeDTO.builder()
+                                            .userId(String.valueOf(user.getId()))
+                                            .userName(user.getName())
+                                            .email(user.getEmail())
+                                            .avatarUrl(user.getAvatarUrl())
+                                            // ✅ 添加分配类型信息
+                                            .assignType(taskUser.getAssignType().name())
+                                            .assignedAt(taskUser.getAssignedAt())
+                                            .build();
+                                }
+                                return null;
+                            })
                             .filter(Objects::nonNull)
-                            .map(user -> TaskDetailDTO.TaskAssigneeDTO.builder()
-                                    .userId(String.valueOf(user.getId()))
-                                    .userName(user.getName())
-                                    .email(user.getEmail())
-                                    .avatarUrl(user.getAvatarUrl())
-                                    .build())
                             .collect(Collectors.toList());
                 }
             } catch (Exception e) {
@@ -543,7 +839,19 @@ public class TaskServiceImpl implements TaskService {
             return Collections.emptyList();
         }
 
-        // 1. 收集所有需要查询的ID
+        // 1. 收集所有任务ID
+        List<Long> taskIds = tasks.stream()
+                .map(Tasks::getId)
+                .collect(Collectors.toList());
+
+        // 2. ✅ 批量查询task_user表，获取所有任务的执行者
+        List<TaskUser> allTaskUsers = taskUserRepository.findActiveExecutorsByTaskIds(taskIds);
+        
+        // 按taskId分组
+        Map<Long, List<TaskUser>> taskUserMap = allTaskUsers.stream()
+                .collect(Collectors.groupingBy(TaskUser::getTaskId));
+
+        // 3. 收集所有需要查询的ID
         Set<Long> projectIds = new HashSet<>();
         Set<Long> creatorIds = new HashSet<>();
         Set<Long> assigneeIds = new HashSet<>();
@@ -551,13 +859,14 @@ public class TaskServiceImpl implements TaskService {
         for (Tasks task : tasks) {
             projectIds.add(task.getProjectId());
             creatorIds.add(task.getCreatedBy());
-
-            // 解析执行者ID
-            List<Long> taskAssigneeIds = convertJsonToList(task.getAssigneeId());
-            assigneeIds.addAll(taskAssigneeIds);
+        }
+        
+        // ✅ 从task_user表获取执行者ID
+        for (TaskUser taskUser : allTaskUsers) {
+            assigneeIds.add(taskUser.getUserId());
         }
 
-        // 2. 批量查询项目信息
+        // 4. 批量查询项目信息
         Map<Long, String> projectNameMap = new HashMap<>();
         if (!projectIds.isEmpty()) {
             List<Project> projects = projectRepository.findAllById(projectIds);
@@ -565,7 +874,7 @@ public class TaskServiceImpl implements TaskService {
                     .collect(Collectors.toMap(Project::getId, Project::getName));
         }
 
-        // 3. 批量查询所有用户信息（创建人 + 执行者）使用缓存服务
+        // 5. 批量查询所有用户信息（创建人 + 执行者）使用缓存服务
         Set<Long> allUserIds = new HashSet<>();
         allUserIds.addAll(creatorIds);
         allUserIds.addAll(assigneeIds);
@@ -583,12 +892,13 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        // 4. 转换为DTO（使用预加载的数据）
+        // 6. 转换为DTO（使用预加载的数据）
         final Map<Long, String> finalProjectNameMap = projectNameMap;
         final Map<Long, UserDTO> finalUserMap = userMap;
+        final Map<Long, List<TaskUser>> finalTaskUserMap = taskUserMap;
 
         return tasks.stream()
-                .map(task -> convertToDetailDTOWithCache(task, finalProjectNameMap, finalUserMap))
+                .map(task -> convertToDetailDTOWithCache(task, finalProjectNameMap, finalUserMap, finalTaskUserMap))
                 .collect(Collectors.toList());
     }
 
@@ -598,24 +908,33 @@ public class TaskServiceImpl implements TaskService {
     private TaskDetailDTO convertToDetailDTOWithCache(
             Tasks task,
             Map<Long, String> projectNameMap,
-            Map<Long, UserDTO> userMap) {
+            Map<Long, UserDTO> userMap,
+            Map<Long, List<TaskUser>> taskUserMap) {
 
         // 从缓存Map中获取项目名称
         String projectName = projectNameMap.getOrDefault(task.getProjectId(), "未知项目");
 
-        // 解析执行者ID列表
-        List<Long> assigneeIdList = convertJsonToList(task.getAssigneeId());
+        // ✅ 从task_user表获取执行者列表
+        List<TaskUser> taskUsers = taskUserMap.getOrDefault(task.getId(), Collections.emptyList());
 
         // 从缓存Map中获取执行者信息
-        List<TaskDetailDTO.TaskAssigneeDTO> assignees = assigneeIdList.stream()
-                .map(userMap::get)
+        List<TaskDetailDTO.TaskAssigneeDTO> assignees = taskUsers.stream()
+                .map(taskUser -> {
+                    UserDTO user = userMap.get(taskUser.getUserId());
+                    if (user != null) {
+                        return TaskDetailDTO.TaskAssigneeDTO.builder()
+                                .userId(String.valueOf(user.getId()))
+                                .userName(user.getName())
+                                .email(user.getEmail())
+                                .avatarUrl(user.getAvatarUrl())
+                                // ✅ 添加分配类型信息
+                                .assignType(taskUser.getAssignType().name())
+                                .assignedAt(taskUser.getAssignedAt())
+                                .build();
+                    }
+                    return null;
+                })
                 .filter(Objects::nonNull)
-                .map(user -> TaskDetailDTO.TaskAssigneeDTO.builder()
-                        .userId(String.valueOf(user.getId()))
-                        .userName(user.getName())
-                        .email(user.getEmail())
-                        .avatarUrl(user.getAvatarUrl())
-                        .build())
                 .collect(Collectors.toList());
 
         // 从缓存Map中获取创建人信息

@@ -22,6 +22,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
+// TODO 方案三优化：取消下面两行的注释以启用响应头设置和延迟发送
+// import org.springframework.http.server.reactive.ServerHttpResponse;
+// import java.time.Duration;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -141,7 +144,16 @@ public class DifyAIChatController {
             @Parameter(description = "对话 ID（UUID 格式，首次对话不传或传空）") @RequestParam(required = false) String conversationId,
             @Parameter(description = "Dify 文件 ID 列表") @RequestParam(required = false) List<String> fileIds,
             @Parameter(description = "输入变量") @RequestBody(required = false) Map<String, Object> inputs
+            // TODO 方案三优化：添加 ServerHttpResponse 参数以设置响应头
+            // @Parameter(description = "HTTP响应对象") ServerHttpResponse response
     ) {
+        // TODO 方案三优化：设置响应头，确保流式传输不被缓冲
+        // if (response != null) {
+        //     response.getHeaders().set("Cache-Control", "no-cache");
+        //     response.getHeaders().set("X-Accel-Buffering", "no");
+        //     response.getHeaders().set("Connection", "keep-alive");
+        // }
+        
         // 获取用户ID，如果为null则使用默认值
         Long userId = securityHelper.getUserId();
         String userIdentifier = getUserIdentifier(userId);
@@ -172,6 +184,8 @@ public class DifyAIChatController {
                         .event(message.getEvent())
                         .data(message)
                         .build());
+                // TODO 方案三优化：添加延迟确保立即发送，不会批量缓冲
+                // .delayElements(Duration.ofMillis(1));
     }
 
 

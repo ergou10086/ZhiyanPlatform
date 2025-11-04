@@ -202,6 +202,56 @@ public interface TaskService {
      */
     Page<TaskDetailDTO> getMyOverdueTasks(Long userId, Pageable pageable);
 
+    // ==================== 新增：基于task_user表的查询接口 ====================
+
+    /**
+     * 查询用户主动接取的任务（CLAIMED类型）
+     * 业务场景：查看用户自己主动接取了哪些任务
+     *
+     * @param userId   用户ID
+     * @param pageable 分页参数
+     * @return 任务详情分页列表
+     */
+    Page<TaskDetailDTO> getMyClaimedTasks(Long userId, Pageable pageable);
+
+    /**
+     * 查询用户被分配的任务（ASSIGNED类型）
+     * 业务场景：查看哪些任务是被管理员/负责人分配的
+     *
+     * @param userId   用户ID
+     * @param pageable 分页参数
+     * @return 任务详情分页列表
+     */
+    Page<TaskDetailDTO> getMyAssignedOnlyTasks(Long userId, Pageable pageable);
+
+    /**
+     * 查询用户在特定项目中的任务
+     * 业务场景：在项目详情页查看用户在该项目中的任务
+     *
+     * @param userId    用户ID
+     * @param projectId 项目ID
+     * @return 任务详情列表
+     */
+    List<TaskDetailDTO> getUserTasksInProject(Long userId, Long projectId);
+
+    /**
+     * 统计用户的任务数量
+     * 业务场景：用户首页展示任务统计卡片
+     *
+     * @param userId 用户ID
+     * @return 任务数量
+     */
+    long countUserActiveTasks(Long userId);
+
+    /**
+     * 获取用户的任务统计信息（包括各类型数量）
+     * 业务场景：用户首页仪表盘
+     *
+     * @param userId 用户ID
+     * @return 任务统计DTO
+     */
+    UserTaskStatisticsDTO getUserTaskStatistics(Long userId);
+
     // ==================== 统计相关 ====================
 
     /**

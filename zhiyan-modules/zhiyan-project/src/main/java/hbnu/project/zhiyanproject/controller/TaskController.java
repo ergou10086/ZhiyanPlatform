@@ -9,6 +9,7 @@ import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.handler.ProjectSentinelHandler;
 import hbnu.project.zhiyanproject.model.dto.TaskBoardDTO;
 import hbnu.project.zhiyanproject.model.dto.TaskDetailDTO;
+import hbnu.project.zhiyanproject.model.dto.UserTaskStatisticsDTO;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
@@ -480,6 +481,95 @@ public class TaskController {
         } catch (Exception e) {
             log.error("获取我的已逾期任务失败", e);
             return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
+    // ==================== 新增：基于task_user表的查询接口 ====================
+
+    /**
+     * 获取我主动接取的任务
+     * 业务场景：查看用户自己主动接取的任务（CLAIMED类型）
+     */
+    @GetMapping("/my-claimed")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取我接取的任务", description = "获取当前用户主动接取的任务")
+    public R<Page<TaskDetailDTO>> getMyClaimedTasks(
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
+
+        Long currentUserId = SecurityUtils.getUserId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "assignedAt"));
+
+        try {
+            Page<TaskDetailDTO> tasks = taskService.getMyClaimedTasks(currentUserId, pageable);
+            return R.ok(tasks, "查询成功，共" + tasks.getTotalElements() + "个任务");
+        } catch (Exception e) {
+            log.error("获取我接取的任务失败", e);
+            return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取分配给我的任务（不包括我自己接取的）
+     * 业务场景：查看哪些任务是被管理员/负责人分配的（ASSIGNED类型）
+     */
+    @GetMapping("/my-assigned-only")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取被分配的任务", description = "获取被管理员或负责人分配的任务（不包括自己接取的）")
+    public R<Page<TaskDetailDTO>> getMyAssignedOnlyTasks(
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
+
+        Long currentUserId = SecurityUtils.getUserId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "assignedAt"));
+
+        try {
+            Page<TaskDetailDTO> tasks = taskService.getMyAssignedOnlyTasks(currentUserId, pageable);
+            return R.ok(tasks, "查询成功，共" + tasks.getTotalElements() + "个任务");
+        } catch (Exception e) {
+            log.error("获取被分配的任务失败", e);
+            return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户在特定项目中的任务
+     * 业务场景：在项目详情页查看当前用户在该项目中的任务
+     */
+    @GetMapping("/my-tasks/project/{projectId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取项目中的我的任务", description = "获取当前用户在指定项目中的所有任务")
+    public R<List<TaskDetailDTO>> getUserTasksInProject(
+            @PathVariable @Parameter(description = "项目ID") Long projectId) {
+
+        Long currentUserId = SecurityUtils.getUserId();
+
+        try {
+            List<TaskDetailDTO> tasks = taskService.getUserTasksInProject(currentUserId, projectId);
+            return R.ok(tasks, "查询成功，共" + tasks.size() + "个任务");
+        } catch (Exception e) {
+            log.error("获取项目任务失败", e);
+            return R.fail("获取失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户任务统计信息
+     * 业务场景：用户首页仪表盘展示任务统计卡片
+     */
+    @GetMapping("/my-statistics")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取任务统计", description = "获取当前用户的任务统计信息（总数、类型、状态等）")
+    public R<UserTaskStatisticsDTO> getUserTaskStatistics() {
+
+        Long currentUserId = SecurityUtils.getUserId();
+
+        try {
+            UserTaskStatisticsDTO statistics = taskService.getUserTaskStatistics(currentUserId);
+            return R.ok(statistics, "统计成功");
+        } catch (Exception e) {
+            log.error("获取任务统计失败", e);
+            return R.fail("统计失败: " + e.getMessage());
         }
     }
 
