@@ -25,6 +25,8 @@ spring:
         group: DEFAULT_GROUP
         # 权重
         weight: 1
+        username: nacos
+        password: nacos
 
       # Nacos配置中心
       config:
@@ -33,6 +35,33 @@ spring:
         namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
         group: DEFAULT_GROUP
         file-extension: yaml
+        username: nacos
+        password: nacos
+
+    # Sentinel 流控配置
+    sentinel:
+      # 开启 Sentinel
+      enabled: true
+      # 饥饿加载（立即初始化）
+      eager: true
+
+      # 连接到 Sentinel Dashboard
+      transport:
+        # Sentinel Dashboard 地址
+        dashboard: localhost:8858
+        # 与 Dashboard 通信的端口（每个服务不同，避免冲突）
+        port: 8721
+        # 心跳发送周期（毫秒）
+        heartbeat-interval-ms: 5000
+
+      # 日志配置
+      log:
+        dir: logs/sentinel
+        switch-pid: true
+
+      # Web 过滤器配置
+      web-context-unify: false
+      http-method-specify: true
 
     # OpenFeign配置
     openfeign:
@@ -274,6 +303,26 @@ zhiyan:
 
     # 异步处理日志
     async: true
+
+  # 自定义 Sentinel 流控保护配置
+  sentinel:
+    enabled: true
+    eager: true
+    dashboard:
+      host: localhost
+      port: 8858
+      client-port: 8721
+    log:
+      dir: logs/sentinel
+    # Nacos 数据源配置（规则持久化）
+    nacos:
+      enabled: true
+      server-addr: 10.7.10.98:8848
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+      group-id: SENTINEL_GROUP
+      username: nacos
+      password: nacos
+      data-id-suffix: json
 
 
 

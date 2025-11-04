@@ -1,5 +1,8 @@
 package hbnu.project.zhiyanaidify.controller;
 
+import hbnu.project.common.log.annotation.AccessLog;
+import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanaidify.model.request.ChatRequest;
 import hbnu.project.zhiyanaidify.model.response.DifyFileUploadResponse;
 import hbnu.project.zhiyanaidify.service.DifyFileService;
@@ -40,6 +43,7 @@ import java.util.Map;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 @Tag(name = "AI 对话", description = "AI 智能对话接口，支持文件上传和流式响应（基于 Dify Chatflow）")
+@AccessLog("Dify AI 对话")
 public class DifyAIChatController {
 
     private final DifyStreamService difyStreamService;
@@ -56,6 +60,7 @@ public class DifyAIChatController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/files/upload")
     @Operation(summary = "上传本地文件到 Dify", description = "上传文件到 Dify，用于后续的对话上下文")
+    @OperationLog(module = "Dify AI 对话", type = OperationType.UPLOAD, description = "上传文件到 Dify")
     public R<DifyFileUploadResponse> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file
     ) {
@@ -78,6 +83,7 @@ public class DifyAIChatController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/files/upload/batch")
     @Operation(summary = "批量本地上传文件", description = "批量上传多个文件到 Dify")
+    @OperationLog(module = "Dify AI 对话", type = OperationType.UPLOAD, description = "批量上传文件到 Dify", recordResult = false)
     public R<List<DifyFileUploadResponse>> uploadFiles(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files
     ) {
@@ -99,6 +105,7 @@ public class DifyAIChatController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/files/upload/knowledge")
     @Operation(summary = "从知识库上传文件", description = "从知识库获取文件并上传到 Dify")
+    @OperationLog(module = "Dify AI 对话", type = OperationType.UPLOAD, description = "从知识库上传文件到 Dify")
     public R<List<String>> uploadKnowledgeFiles(
             @Parameter(description = "知识库文件 ID 列表") @RequestBody List<Long> fileIds
     ) {
@@ -128,6 +135,7 @@ public class DifyAIChatController {
                     "首次对话无需传 conversationId，Dify 会在响应中返回新的对话ID（UUID格式）。" +
                     "后续对话使用返回的 conversationId 维持上下文。"
     )
+    @OperationLog(module = "Dify AI 对话", type = OperationType.OTHER, description = "Chatflow 对话（流式）")
     public Flux<ServerSentEvent<DifyStreamMessage>> chatflowStream(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（UUID 格式，首次对话不传或传空）") @RequestParam(required = false) String conversationId,
@@ -186,6 +194,7 @@ public class DifyAIChatController {
                     "2. 本地文件上传：传递 localFiles（multipart/form-data）" +
                     "文件上传成功后自动进行流式对话。"
     )
+    @OperationLog(module = "Dify AI 对话", type = OperationType.OTHER, description = "上传文件并对话（一站式）")
     public Flux<ServerSentEvent<DifyStreamMessage>> uploadAndChatStream(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（UUID 格式，首次对话不传或传空）") @RequestParam(required = false) String conversationId,
@@ -256,6 +265,7 @@ public class DifyAIChatController {
                     "taskId 可以从流式响应的 Chunk 中获取。" +
                     "仅支持流式模式。"
     )
+    @OperationLog(module = "Dify AI 对话", type = OperationType.OTHER, description = "停止流式响应")
     public R<Boolean> stopChatStream(
             @Parameter(description = "任务 ID") @PathVariable String taskId
     ) {

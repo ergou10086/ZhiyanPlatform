@@ -43,5 +43,4 @@ public class ZhiyanNacosApplication {
         System.out.println("🎉 Nacos 模块启动完成！服务已就绪！");
         System.out.println("=".repeat(80) + "\n");
     }
-
 }

@@ -1,10 +1,12 @@
 package hbnu.project.zhiyanproject.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
+import hbnu.project.zhiyanproject.handler.ProjectSentinelHandler;
 import hbnu.project.zhiyanproject.model.dto.TaskBoardDTO;
 import hbnu.project.zhiyanproject.model.dto.TaskDetailDTO;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
@@ -56,6 +58,13 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建任务", description = "在项目中创建新任务，可指定执行者、优先级、截止日期等")
     @OperationLog(module = "任务管理",type = OperationType.INSERT, description = "创建任务",recordParams = true,recordResult = true)
+    @SentinelResource(
+        value = "createTask",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleCreateTaskBlock",
+        fallbackClass = ProjectSentinelHandler.class,
+        fallback = "handleCreateTaskFallback"
+    )
     public R<Tasks> createTask(@Valid @RequestBody CreateTaskRequest request) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]在项目[{}]中创建任务: {}", currentUserId, request.getProjectId(), request.getTitle());
@@ -77,6 +86,11 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新任务", description = "更新任务的标题、描述、状态、优先级等信息")
     @OperationLog(module = "任务管理", type = OperationType.UPDATE, description = "更新任务的标题、描述、状态、优先级等信息")
+    @SentinelResource(
+        value = "updateTask",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleUpdateTaskBlock"
+    )
     public R<Tasks> updateTask(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
             @Valid @RequestBody UpdateTaskRequest request) {
@@ -101,6 +115,11 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除任务", description = "软删除任务，仅任务创建者或项目负责人可操作")
     @OperationLog(module = "任务管理", type = OperationType.DELETE, description = "删除任务", recordParams = true, recordResult = false)
+    @SentinelResource(
+        value = "deleteTask",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleDeleteTaskBlock"
+    )
     public R<Void> deleteTask(@PathVariable @Parameter(description = "任务ID") Long taskId) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]删除任务[{}]", currentUserId, taskId);
@@ -211,6 +230,13 @@ public class TaskController {
     @GetMapping("/projects/{projectId}/board")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取任务看板", description = "获取项目的任务看板数据，按状态分组")
+    @SentinelResource(
+        value = "getTaskBoard",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleGetTaskBoardBlock",
+        fallbackClass = ProjectSentinelHandler.class,
+        fallback = "handleGetTaskBoardFallback"
+    )
     public R<TaskBoardDTO> getTaskBoard(@PathVariable @Parameter(description = "项目ID") Long projectId) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]查看项目[{}]的任务看板", currentUserId, projectId);

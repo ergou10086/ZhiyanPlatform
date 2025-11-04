@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanaicoze.utils;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import hbnu.project.zhiyanaicoze.client.AuthServiceClient;
 import hbnu.project.zhiyanaicoze.model.response.TokenValidateResponse;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
@@ -8,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 安全辅助工具类
@@ -22,6 +25,12 @@ import java.time.Duration;
 public class SecurityHelper {
 
     private final AuthServiceClient authServiceClient;
+
+    // 使用 Caffeine 缓存（需要添加依赖）
+    private final Cache<String, Long> tokenCache = Caffeine.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES)  // 5 分钟过期
+            .maximumSize(1000)
+            .build();
 
     /**
      * 从 Authorization 请求头中提取并验证 Token，获取用户ID
@@ -43,10 +52,18 @@ public class SecurityHelper {
 
         log.debug("[SecurityHelper] 开始验证 Token，通过 Auth 服务调用");
 
+        // 先查缓存
+        Long cachedUserId = tokenCache.getIfPresent(token);
+        if (cachedUserId != null) {
+            log.debug("[SecurityHelper] 从缓存获取用户ID: {}", cachedUserId);
+            return cachedUserId;
+        }
+
+        // 缓存未命中，调用 Auth 服务
         try {
             // 通过 Auth 服务验证 Token
             TokenValidateResponse response = authServiceClient.validateToken(token)
-                    .timeout(Duration.ofSeconds(3))
+                    .timeout(Duration.ofSeconds(8))
                     .block();
 
             if (response == null) {
@@ -58,6 +75,10 @@ public class SecurityHelper {
                 try {
                     Long userId = Long.parseLong(response.getUserId());
                     log.debug("[SecurityHelper] Token 验证成功，用户ID: {}", userId);
+                    if (userId != null) {
+                        // 存入缓存
+                        tokenCache.put(token, userId);
+                    }
                     return userId;
                 } catch (NumberFormatException e) {
                     log.error("[SecurityHelper] 用户ID格式错误: {}", response.getUserId(), e);

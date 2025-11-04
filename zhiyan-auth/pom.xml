@@ -111,6 +111,11 @@
             <artifactId>zhiyan-common-security</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-sentinel</artifactId>
+        </dependency>
+
         <!-- jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>

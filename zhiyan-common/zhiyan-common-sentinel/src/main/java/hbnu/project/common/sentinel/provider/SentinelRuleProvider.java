@@ -12,7 +12,6 @@ import com.alibaba.csp.sentinel.slots.system.SystemRuleManager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import hbnu.project.common.sentinel.config.SentinelProperties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -27,10 +26,7 @@ import java.util.Properties;
  * @author ErgouTree
  */
 @Slf4j
-@RequiredArgsConstructor
-public class SentinelRuleProvider {
-
-    private final SentinelProperties sentinelProperties;
+public record SentinelRuleProvider(SentinelProperties sentinelProperties) {
 
     /**
      * 从 Nacos 加载所有规则
@@ -67,19 +63,26 @@ public class SentinelRuleProvider {
      */
     private void loadFlowRulesFromNacos(String appName, SentinelProperties.Nacos nacos) {
         String dataId = appName + "-flow-rules." + nacos.getDataIdSuffix();
-        
+
         log.info("[Sentinel] 加载流控规则，dataId: {}", dataId);
 
         ReadableDataSource<String, List<FlowRule>> flowRuleDataSource = new NacosDataSource<>(
-            nacos.getServerAddr(),
-            nacos.getGroupId(),
-            dataId,
-            source -> JSON.parseObject(source, new TypeReference<List<FlowRule>>() {})
+                nacos.getServerAddr(),
+                nacos.getGroupId(),
+                dataId,
+                source -> JSON.parseObject(source, new TypeReference<>() {
+                })
         );
 
         FlowRuleManager.register2Property(flowRuleDataSource.getProperty());
-        
-        List<FlowRule> rules = flowRuleDataSource.getProperty().getValue();
+
+        // 使用 loadConfig 方法加载初始规则
+        List<FlowRule> rules;
+        try {
+            rules = flowRuleDataSource.loadConfig();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (CollUtil.isNotEmpty(rules)) {
             log.info("[Sentinel] 流控规则加载成功，规则数量: {}", rules.size());
         } else {
@@ -92,19 +95,26 @@ public class SentinelRuleProvider {
      */
     private void loadDegradeRulesFromNacos(String appName, SentinelProperties.Nacos nacos) {
         String dataId = appName + "-degrade-rules." + nacos.getDataIdSuffix();
-        
+
         log.info("[Sentinel] 加载降级规则，dataId: {}", dataId);
 
         ReadableDataSource<String, List<DegradeRule>> degradeRuleDataSource = new NacosDataSource<>(
-            nacos.getServerAddr(),
-            nacos.getGroupId(),
-            dataId,
-            source -> JSON.parseObject(source, new TypeReference<List<DegradeRule>>() {})
+                nacos.getServerAddr(),
+                nacos.getGroupId(),
+                dataId,
+                source -> JSON.parseObject(source, new TypeReference<>() {
+                })
         );
 
         DegradeRuleManager.register2Property(degradeRuleDataSource.getProperty());
-        
-        List<DegradeRule> rules = degradeRuleDataSource.getProperty().getValue();
+
+        // 使用 loadConfig 方法加载初始规则
+        List<DegradeRule> rules;
+        try {
+            rules = degradeRuleDataSource.loadConfig();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (CollUtil.isNotEmpty(rules)) {
             log.info("[Sentinel] 降级规则加载成功，规则数量: {}", rules.size());
         } else {
@@ -117,19 +127,26 @@ public class SentinelRuleProvider {
      */
     private void loadSystemRulesFromNacos(String appName, SentinelProperties.Nacos nacos) {
         String dataId = appName + "-system-rules." + nacos.getDataIdSuffix();
-        
+
         log.info("[Sentinel] 加载系统规则，dataId: {}", dataId);
 
         ReadableDataSource<String, List<SystemRule>> systemRuleDataSource = new NacosDataSource<>(
-            nacos.getServerAddr(),
-            nacos.getGroupId(),
-            dataId,
-            source -> JSON.parseObject(source, new TypeReference<List<SystemRule>>() {})
+                nacos.getServerAddr(),
+                nacos.getGroupId(),
+                dataId,
+                source -> JSON.parseObject(source, new TypeReference<>() {
+                })
         );
 
         SystemRuleManager.register2Property(systemRuleDataSource.getProperty());
-        
-        List<SystemRule> rules = systemRuleDataSource.getProperty().getValue();
+
+        // 使用 loadConfig 方法加载初始规则
+        List<SystemRule> rules;
+        try {
+            rules = systemRuleDataSource.loadConfig();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         if (CollUtil.isNotEmpty(rules)) {
             log.info("[Sentinel] 系统规则加载成功，规则数量: {}", rules.size());
         } else {
