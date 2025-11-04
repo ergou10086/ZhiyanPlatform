@@ -32,13 +32,20 @@ public class MinioUtils {
      */
     public String getBucketName(BucketType bucketType) {
         MinioProperties.BucketConfig buckets = minioProperties.getBuckets();
-        return switch (bucketType) {
-            case ACHIEVEMENT_FILES -> buckets.getAchievementFiles();
-            case WIKI_ASSETS -> buckets.getWikiAssets();
-            case TEMP_UPLOADS -> buckets.getTempUploads();
-            case PROJECT_COVERS -> buckets.getProjectCovers();
-            case USER_AVATARS -> buckets.getUserAvatars();
-        };
+        switch (bucketType) {
+            case ACHIEVEMENT_FILES:
+                return buckets.getAchievementFiles();
+            case WIKI_ASSETS:
+                return buckets.getWikiAssets();
+            case TEMP_UPLOADS:
+                return buckets.getTempUploads();
+            case PROJECT_COVERS:
+                return buckets.getProjectCovers();
+            case USER_AVATARS:
+                return buckets.getUserAvatars();
+            default:
+                throw new IllegalArgumentException("未知的桶类型: " + bucketType);
+        }
     }
 
 

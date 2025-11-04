@@ -12,6 +12,8 @@ import hbnu.project.zhiyanaicoze.model.response.CozeFileUploadResponse;
 import hbnu.project.zhiyanaicoze.service.CozeFileService;
 import hbnu.project.zhiyanaicoze.service.CozeStreamService;
 import hbnu.project.zhiyanaicoze.utils.SecurityHelper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,6 +54,8 @@ public class CozeAIChatController {
 
     private final CozeFileService cozeFileService;
 
+    private final ObjectMapper objectMapper;
+
 
     /**
      * Coze 对话（流式响应，不带文件）
@@ -70,7 +74,7 @@ public class CozeAIChatController {
     )
     @CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")
     @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体进行流式对话，不涉及文件上传,已废弃", type = OperationType.OTHER)
-    public Flux<ServerSentEvent<CozeStreamMessage>> chatStream(
+    public Flux<ServerSentEvent<String>> chatStream(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（可选，用于维持会话）") @RequestParam(required = false) String conversationId,
             @Parameter(description = "自定义变量") @RequestBody(required = false) Map<String, String> customVariables,
@@ -93,10 +97,19 @@ public class CozeAIChatController {
                     .errorMessage("请先登录后再使用AI功能")
                     .status("failed")
                     .build();
-            return Flux.just(ServerSentEvent.<CozeStreamMessage>builder()
-                    .event("error")
-                    .data(errorMessage)
-                    .build());
+            try {
+                String jsonData = objectMapper.writeValueAsString(errorMessage);
+                return Flux.just(ServerSentEvent.<String>builder()
+                        .event("error")
+                        .data(jsonData)
+                        .build());
+            } catch (Exception e) {
+                log.error("[Coze 对话] 序列化错误消息失败", e);
+                return Flux.just(ServerSentEvent.<String>builder()
+                        .event("error")
+                        .data("{\"event\":\"error\",\"errorMessage\":\"系统错误\"}")
+                        .build());
+            }
         }
         
         String userIdentifier = String.valueOf(userId);
@@ -125,10 +138,26 @@ public class CozeAIChatController {
 
         // 返回流式响应
         return cozeStreamService.chatStream(request)
-                .map(message -> ServerSentEvent.<CozeStreamMessage>builder()
-                        .event(message.getEvent())
-                        .data(message)
-                        .build())
+                .map(message -> {
+                    try {
+                        // 手动序列化为单行 JSON 字符串（避免 Spring 自动格式化）
+                        String jsonData = objectMapper.writeValueAsString(message);
+                        log.info("[Coze 对话] 发送SSE消息 - event: {}, JSON数据: {}", 
+                                message.getEvent(), jsonData);
+                        
+                        return ServerSentEvent.<String>builder()
+                                .event(message.getEvent())
+                                .data(jsonData)
+                                .build();
+                    } catch (Exception e) {
+                        log.error("[Coze 对话] 序列化消息失败", e);
+                        // 返回错误消息
+                        return ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("{\"event\":\"error\",\"errorMessage\":\"序列化失败\"}")
+                                .build();
+                    }
+                })
                 .doOnComplete(() ->  log.info("[Coze 对话] 流式响应完成"));
     }
 
@@ -192,12 +221,12 @@ public class CozeAIChatController {
                     "文件会先上传到 Coze，然后在对话中使用。"
     )
     @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体支持上传本地文件或引用知识库文件进行对话", type = OperationType.OTHER)
-    public Flux<ServerSentEvent<CozeStreamMessage>> chatStreamWithFiles(
+    public Flux<ServerSentEvent<String>> chatStreamWithFiles(
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（可选）") @RequestParam(required = false) String conversationId,
             @Parameter(description = "本地上传的文件列表") @RequestParam(required = false) List<MultipartFile> localFiles,
             @Parameter(description = "知识库文件 ID 列表") @RequestParam(required = false) List<Long> knowledgeFileIds,
-            @Parameter(description = "自定义变量") @RequestParam(required = false) Map<String, String> customVariables,
+            @Parameter(description = "自定义变量（JSON字符串）") @RequestParam(required = false) String customVariablesJson,
             @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ){
         Long userId = securityHelper.getUserId(authorizationHeader);
@@ -210,10 +239,19 @@ public class CozeAIChatController {
                     .errorMessage("请先登录后再使用AI功能")
                     .status("failed")
                     .build();
-            return Flux.just(ServerSentEvent.<CozeStreamMessage>builder()
-                    .event("error")
-                    .data(errorMessage)
-                    .build());
+            try {
+                String jsonData = objectMapper.writeValueAsString(errorMessage);
+                return Flux.just(ServerSentEvent.<String>builder()
+                        .event("error")
+                        .data(jsonData)
+                        .build());
+            } catch (Exception e) {
+                log.error("[Coze 高级对话] 序列化错误消息失败", e);
+                return Flux.just(ServerSentEvent.<String>builder()
+                        .event("error")
+                        .data("{\"event\":\"error\",\"errorMessage\":\"系统错误\"}")
+                        .build());
+            }
         }
         
         String userIdentifier = String.valueOf(userId);
@@ -224,11 +262,23 @@ public class CozeAIChatController {
                 knowledgeFileIds != null ? knowledgeFileIds.size() : 0,
                 userIdentifier);
 
+        // 解析自定义变量（如果提供）
+        Map<String, String> customVariables = null;
+        if (customVariablesJson != null && !customVariablesJson.trim().isEmpty()) {
+            try {
+                customVariables = objectMapper.readValue(customVariablesJson, 
+                        new TypeReference<Map<String, String>>() {});
+                log.info("[Coze 高级对话] 解析自定义变量成功: {}", customVariables);
+            } catch (Exception e) {
+                log.warn("[Coze 高级对话] 解析自定义变量失败: {}", customVariablesJson, e);
+            }
+        }
+
         // 收集所有 Coze 文件 ID
         List<String> cozeFileIds = new ArrayList<>();
 
         // 上传本地文件
-        if(localFiles != null || !localFiles.isEmpty()) {
+        if(localFiles != null && !localFiles.isEmpty()) {
             log.info("[Coze 高级对话] 上传 {} 个本地文件", localFiles.size());
             List<CozeFileUploadResponse> uploadResponses = cozeFileService.uploadFiles(localFiles, userId);
             uploadResponses.forEach(response -> {
@@ -286,10 +336,26 @@ public class CozeAIChatController {
         }
 
         return cozeStreamService.chatStream(request)
-                .map(message -> ServerSentEvent.<CozeStreamMessage>builder()
-                        .event(message.getEvent())
-                        .data(message)
-                        .build());
+                .map(message -> {
+                    try {
+                        // 手动序列化为单行 JSON 字符串（避免 Spring 自动格式化）
+                        String jsonData = objectMapper.writeValueAsString(message);
+                        log.info("[Coze 高级对话] 发送SSE消息 - event: {}, JSON数据: {}", 
+                                message.getEvent(), jsonData);
+                        
+                        return ServerSentEvent.<String>builder()
+                                .event(message.getEvent())
+                                .data(jsonData)
+                                .build();
+                    } catch (Exception e) {
+                        log.error("[Coze 高级对话] 序列化消息失败", e);
+                        // 返回错误消息
+                        return ServerSentEvent.<String>builder()
+                                .event("error")
+                                .data("{\"event\":\"error\",\"errorMessage\":\"序列化失败\"}")
+                                .build();
+                    }
+                });
     }
 
 
