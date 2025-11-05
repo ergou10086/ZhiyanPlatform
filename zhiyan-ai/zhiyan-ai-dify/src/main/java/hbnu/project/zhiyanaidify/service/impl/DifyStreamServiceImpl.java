@@ -33,7 +33,7 @@ public class DifyStreamServiceImpl implements DifyStreamService {
     private final DifyProperties difyProperties;
     private final WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper;
-    private final DifyApiClient  difyApiClient;
+    private final DifyApiClient difyApiClient;
 
     /**
      * 解析 Dify 流式数据
@@ -193,8 +193,11 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                     response -> {
                         log.error("❌ [Dify Chatflow] HTTP 错误: status={}", response.statusCode());
                         return response.bodyToMono(String.class)
-                                .doOnNext(body -> log.error("[Dify Chatflow] 错误响应体: {}", body))
-                                .then(Mono.error(new RuntimeException("Dify API 返回错误: " + response.statusCode())));
+                                .flatMap(body -> {
+                                    log.error("[Dify Chatflow] 错误响应体: {}", body);
+                                    String errorMsg = "Dify API 返回错误 " + response.statusCode() + ": " + body;
+                                    return Mono.error(new RuntimeException(errorMsg));
+                                });
                     }
                 )
                 .bodyToFlux(String.class)

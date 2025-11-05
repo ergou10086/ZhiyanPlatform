@@ -54,7 +54,9 @@ public class ChatRequest {
 
     /**
      * 关联的文件列表（Dify API 格式）
+     * ⚠️ 某些 Dify 应用可能要求此字段，某些则不需要
      */
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)  // ⭐ 只有非空时才序列化
     private List<DifyFile> files;
 
     /**
