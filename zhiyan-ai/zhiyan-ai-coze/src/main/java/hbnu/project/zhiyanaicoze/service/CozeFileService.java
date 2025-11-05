@@ -41,6 +41,15 @@ public interface CozeFileService {
     List<String> uploadKnowledgeFiles(List<Long> fileIds, Long userId);
 
     /**
+     * 从知识库上传文件到 Coze（返回详细信息）
+     *
+     * @param fileIds 知识库文件ID列表
+     * @param userId 用户ID
+     * @return 上传响应列表（包含文件详细信息）
+     */
+    List<CozeFileUploadResponse> uploadKnowledgeFilesWithDetails(List<Long> fileIds, Long userId);
+
+    /**
      * 查询文件详情
      *
      * @param fileId Coze 文件ID

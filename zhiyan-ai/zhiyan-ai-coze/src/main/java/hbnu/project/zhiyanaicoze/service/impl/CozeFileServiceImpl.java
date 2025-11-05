@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanaicoze.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hbnu.project.zhiyanaicoze.client.KnowledgeServiceClient;
 import hbnu.project.zhiyanaicoze.config.properties.CozeProperties;
 import hbnu.project.zhiyanaicoze.exception.CozeApiException;
@@ -34,6 +36,7 @@ public class CozeFileServiceImpl implements CozeFileService {
     private final CozeProperties cozeProperties;
     private final WebClient cozeWebClient;
     private final KnowledgeServiceClient knowledgeServiceClient;
+    private final ObjectMapper objectMapper;
 
     /**
      * 上传单个文件到 Coze
@@ -204,6 +207,73 @@ public class CozeFileServiceImpl implements CozeFileService {
         }
         log.info("[Coze 知识库文件上传] 成功上传 {}/{} 个文件", cozeFileIds.size(), fileIds.size());
         return cozeFileIds;
+    }
+
+    /**
+     * 从知识库上传文件到 Coze（返回详细信息）
+     *
+     * @param fileIds 知识库文件ID列表
+     * @param userId 用户ID
+     * @return 上传响应列表（包含文件详细信息）
+     */
+    @Override
+    public List<CozeFileUploadResponse> uploadKnowledgeFilesWithDetails(List<Long> fileIds, Long userId) {
+        log.info("[Coze 知识库文件上传详情] 开始上传 {} 个知识库文件, userId={}", fileIds.size(), userId);
+
+        List<CozeFileUploadResponse> responses = new ArrayList<>();
+
+        for(Long fileId: fileIds){
+            try{
+                // 从知识库服务获取文件
+                log.info("[Coze 知识库文件上传详情] 从知识库下载文件: fileId={}", fileId);
+                byte[] fileBytes = knowledgeServiceClient.downloadFile(fileId);
+
+                if (fileBytes == null || fileBytes.length == 0) {
+                    log.warn("[Coze 知识库文件上传详情] 文件内容为空: fileId={}", fileId);
+                    continue;
+                }
+
+                // 获取文件信息
+                String fileName = knowledgeServiceClient.getFileName(fileId);
+                String contentType = knowledgeServiceClient.getFileContentType(fileId);
+
+                log.info("[Coze 知识库文件上传详情] 上传到 Coze: fileName={}, size={}", fileName, fileBytes.length);
+
+                //构建 multipart 请求
+                MultipartBodyBuilder builder = new MultipartBodyBuilder();
+                builder.part("file", new  ByteArrayResource(fileBytes) {
+                    @Override
+                    public String getFilename() {
+                        return fileName;
+                    }
+                }, MediaType.parseMediaType(contentType));
+
+
+                // 上传到 Coze
+                String rawResponse = cozeWebClient.post()
+                        .uri("/v1/files/upload")
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .body(BodyInserters.fromMultipartData(builder.build()))
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+
+                log.info("[Coze 知识库文件上传详情] 原始响应 JSON: {}", rawResponse);
+                CozeFileUploadResponse response = objectMapper.readValue(rawResponse, CozeFileUploadResponse.class);
+
+                if (response != null && response.getCode() == 0 && response.getData() != null) {
+                    responses.add(response);
+                    log.info("[Coze 知识库文件上传详情] 上传成功: cozeFileId={}", response.getData().getFileId());
+                } else {
+                    log.warn("[Coze 知识库文件上传详情] 上传失败或响应无效: knowledgeFileId={}, response={}", fileId, response);
+                }
+            }catch (ServiceException | CozeApiException | JsonProcessingException e){
+                log.error("[Coze 知识库文件上传详情] 上传失败: fileId={}", fileId, e);
+                // 抛出异常不终止，继续处理其他文件
+            }
+        }
+        log.info("[Coze 知识库文件上传详情] 成功上传 {}/{} 个文件", responses.size(), fileIds.size());
+        return responses;
     }
 
     /**

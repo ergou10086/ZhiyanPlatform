@@ -152,8 +152,10 @@ public class CozeChatRequest {
 
         /**
          * 消息内容
+         * - 当 content_type="text" 时，content 应该是 String
+         * - 当 content_type="file" 时，content 应该是 FileContent
          */
-        private String content;
+        private Object content;
 
         /**
          * 消息类型：text, image, file 等
@@ -161,5 +163,44 @@ public class CozeChatRequest {
         @JsonProperty("content_type")
         @Builder.Default
         private String contentType = "text";
+
+        /**
+         * 文件ID列表（用于在文本消息中附加文件）
+         */
+        @JsonProperty("file_ids")
+        private List<String> fileIds;
+    }
+
+    /**
+     * 文件消息的content对象（简化版，用于消息中）
+     * 符合 Coze API v3 文件消息格式
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class FileContent {
+        /**
+         * 文件 ID（必需）
+         */
+        private String id;
+
+        /**
+         * 对象类型（固定为 "file"）
+         */
+        @Builder.Default
+        private String object = "file";
+
+        /**
+         * 文件名
+         */
+        private String filename;
+
+        /**
+         * 用途（固定为 "assistants"）
+         */
+        @Builder.Default
+        private String purpose = "assistants";
     }
 }

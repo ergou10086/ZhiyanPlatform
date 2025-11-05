@@ -274,51 +274,71 @@ public class CozeAIChatController {
             }
         }
 
-        // 收集所有 Coze 文件 ID
+        // 1. 收集所有 Coze 文件 ID（使用原生 file_ids 机制）
         List<String> cozeFileIds = new ArrayList<>();
 
-        // 上传本地文件
+        // 2. 上传本地文件到 Coze，获取 file ID
         if(localFiles != null && !localFiles.isEmpty()) {
-            log.info("[Coze 高级对话] 上传 {} 个本地文件", localFiles.size());
-            List<CozeFileUploadResponse> uploadResponses = cozeFileService.uploadFiles(localFiles, userId);
-            uploadResponses.forEach(response -> {
-                if(response.getData() != null) {
-                    cozeFileIds.add(response.getData().getFileId());
+            log.info("[Coze 高级对话] 开始上传 {} 个本地文件到 Coze", localFiles.size());
+            for (MultipartFile file : localFiles) {
+                try {
+                    CozeFileUploadResponse uploadResponse = cozeFileService.uploadFile(file, userId);
+                    if (uploadResponse != null && uploadResponse.getData() != null 
+                            && uploadResponse.getData().getFileId() != null) {
+                        String cozeFileId = uploadResponse.getData().getFileId();
+                        cozeFileIds.add(cozeFileId);
+                        log.info("[Coze 高级对话] 本地文件上传成功: fileName={}, cozeFileId={}", 
+                                file.getOriginalFilename(), cozeFileId);
+                    } else {
+                        log.warn("[Coze 高级对话] 本地文件上传失败或响应无效: fileName={}", 
+                                file.getOriginalFilename());
+                    }
+                } catch (Exception e) {
+                    log.error("[Coze 高级对话] 上传本地文件失败: fileName={}", 
+                            file.getOriginalFilename(), e);
                 }
-            });
+            }
         }
 
-        // 2. 从知识库上传文件
+        // 3. 上传知识库文件到 Coze，获取 file ID
         if (knowledgeFileIds != null && !knowledgeFileIds.isEmpty()) {
-            log.info("[Coze 高级对话] 从知识库上传 {} 个文件", knowledgeFileIds.size());
-            List<String> knowledgeCozeIds = cozeFileService.uploadKnowledgeFiles(knowledgeFileIds, userId);
-            cozeFileIds.addAll(knowledgeCozeIds);
+            log.info("[Coze 高级对话] 开始上传 {} 个知识库文件到 Coze", knowledgeFileIds.size());
+            try {
+                List<CozeFileUploadResponse> uploadResponses = 
+                        cozeFileService.uploadKnowledgeFilesWithDetails(knowledgeFileIds, userId);
+                for (CozeFileUploadResponse response : uploadResponses) {
+                    if (response != null && response.getData() != null 
+                            && response.getData().getFileId() != null) {
+                        String cozeFileId = response.getData().getFileId();
+                        cozeFileIds.add(cozeFileId);
+                        log.info("[Coze 高级对话] 知识库文件上传成功: cozeFileId={}", cozeFileId);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("[Coze 高级对话] 上传知识库文件失败", e);
+            }
         }
 
-        log.info("[Coze 高级对话] 总共准备了 {} 个文件", cozeFileIds.size());
+        log.info("[Coze 高级对话] 总共获得 {} 个 Coze 文件ID", cozeFileIds.size());
 
-        // 3. 构建消息（包含文件引用）
+        // 4. 构建消息（使用 Coze 原生 file_ids 机制）
         List<CozeChatRequest.CozeMessage> messages = new ArrayList<>();
-
-        // 如果有文件，添加文件引用到消息中
-        if(!cozeFileIds.isEmpty()) {
-            StringBuilder contentWithFiles = new StringBuilder(query);
-            contentWithFiles.append("\n\n附件文件ID: ");
-            contentWithFiles.append(String.join(", ", cozeFileIds));
-            messages.add(CozeChatRequest.CozeMessage.builder()
-                    .role("user")
-                    .content(contentWithFiles.toString())
-                    .contentType("text")
-                    .build());
-        }else{
-            messages.add(CozeChatRequest.CozeMessage.builder()
-                    .role("user")
-                    .content(query)
-                    .contentType("text")
-                    .build());
+        
+        // 构建用户消息
+        CozeChatRequest.CozeMessage.CozeMessageBuilder messageBuilder = CozeChatRequest.CozeMessage.builder()
+                .role("user")
+                .content(query)  // 只包含用户原始问题，不需要添加任何文件说明
+                .contentType("text");
+        
+        // 如果有文件，添加 file_ids（Coze 原生支持）
+        if (!cozeFileIds.isEmpty()) {
+            messageBuilder.fileIds(cozeFileIds);
+            log.info("[Coze 高级对话] 添加文件ID到消息 file_ids 字段: {}", cozeFileIds);
         }
+        
+        messages.add(messageBuilder.build());
 
-        // 4. 构建请求（在 extra_params 中传递文件 ID）
+        // 4. 构建请求
         CozeChatRequest request = CozeChatRequest.builder()
                 .botId(cozeProperties.getBotId())
                 .userId(userIdentifier)
@@ -328,12 +348,8 @@ public class CozeAIChatController {
                 .customVariables(customVariables)
                 .autoSaveHistory(true)
                 .build();
-
-        // 如果有文件，添加到 extra_params
-        if (!cozeFileIds.isEmpty()) {
-            Map<String, Object> extraParams = Map.of("file_ids", cozeFileIds);
-            request.setExtraParams(extraParams);
-        }
+        
+        log.info("[Coze 高级对话] 请求已构建，消息数量: {}", messages.size());
 
         return cozeStreamService.chatStream(request)
                 .map(message -> {
@@ -478,4 +494,5 @@ public class CozeAIChatController {
         }
         return String.valueOf(userId);
     }
+
 }

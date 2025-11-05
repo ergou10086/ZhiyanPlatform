@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanaicoze.model.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CozeFileUploadResponse {
 
     /**
@@ -35,11 +37,12 @@ public class CozeFileUploadResponse {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class FileData {
         /**
-         * 文件 ID
+         * 文件 ID（Coze API 返回的是 "id"）
          */
-        @JsonProperty("file_id")
+        @JsonProperty("id")
         private String fileId;
 
         /**
@@ -49,9 +52,9 @@ public class CozeFileUploadResponse {
         private String fileName;
 
         /**
-         * 文件大小（字节）
+         * 文件大小（字节）（Coze API 返回的是 "bytes"）
          */
-        @JsonProperty("file_size")
+        @JsonProperty("bytes")
         private Long fileSize;
 
         /**
