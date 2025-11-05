@@ -135,9 +135,13 @@ public class WikiPage extends BaseAuditEntity {
     private String contentSummary;
 
     // ==================== 协同编辑相关字段（预留） ====================
+    // TODO: 协同编辑功能暂不实现，预留字段供未来扩展
+    // TODO: 实现时需要引入WebSocket + OT算法（Operational Transformation）
+    // TODO: 参考方案：使用ShareDB、Yjs或自研OT引擎
 
     /**
      * 是否被锁定（协同编辑时，锁定状态防止并发冲突）
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     @Builder.Default
     @Column(name = "is_locked", columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否被锁定'")
@@ -145,6 +149,7 @@ public class WikiPage extends BaseAuditEntity {
 
     /**
      * 锁定者用户ID（正在编辑的用户）
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     @LongToString
     @Column(name = "locked_by", columnDefinition = "BIGINT COMMENT '锁定者用户ID'")
@@ -152,12 +157,14 @@ public class WikiPage extends BaseAuditEntity {
 
     /**
      * 锁定时间
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     @Column(name = "locked_at", columnDefinition = "DATETIME COMMENT '锁定时间'")
     private LocalDateTime lockedAt;
 
     /**
      * 是否启用协同编辑模式
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     @Builder.Default
     @Column(name = "collaborative_mode", columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '是否启用协同编辑'")

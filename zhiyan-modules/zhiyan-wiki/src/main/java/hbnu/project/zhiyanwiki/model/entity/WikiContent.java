@@ -91,19 +91,24 @@ public class WikiContent {
     private Long lastEditorId;
 
     // ==================== 协同编辑预留字段 ====================
+    // TODO: 协同编辑功能暂不实现，预留字段供未来扩展
+    // TODO: 实现时需配合WebSocket实时通信和OT算法进行冲突解决
 
     /**
      * 当前在线编辑者列表（用户ID集合）
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     private Set<Long> activeEditors;
 
     /**
      * 操作序列号（用于协同编辑的操作变换 OT）
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     private Long operationSequence;
 
     /**
      * 最后一次协同编辑同步时间
+     * TODO: 暂未使用，待协同编辑功能实现
      */
     private LocalDateTime lastSyncAt;
 
