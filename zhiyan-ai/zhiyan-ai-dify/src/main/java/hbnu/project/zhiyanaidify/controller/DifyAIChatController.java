@@ -103,21 +103,21 @@ public class DifyAIChatController {
      * 从知识库上传文件到 Dify
      *
      * @param fileIds 知识库文件 ID 列表
-     * @return Dify 文件 ID 列表
+     * @return Dify 文件上传响应列表
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/files/upload/knowledge")
     @Operation(summary = "从知识库上传文件", description = "从知识库获取文件并上传到 Dify")
     @OperationLog(module = "Dify AI 对话", type = OperationType.UPLOAD, description = "从知识库上传文件到 Dify")
-    public R<List<String>> uploadKnowledgeFiles(
+    public R<List<DifyFileUploadResponse>> uploadKnowledgeFiles(
             @Parameter(description = "知识库文件 ID 列表") @RequestBody List<Long> fileIds
     ) {
         Long userId = securityHelper.getUserId();
         log.info("[Dify 知识库文件上传] fileIds={}, userId={}", fileIds, userId);
 
-        List<String> difyFileIds = difyFileService.uploadKnowledgeFiles(fileIds, userId);
+        List<DifyFileUploadResponse> responses = difyFileService.uploadKnowledgeFiles(fileIds, userId);
 
-        return R.ok(difyFileIds, String.format("成功上传 %d 个文件", difyFileIds.size()));
+        return R.ok(responses, String.format("成功上传 %d 个文件", responses.size()));
     }
 
 
@@ -224,24 +224,24 @@ public class DifyAIChatController {
                 query, validConversationId, knowledgeFileIds, 
                 localFiles != null ? localFiles.size() : 0, userIdentifier);
 
-        // 收集所有 Dify 文件 ID
-        List<String> difyFileIds = new ArrayList<>();
+        // 收集所有文件上传响应
+        List<DifyFileUploadResponse> allUploadResponses = new ArrayList<>();
 
         // 1. 处理知识库文件
         if (knowledgeFileIds != null && !knowledgeFileIds.isEmpty()) {
             log.info("[上传并对话] 从知识库上传 {} 个文件", knowledgeFileIds.size());
-            List<String> knowledgeDifyIds = difyFileService.uploadKnowledgeFiles(knowledgeFileIds, userId);
-            difyFileIds.addAll(knowledgeDifyIds);
+            List<DifyFileUploadResponse> knowledgeResponses = difyFileService.uploadKnowledgeFiles(knowledgeFileIds, userId);
+            allUploadResponses.addAll(knowledgeResponses);
         }
 
         // 2. 处理本地文件
         if (localFiles != null && !localFiles.isEmpty()) {
             log.info("[上传并对话] 从本地上传 {} 个文件", localFiles.size());
             List<DifyFileUploadResponse> localUploadResponses = difyFileService.uploadFiles(localFiles, userId);
-            localUploadResponses.forEach(response -> difyFileIds.add(response.getFileId()));
+            allUploadResponses.addAll(localUploadResponses);
         }
 
-        log.info("[上传并对话] 总共上传了 {} 个文件到 Dify, fileIds={}", difyFileIds.size(), difyFileIds);
+        log.info("[上传并对话] 总共上传了 {} 个文件到 Dify, count={}", allUploadResponses.size());
 
         // 3. 构建聊天请求
         ChatRequest request = ChatRequest.builder()
@@ -252,9 +252,9 @@ public class DifyAIChatController {
                 .responseMode("streaming")
                 .build();
 
-        // 4. 如果有文件，添加文件
-        if (!difyFileIds.isEmpty()) {
-            request.setFiles(buildChatFilesList(difyFileIds));
+        // 4. 如果有文件，添加文件（使用完整的文件信息）
+        if (!allUploadResponses.isEmpty()) {
+            request.setFiles(buildChatFilesListFromResponses(allUploadResponses));
         }
 
         // 5. 返回流式响应
@@ -409,12 +409,31 @@ public class DifyAIChatController {
 
 
     /**
-     * 构建聊天文件列表（根据 Dify Chat API 规范）
+     * 构建聊天文件列表（使用完整的文件响应信息）
+     * 优先使用此方法，因为它包含正确的 MIME 类型
+     */
+    private List<ChatRequest.DifyFile> buildChatFilesListFromResponses(List<DifyFileUploadResponse> responses) {
+        return responses.stream()
+                .map(response -> {
+                    log.info("[构建文件列表] fileId={}, mimeType={}, fileName={}", 
+                            response.getFileId(), response.getMimeType(), response.getFileName());
+                    return ChatRequest.DifyFile.builder()
+                            .type(response.getMimeType())  // 使用文件的 MIME 类型
+                            .transferMethod("local_file")  // 本地文件
+                            .uploadFileId(response.getFileId())  // 上传的文件 ID
+                            .build();
+                })
+                .toList();
+    }
+
+    /**
+     * 构建聊天文件列表（仅有 fileId，用于知识库文件）
+     * 注意：此方法使用默认类型，可能不适用于所有文件
      */
     private List<ChatRequest.DifyFile> buildChatFilesList(List<String> fileIds) {
         return fileIds.stream()
                 .map(fileId -> ChatRequest.DifyFile.builder()
-                        .type("file")  // 文件类型
+                        .type("document")  // 默认为 document 类型（适用于大多数文本文件）
                         .transferMethod("local_file")  // 本地文件
                         .uploadFileId(fileId)  // 上传的文件 ID
                         .build())

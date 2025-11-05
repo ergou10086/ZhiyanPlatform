@@ -80,7 +80,9 @@ public class DifyFileServiceImpl implements DifyFileService {
 
             DifyFileUploadResponse uploadResponse = response.getBody();
             if (uploadResponse != null) {
-                log.info("[Dify 文件上传] 上传成功: fileId={}", uploadResponse.getFileId());
+                log.info("[Dify 文件上传] 上传成功: fileId={}, fileName={}, mimeType={}, size={}", 
+                        uploadResponse.getFileId(), uploadResponse.getFileName(), 
+                        uploadResponse.getMimeType(), uploadResponse.getFileSize());
                 return uploadResponse;
             } else {
                 throw new DifyApiException("文件上传失败：响应为空");
@@ -114,7 +116,7 @@ public class DifyFileServiceImpl implements DifyFileService {
     }
 
     @Override
-    public List<String> uploadKnowledgeFiles(List<Long> fileIds, Long userId) {
+    public List<DifyFileUploadResponse> uploadKnowledgeFiles(List<Long> fileIds, Long userId) {
         log.info("[Dify 文件上传] 从知识库获取文件: fileIds={}", fileIds);
 
         // 从知识库服务获取文件信息
@@ -126,14 +128,14 @@ public class DifyFileServiceImpl implements DifyFileService {
         }
 
         List<FileContextDTO> fileContextDTOS = result.getData();
-        List<String> difyFileIds = new ArrayList<>();
+        List<DifyFileUploadResponse> responses = new ArrayList<>();
 
         for (FileContextDTO fileContextDTO : fileContextDTOS) {
             try {
                 // 如果文件有 URL，下载并上传到 Dify
                 if (fileContextDTO.getFileUrl() != null) {
-                    String difyFileId = uploadFileFromUrl(fileContextDTO.getFileUrl(), fileContextDTO.getFileName(), userId);
-                    difyFileIds.add(difyFileId);
+                    DifyFileUploadResponse response = uploadFileFromUrl(fileContextDTO.getFileUrl(), fileContextDTO.getFileName(), userId);
+                    responses.add(response);
                 } else {
                     log.warn("[Dify 文件上传] 文件无 URL: fileId={}", fileContextDTO.getFileId());
                 }
@@ -142,8 +144,8 @@ public class DifyFileServiceImpl implements DifyFileService {
             }
         }
 
-        log.info("[Dify 文件上传] 知识库文件上传完成: 成功={}, 总数={}", difyFileIds.size(), fileIds.size());
-        return difyFileIds;
+        log.info("[Dify 文件上传] 知识库文件上传完成: 成功={}, 总数={}", responses.size(), fileIds.size());
+        return responses;
     }
 
     @Override
@@ -217,7 +219,7 @@ public class DifyFileServiceImpl implements DifyFileService {
     /**
      * 从 URL 下载文件并上传到 Dify
      */
-    private String uploadFileFromUrl(String fileUrl, String fileName, Long userId) {
+    private DifyFileUploadResponse uploadFileFromUrl(String fileUrl, String fileName, Long userId) {
         try {
             log.info("[Dify 文件上传] 从 URL 下载文件: url={}", fileUrl);
 
@@ -255,8 +257,10 @@ public class DifyFileServiceImpl implements DifyFileService {
 
             DifyFileUploadResponse uploadResponse = response.getBody();
             if (uploadResponse != null && uploadResponse.getFileId() != null) {
-                log.info("[Dify 文件上传] 从 URL 上传成功: fileId={}", uploadResponse.getFileId());
-                return uploadResponse.getFileId();
+                log.info("[Dify 文件上传] 从 URL 上传成功: fileId={}, fileName={}, mimeType={}, size={}", 
+                        uploadResponse.getFileId(), uploadResponse.getFileName(), 
+                        uploadResponse.getMimeType(), uploadResponse.getFileSize());
+                return uploadResponse;
             } else {
                 throw new DifyApiException("从 URL 上传文件失败：响应为空");
             }
