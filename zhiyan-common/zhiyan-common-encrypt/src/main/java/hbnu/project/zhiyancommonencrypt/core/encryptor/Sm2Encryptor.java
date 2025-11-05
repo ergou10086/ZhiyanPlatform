@@ -6,6 +6,7 @@ import cn.hutool.crypto.asymmetric.SM2;
 import hbnu.project.zhiyancommonencrypt.core.EncryptContext;
 import hbnu.project.zhiyancommonencrypt.enumd.AlgorithmType;
 import hbnu.project.zhiyancommonencrypt.enumd.EncodeType;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Base64;
 
@@ -16,12 +17,14 @@ import java.util.Base64;
  * @author ErgouTree
  * @version 2.0.0
  */
+@Slf4j
 public class Sm2Encryptor extends AbstractEncryptor {
 
     private final SM2 sm2;
 
     public Sm2Encryptor(EncryptContext context) {
         super(context);
+        this.sm2 = new SM2(context.getSm2PrivateKey(), context.getSm2PublicKey());
     }
 
     @Override
@@ -47,7 +50,6 @@ public class Sm2Encryptor extends AbstractEncryptor {
         }
 
         try {
-            SM2 sm2 = new SM2(context.getSm2PrivateKey(), context.getSm2PublicKey());
             byte[] encrypted = sm2.encrypt(value.getBytes(), KeyType.PublicKey);
 
             // 根据编码类型返回
@@ -74,8 +76,6 @@ public class Sm2Encryptor extends AbstractEncryptor {
         }
 
         try {
-            SM2 sm2 = new SM2(context.getSm2PrivateKey(), context.getSm2PublicKey());
-
             // 尝试 Base64 解码
             byte[] encrypted;
             try {

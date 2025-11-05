@@ -455,6 +455,94 @@ public class EncryptUtils {
         }
     }
 
+    // ==================== 兼容旧版本 API（别名方法）====================
+
+    /**
+     * 通过 Base64 加密（别名方法）
+     *
+     * @param data 原始数据
+     * @return Base64 编码结果
+     */
+    public static String encryptByBase64(String data) {
+        return base64Encode(data);
+    }
+
+    /**
+     * 通过 Base64 解密（别名方法）
+     *
+     * @param encodedData Base64 编码的数据
+     * @return 解码后的原始数据
+     */
+    public static String decryptByBase64(String encodedData) {
+        return base64Decode(encodedData);
+    }
+
+    /**
+     * 通过 RSA 加密（别名方法）
+     *
+     * @param data      原始数据
+     * @param publicKey 公钥
+     * @return Base64 编码的加密结果
+     */
+    public static String encryptByRsa(String data, String publicKey) {
+        return rsaEncrypt(data, publicKey);
+    }
+
+    /**
+     * 通过 RSA 解密（别名方法）
+     *
+     * @param encryptedData Base64 编码的加密数据
+     * @param privateKey    私钥
+     * @return 解密后的原始数据
+     */
+    public static String decryptByRsa(String encryptedData, String privateKey) {
+        return rsaDecrypt(encryptedData, privateKey);
+    }
+
+    /**
+     * 通过 AES 加密（别名方法）
+     *
+     * @param data 原始数据
+     * @param key  AES 密钥
+     * @return Base64 编码的加密结果
+     */
+    public static String encryptByAes(String data, String key) {
+        return aesEncrypt(data, key);
+    }
+
+    /**
+     * 通过 AES 解密（别名方法）
+     *
+     * @param encryptedData Base64 编码的加密数据
+     * @param key           AES 密钥
+     * @return 解密后的原始数据
+     */
+    public static String decryptByAes(String encryptedData, String key) {
+        return aesDecrypt(encryptedData, key);
+    }
+
+    /**
+     * 通过 SM4 加密（别名方法）
+     *
+     * @param data 原始数据
+     * @param key  SM4 密钥
+     * @return Base64 编码的加密结果
+     */
+    public static String encryptBySm4(String data, String key) {
+        return sm4Encrypt(data, key);
+    }
+
+    /**
+     * 通过 SM4 解密（别名方法）
+     *
+     * @param encryptedData Base64 编码的加密数据
+     * @param key           SM4 密钥
+     * @return 解密后的原始数据
+     */
+    public static String decryptBySm4(String encryptedData, String key) {
+        return sm4Decrypt(encryptedData, key);
+    }
+
     // ==================== 工具方法 ====================
 
     /**

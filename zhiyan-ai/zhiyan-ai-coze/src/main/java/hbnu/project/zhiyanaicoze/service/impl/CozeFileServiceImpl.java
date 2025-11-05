@@ -1,6 +1,5 @@
 package hbnu.project.zhiyanaicoze.service.impl;
 
-import hbnu.project.zhiyanaicoze.service.CozeFileService;
 import hbnu.project.zhiyanaicoze.client.KnowledgeServiceClient;
 import hbnu.project.zhiyanaicoze.config.properties.CozeProperties;
 import hbnu.project.zhiyanaicoze.exception.CozeApiException;
@@ -59,20 +58,42 @@ public class CozeFileServiceImpl implements CozeFileService {
                 }
             }, MediaType.parseMediaType(file.getContentType()));
 
-            // 发送上传请求
-            CozeFileUploadResponse response = cozeWebClient.post()
+            // 发送上传请求 - 先获取原始 JSON 字符串
+            String rawResponse = cozeWebClient.post()
                     .uri("/v1/files/upload")
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()
-                    .bodyToMono(CozeFileUploadResponse.class)
-                    .doOnSuccess(res -> log.info("[Coze 文件上传] 上传成功: fileId={}",
-                            res.getData() != null ? res.getData().getFileId() : "null"))
+                    .bodyToMono(String.class)
+                    .doOnSuccess(json -> log.info("[Coze 文件上传] 原始响应 JSON: {}", json))
                     .doOnError(error -> log.error("[Coze 文件上传] 上传失败", error))
                     .block();
 
+            // 手动解析 JSON
+            CozeFileUploadResponse response = null;
+            if (rawResponse != null) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    response = objectMapper.readValue(rawResponse, CozeFileUploadResponse.class);
+                    log.info("[Coze 文件上传] 解析后响应: code={}, msg={}, data={}",
+                            response.getCode(), response.getMsg(), response.getData());
+                    if (response.getData() != null) {
+                        log.info("[Coze 文件上传] 文件数据详情: fileId={}, fileName={}, fileSize={}",
+                                response.getData().getFileId(), response.getData().getFileName(), response.getData().getFileSize());
+                    }
+                } catch (Exception e) {
+                    log.error("[Coze 文件上传] JSON 解析失败", e);
+                }
+            }
+
             if (response == null || response.getCode() != 0) {
                 throw new CozeApiException("文件上传失败: " + (response != null ? response.getMsg() : "响应为空"));
+            }
+            
+            // 验证 fileId
+            if (response.getData() == null || response.getData().getFileId() == null) {
+                log.error("[Coze 文件上传] 响应中缺少 fileId: response={}", response);
+                throw new CozeApiException("文件上传成功但未返回 fileId");
             }
 
             return response;
@@ -155,11 +176,26 @@ public class CozeFileServiceImpl implements CozeFileService {
                         .body(BodyInserters.fromMultipartData(builder.build()))
                         .retrieve()
                         .bodyToMono(CozeFileUploadResponse.class)
+                        .doOnSuccess(res -> {
+                            log.info("[Coze 知识库文件上传] 收到响应: code={}, msg={}, data={}",
+                                    res.getCode(), res.getMsg(), res.getData());
+                            if (res.getData() != null) {
+                                log.info("[Coze 知识库文件上传] 文件数据详情: fileId={}, fileName={}, fileSize={}",
+                                        res.getData().getFileId(), res.getData().getFileName(), res.getData().getFileSize());
+                            }
+                        })
                         .block();
 
                 if (response != null && response.getCode() == 0 && response.getData() != null) {
-                    cozeFileIds.add(response.getData().getFileId());
-                    log.info("[Coze 知识库文件上传] 上传成功: cozeFileId={}", response.getData().getFileId());
+                    String cozeFileId = response.getData().getFileId();
+                    if (cozeFileId != null) {
+                        cozeFileIds.add(cozeFileId);
+                        log.info("[Coze 知识库文件上传] 上传成功: cozeFileId={}", cozeFileId);
+                    } else {
+                        log.warn("[Coze 知识库文件上传] 响应中缺少 fileId: knowledgeFileId={}, response={}", fileId, response);
+                    }
+                } else {
+                    log.warn("[Coze 知识库文件上传] 上传失败或响应无效: knowledgeFileId={}, response={}", fileId, response);
                 }
             }catch (ServiceException | CozeApiException e){
                 log.error("[Coze 知识库文件上传] 上传失败: fileId={}", fileId, e);

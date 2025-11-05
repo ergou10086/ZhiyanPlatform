@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
@@ -45,6 +47,7 @@ public class AchievementSearchController {
     @PostMapping("/query")
     @Operation(summary = "分页查询成果列表", description = "支持多条件组合查询成果")
     @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "分页查询成果", recordResult = false)  // 列表数据不记录响应
+    @SentinelResource(value = "knowledge:achievement:query", blockHandler = "queryBlockHandler")
     public R<Page<AchievementDTO>> queryAchievements(
             @Valid @RequestBody AchievementQueryDTO queryDTO
     ){
@@ -75,7 +78,8 @@ public class AchievementSearchController {
     @GetMapping("/project/{projectId}")
     @Operation(summary = "根据项目ID查询成果列表", description = "查询指定项目下的所有成果")
     @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "根据项目ID查询成果列表", recordResult = false)  // 列表数据不记录响应
-    public R<Page<AchievementDTO>> queryAchievements(
+    @SentinelResource(value = "knowledge:achievement:queryByProject", blockHandler = "queryByProjectBlockHandler")
+    public R<Page<AchievementDTO>> queryAchievementsByProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
             @Parameter(description = "页码")  @RequestParam(defaultValue = "0") Integer page,
             @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") Integer size,
@@ -106,6 +110,7 @@ public class AchievementSearchController {
     @GetMapping("/search")
     @Operation(summary = "组合搜索", description = "根据关键字搜索成果")
     @OperationLog(module = "成果搜索", type = OperationType.QUERY, description = "根据关键字搜索成果", recordResult = false)
+    @SentinelResource(value = "knowledge:achievement:search", blockHandler = "searchBlockHandler")
     public R<Page<AchievementDTO>> searchAchievements(
             @Parameter(description = "搜索关键字") @RequestParam String keyword,
             @Parameter(description = "页码") @RequestParam(defaultValue = "0") Integer page,
@@ -135,5 +140,32 @@ public class AchievementSearchController {
         AchievementDTO result = achievementSearchService.getAchievementByName(achievementName);
 
         return R.ok(result, "查询成功");
+    }
+
+
+    // ==================== Sentinel 限流处理方法 ====================
+    /**
+     * 分页查询限流处理
+     */
+    public R<Page<AchievementDTO>> queryBlockHandler(AchievementQueryDTO queryDTO, BlockException ex) {
+        log.warn("[Sentinel] 成果分页查询被限流: {}", ex.getClass().getSimpleName());
+        return R.fail(429, "查询请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 根据项目ID查询限流处理
+     */
+    public R<Page<AchievementDTO>> queryByProjectBlockHandler(
+            Long projectId, Integer page, Integer size, String sortBy, String sortOrder, BlockException ex) {
+        log.warn("[Sentinel] 项目成果查询被限流: projectId={}, {}", projectId, ex.getClass().getSimpleName());
+        return R.fail(429, "查询请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 组合搜索限流处理
+     */
+    public R<Page<AchievementDTO>> searchBlockHandler(String keyword, Integer page, Integer size, BlockException ex) {
+        log.warn("[Sentinel] 成果搜索被限流: keyword={}, {}", keyword, ex.getClass().getSimpleName());
+        return R.fail(429, "搜索请求过于频繁，请稍后再试");
     }
 }

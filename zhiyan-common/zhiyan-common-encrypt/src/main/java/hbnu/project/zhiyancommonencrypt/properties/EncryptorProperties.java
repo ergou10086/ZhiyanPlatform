@@ -72,6 +72,48 @@ public class EncryptorProperties {
     private ApiConfig api = new ApiConfig();
 
     /**
+     * 获取密钥（通用方法，用于对称加密算法）
+     * 根据当前算法类型返回对应的密钥
+     *
+     * @return 密钥
+     */
+    public String getPassword() {
+        return switch (this.algorithm) {
+            case AES -> this.aesKey;
+            case SM4 -> this.sm4Key;
+            default -> this.aesKey;  // 默认返回AES密钥
+        };
+    }
+
+    /**
+     * 获取公钥（通用方法，用于非对称加密算法）
+     * 根据当前算法类型返回对应的公钥
+     *
+     * @return 公钥
+     */
+    public String getPublicKey() {
+        return switch (this.algorithm) {
+            case RSA -> this.rsaPublicKey;
+            case SM2 -> this.sm2PublicKey;
+            default -> this.rsaPublicKey;  // 默认返回RSA公钥
+        };
+    }
+
+    /**
+     * 获取私钥（通用方法，用于非对称加密算法）
+     * 根据当前算法类型返回对应的私钥
+     *
+     * @return 私钥
+     */
+    public String getPrivateKey() {
+        return switch (this.algorithm) {
+            case RSA -> this.rsaPrivateKey;
+            case SM2 -> this.sm2PrivateKey;
+            default -> this.rsaPrivateKey;  // 默认返回RSA私钥
+        };
+    }
+
+    /**
      * 数据库字段加密配置
      */
     @Data

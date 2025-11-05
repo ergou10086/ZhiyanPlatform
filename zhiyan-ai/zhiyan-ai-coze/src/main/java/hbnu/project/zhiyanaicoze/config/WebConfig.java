@@ -106,8 +106,8 @@ public class WebConfig {
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         
-        // 启用缩进输出
-        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        // ✅ 禁用缩进输出（生成单行 JSON，用于 SSE 流式传输）
+        mapper.disable(SerializationFeature.INDENT_OUTPUT);
         
         return mapper;
     }

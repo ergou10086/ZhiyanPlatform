@@ -3,6 +3,7 @@ package hbnu.project.zhiyancommonencrypt.core.encryptor;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonencrypt.core.EncryptContext;
 import hbnu.project.zhiyancommonencrypt.core.IEncryptor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -12,11 +13,15 @@ import lombok.extern.slf4j.Slf4j;
  * @author ErgouTree
  * @version 2.0.0
  */
+@Getter
 @Slf4j
 public abstract class AbstractEncryptor implements IEncryptor {
 
     /**
      * 加密上下文
+     * -- GETTER --
+     *  获取加密上下文
+     *
      */
     protected final EncryptContext context;
 
@@ -50,12 +55,4 @@ public abstract class AbstractEncryptor implements IEncryptor {
         return StringUtils.isEmpty(value);
     }
 
-    /**
-     * 获取加密上下文
-     *
-     * @return 加密上下文
-     */
-    public EncryptContext getContext() {
-        return context;
-    }
 }

@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.FileContextDTO;
@@ -36,6 +38,7 @@ public class AchievementFileAIController {
      */
     @GetMapping("/{fileId}")
     @Operation(summary = "获取单个文件信息", description = "根据文件 ID 获取文件的详细信息")
+    @SentinelResource(value = "knowledge:ai:getFileById", blockHandler = "getFileBlockHandler", fallback = "getFileFallback")
     public R<FileContextDTO> getFileById(
             @Parameter(description = "文件 ID") @PathVariable Long fileId
     ) {
@@ -58,6 +61,7 @@ public class AchievementFileAIController {
      */
     @GetMapping("/batch")
     @Operation(summary = "批量获取文件信息", description = "根据文件 ID 列表批量获取文件信息")
+    @SentinelResource(value = "knowledge:ai:getFilesBatch", blockHandler = "getFilesBatchBlockHandler", fallback = "getFilesBatchFallback")
     public R<List<FileContextDTO>> getFilesByIds(
             @Parameter(description = "文件 ID 列表") @RequestParam("fileIds") List<Long> fileIds
     ) {
@@ -77,6 +81,7 @@ public class AchievementFileAIController {
      */
     @GetMapping("/{fileId}/url")
     @Operation(summary = "获取文件 URL", description = "获取文件的下载链接")
+    @SentinelResource(value = "knowledge:ai:getFileUrl", blockHandler = "getFileUrlBlockHandler", fallback = "getFileUrlFallback")
     public R<String> getFileUrl(
             @Parameter(description = "文件 ID") @PathVariable Long fileId,
             @Parameter(description = "用户 ID") @RequestParam(value = "userId", required = false) Long userId
@@ -90,5 +95,56 @@ public class AchievementFileAIController {
         String url = achievementFileService.getFileDownloadUrl(fileId, userId, 3600);
 
         return R.ok(url);
+    }
+
+
+    // ==================== Sentinel 熔断降级处理方法 ====================
+
+    /**
+     * 获取单个文件限流处理
+     */
+    public R<FileContextDTO> getFileBlockHandler(Long fileId, BlockException ex) {
+        log.warn("[Sentinel] AI获取文件被限流: fileId={}, {}", fileId, ex.getClass().getSimpleName());
+        return R.fail(429, "文件查询请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 获取单个文件降级处理（服务异常）
+     */
+    public R<FileContextDTO> getFileFallback(Long fileId, Throwable throwable) {
+        log.error("[Sentinel] AI获取文件服务异常降级: fileId={}", fileId, throwable);
+        return R.fail(503, "文件查询服务暂时不可用，请稍后重试");
+    }
+
+    /**
+     * 批量获取文件限流处理
+     */
+    public R<List<FileContextDTO>> getFilesBatchBlockHandler(List<Long> fileIds, BlockException ex) {
+        log.warn("[Sentinel] AI批量获取文件被限流: count={}, {}", fileIds.size(), ex.getClass().getSimpleName());
+        return R.fail(429, "批量查询请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 批量获取文件降级处理（服务异常）
+     */
+    public R<List<FileContextDTO>> getFilesBatchFallback(List<Long> fileIds, Throwable throwable) {
+        log.error("[Sentinel] AI批量获取文件服务异常降级: count={}", fileIds.size(), throwable);
+        return R.fail(503, "批量查询服务暂时不可用，请稍后重试");
+    }
+
+    /**
+     * 获取文件URL限流处理
+     */
+    public R<String> getFileUrlBlockHandler(Long fileId, Long userId, BlockException ex) {
+        log.warn("[Sentinel] AI获取文件URL被限流: fileId={}, {}", fileId, ex.getClass().getSimpleName());
+        return R.fail(429, "获取下载链接请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 获取文件URL降级处理（服务异常）
+     */
+    public R<String> getFileUrlFallback(Long fileId, Long userId, Throwable throwable) {
+        log.error("[Sentinel] AI获取文件URL服务异常降级: fileId={}", fileId, throwable);
+        return R.fail(503, "获取下载链接服务暂时不可用，请稍后重试");
     }
 }

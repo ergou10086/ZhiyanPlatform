@@ -18,11 +18,21 @@ public @interface ApiEncrypt {
      * 是否加密请求数据
      * 默认不加密请求
      */
-    boolean requestEncrypt() default false;
+    boolean request() default false;
 
     /**
      * 是否加密响应数据
      * 默认加密响应
+     */
+    boolean response() default true;
+
+    /**
+     * 是否加密请求数据（别名，兼容旧版本）
+     */
+    boolean requestEncrypt() default false;
+
+    /**
+     * 是否加密响应数据（别名，兼容旧版本）
      */
     boolean responseEncrypt() default true;
 }

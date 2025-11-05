@@ -29,6 +29,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromObject
 
 // https://github.com/alibaba/Sentinel/issues/3298
 // 临时解决 sentinel 限流插件 jdk17 报错问题
+// 该类在 JDK 21 下不被使用
 
 /**
  * The default implementation of {@link BlockRequestHandler}.

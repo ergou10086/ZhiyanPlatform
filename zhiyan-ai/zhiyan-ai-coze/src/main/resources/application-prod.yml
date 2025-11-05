@@ -62,3 +62,12 @@ logging:
   file:
     name: logs/zhiyan-ai-coze.log
 
+# zhiyan-auth 服务配置（备用URL，当服务发现失败时使用）
+zhiyan-auth:
+  # 备用服务URL（当Nacos服务发现失败时使用）
+  fallback-url: http://10.7.92.252:8091
+  # 是否启用服务发现降级（当服务发现失败时使用备用URL）
+  enable-fallback: true
+  # 是否启用服务实例URL缓存（缓存上次成功的服务实例URL）
+  enable-cache: true
+

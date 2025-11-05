@@ -27,6 +27,10 @@ spring:
         heart-beat-timeout: 15000
         # 注册配置
         register-enabled: true
+        # 指定注册的IP地址（重要：确保服务间可以互相访问）
+        # 如果所有服务运行在同一台机器上，使用 127.0.0.1
+        # 如果服务分布在不同机器，使用实际的内网IP
+        ip: 127.0.0.1
 
       # Nacos配置中心
       config:

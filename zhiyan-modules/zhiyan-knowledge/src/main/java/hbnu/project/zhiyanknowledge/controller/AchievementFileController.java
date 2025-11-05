@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanknowledge.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.common.log.annotation.OperationLog;
@@ -44,6 +46,7 @@ public class AchievementFileController {
     @PostMapping("/upload")
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD, description = "上传成果文件", recordParams = false, recordResult = true)
+    @SentinelResource(value = "knowledge:file:upload", blockHandler = "uploadBlockHandler", fallback = "uploadFallback")
     public R<AchievementFileDTO> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -72,6 +75,7 @@ public class AchievementFileController {
     @PostMapping("/upload/batch")
     @Operation(summary = "批量上传成果文件", description = "为指定成果批量上传多个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD,description = "批量上传成果文件", recordParams = false, recordResult = true)
+    @SentinelResource(value = "knowledge:file:uploadBatch", blockHandler = "uploadBatchBlockHandler", fallback = "uploadBatchFallback")
     public R<List<AchievementFileDTO>> uploadFilesBatch(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -145,6 +149,44 @@ public class AchievementFileController {
         String downloadUrl = achievementFileService.getFileDownloadUrl(fileId, userId, expirySeconds);
 
         return R.ok(downloadUrl, "下载链接生成成功");
+    }
+
+    // ==================== Sentinel 限流和降级处理方法 ====================
+
+    /**
+     * 单文件上传限流处理
+     */
+    public R<AchievementFileDTO> uploadBlockHandler(MultipartFile file, Long achievementId, BlockException ex) {
+        log.warn("[Sentinel] 文件上传被限流: achievementId={}, fileName={}, {}", 
+                achievementId, file.getOriginalFilename(), ex.getClass().getSimpleName());
+        return R.fail(429, "文件上传请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 单文件上传降级处理（服务异常）
+     */
+    public R<AchievementFileDTO> uploadFallback(MultipartFile file, Long achievementId, Throwable throwable) {
+        log.error("[Sentinel] 文件上传服务异常降级: achievementId={}, fileName={}", 
+                achievementId, file.getOriginalFilename(), throwable);
+        return R.fail(503, "文件上传服务暂时不可用，请稍后重试");
+    }
+
+    /**
+     * 批量文件上传限流处理
+     */
+    public R<List<AchievementFileDTO>> uploadBatchBlockHandler(List<MultipartFile> files, Long achievementId, BlockException ex) {
+        log.warn("[Sentinel] 批量文件上传被限流: achievementId={}, fileCount={}, {}", 
+                achievementId, files.size(), ex.getClass().getSimpleName());
+        return R.fail(429, "批量上传请求过于频繁，请稍后再试");
+    }
+
+    /**
+     * 批量文件上传降级处理（服务异常）
+     */
+    public R<List<AchievementFileDTO>> uploadBatchFallback(List<MultipartFile> files, Long achievementId, Throwable throwable) {
+        log.error("[Sentinel] 批量文件上传服务异常降级: achievementId={}, fileCount={}", 
+                achievementId, files.size(), throwable);
+        return R.fail(503, "批量上传服务暂时不可用，请稍后重试");
     }
 
 }

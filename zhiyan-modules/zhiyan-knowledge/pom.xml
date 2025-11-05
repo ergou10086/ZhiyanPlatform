@@ -110,6 +110,12 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-seata</artifactId>
         </dependency>
+
+        <!-- Sentinel 流控降级 -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-sentinel</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
