@@ -8,15 +8,13 @@ spring:
     # 默认使用dev环境，可通过环境变量覆盖
     active: prod
 
-  # TODO 方案三优化：取消下面配置的注释以优化流式响应性能
-  # webflux:
-  #   # 禁用缓冲，支持真正的流式响应
-  #   buffer-size: 512  # 使用小缓冲区
-  #   max-header-size: 8KB
-  # 
-  # netty:
-  #   # 禁用自动刷新缓冲
-  #   connection-timeout: 60000
+  # ⭐⭐⭐ WebFlux 流式响应优化配置
+  codec:
+    max-in-memory-size: 524288  # 512 KB（足够处理SSE消息，同时不会过度缓冲）
+  
+  # Netty 服务器配置
+  netty:
+    leak-detection: simple  # 内存泄漏检测
 
 # 通用日志配置
 logging:
