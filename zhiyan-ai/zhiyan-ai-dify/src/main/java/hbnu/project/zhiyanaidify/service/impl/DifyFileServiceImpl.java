@@ -25,9 +25,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Dify 文件服务实现
@@ -174,7 +177,7 @@ public class DifyFileServiceImpl implements DifyFileService {
 
             if(response.getStatusCode().is2xxSuccessful()){
                 byte[] fileBytes = response.getBody();
-                log.info("[预览文件] 成功获取文件，大小={}bytes", fileBytes.length);
+                log.info("[预览文件] 成功获取文件，大小={}bytes", Objects.requireNonNull(fileBytes).length);
 
                 // 转换为 Resource
                 return new ByteArrayResource(fileBytes);
@@ -199,7 +202,7 @@ public class DifyFileServiceImpl implements DifyFileService {
 
             if(response.getStatusCode().is2xxSuccessful()){
                 byte[] fileBytes = response.getBody();
-                log.info("[获取文件字节] 成功，大小={}bytes", fileBytes.length);
+                log.info("[获取文件字节] 成功，大小={}bytes", Objects.requireNonNull(fileBytes).length);
                 return fileBytes;
             }else {
                 throw new DifyApiException("获取文件失败：未能获取文件内容");
@@ -219,7 +222,8 @@ public class DifyFileServiceImpl implements DifyFileService {
             log.info("[Dify 文件上传] 从 URL 下载文件: url={}", fileUrl);
 
             // 下载文件
-            URL url = new URL(fileUrl);
+            URI uri = new URI(fileUrl);
+            URL url = uri.toURL();
             InputStream inputStream = url.openStream();
             byte[] fileBytes = inputStream.readAllBytes();
             inputStream.close();
@@ -260,6 +264,8 @@ public class DifyFileServiceImpl implements DifyFileService {
         } catch (DifyApiException | IOException e) {
             log.error("[Dify 文件上传] 从 URL 上传失败: url={}", fileUrl, e);
             throw new DifyApiException("从 URL 上传文件失败: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
     }
 }

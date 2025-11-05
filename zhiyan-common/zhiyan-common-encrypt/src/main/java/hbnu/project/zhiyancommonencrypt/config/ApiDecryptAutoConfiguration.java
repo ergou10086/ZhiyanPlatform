@@ -1,8 +1,9 @@
 package hbnu.project.zhiyancommonencrypt.config;
 
+import hbnu.project.zhiyancommonencrypt.filter.CryptoFilter;
+import hbnu.project.zhiyancommonencrypt.properties.ApiDecryptProperties;
 import jakarta.servlet.DispatcherType;
-import org.dromara.common.encrypt.filter.CryptoFilter;
-import org.dromara.common.encrypt.properties.ApiDecryptProperties;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

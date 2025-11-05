@@ -5,6 +5,8 @@ import hbnu.project.zhiyancommonencrypt.enumd.EncodeType;
 import hbnu.project.zhiyancommonencrypt.properties.EncryptorProperties;
 import lombok.Data;
 
+import java.util.Objects;
+
 /**
  * 加密上下文
  * 用于在加密器之间传递必要的参数和配置信息
@@ -72,5 +74,80 @@ public class EncryptContext {
         context.setSm2PublicKey(properties.getSm2PublicKey());
         context.setSm2PrivateKey(properties.getSm2PrivateKey());
         return context;
+    }
+
+    /**
+     * 设置密钥（通用方法，用于对称加密算法）
+     * 根据当前算法类型设置对应的密钥
+     *
+     * @param password 密钥
+     */
+    public void setPassword(String password) {
+        if (this.algorithm == AlgorithmType.AES) {
+            this.aesKey = password;
+        } else if (this.algorithm == AlgorithmType.SM4) {
+            this.sm4Key = password;
+        }
+    }
+
+    /**
+     * 设置公钥（通用方法，用于非对称加密算法）
+     * 根据当前算法类型设置对应的公钥
+     *
+     * @param publicKey 公钥
+     */
+    public void setPublicKey(String publicKey) {
+        if (this.algorithm == AlgorithmType.RSA) {
+            this.rsaPublicKey = publicKey;
+        } else if (this.algorithm == AlgorithmType.SM2) {
+            this.sm2PublicKey = publicKey;
+        }
+    }
+
+    /**
+     * 设置私钥（通用方法，用于非对称加密算法）
+     * 根据当前算法类型设置对应的私钥
+     *
+     * @param privateKey 私钥
+     */
+    public void setPrivateKey(String privateKey) {
+        if (this.algorithm == AlgorithmType.RSA) {
+            this.rsaPrivateKey = privateKey;
+        } else if (this.algorithm == AlgorithmType.SM2) {
+            this.sm2PrivateKey = privateKey;
+        }
+    }
+
+    /**
+     * 重写 equals 方法
+     * 用于比较两个加密上下文是否相同
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        EncryptContext that = (EncryptContext) o;
+        return algorithm == that.algorithm &&
+                encode == that.encode &&
+                Objects.equals(aesKey, that.aesKey) &&
+                Objects.equals(sm4Key, that.sm4Key) &&
+                Objects.equals(rsaPublicKey, that.rsaPublicKey) &&
+                Objects.equals(rsaPrivateKey, that.rsaPrivateKey) &&
+                Objects.equals(sm2PublicKey, that.sm2PublicKey) &&
+                Objects.equals(sm2PrivateKey, that.sm2PrivateKey);
+    }
+
+    /**
+     * 重写 hashCode 方法
+     * 用于加密器缓存的 key
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(algorithm, encode, aesKey, sm4Key, 
+                rsaPublicKey, rsaPrivateKey, sm2PublicKey, sm2PrivateKey);
     }
 }

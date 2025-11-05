@@ -1,12 +1,13 @@
 package hbnu.project.zhiyancommonencrypt.filter;
 
 import cn.hutool.core.io.IoUtil;
+import hbnu.project.zhiyancommonbasic.constants.GeneralConstants;
+import hbnu.project.zhiyancommonencrypt.utils.EncryptUtils;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
-import org.dromara.common.core.constant.Constants;
-import org.dromara.common.encrypt.utils.EncryptUtils;
+
 import org.springframework.http.MediaType;
 
 import java.io.BufferedReader;
@@ -31,7 +32,7 @@ public class DecryptRequestBodyWrapper extends HttpServletRequestWrapper {
         String decryptAes = EncryptUtils.decryptByRsa(headerRsa, privateKey);
         // 解密 AES 密码
         String aesPassword = EncryptUtils.decryptByBase64(decryptAes);
-        request.setCharacterEncoding(Constants.UTF8);
+        request.setCharacterEncoding(GeneralConstants.UTF8);
         byte[] readBytes = IoUtil.readBytes(request.getInputStream(), false);
         String requestBody = new String(readBytes, StandardCharsets.UTF_8);
         // 解密 body 采用 AES 加密

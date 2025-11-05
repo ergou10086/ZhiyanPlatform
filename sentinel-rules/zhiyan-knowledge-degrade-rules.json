@@ -1,0 +1,73 @@
+[
+  {
+    "resource": "knowledge:file:upload",
+    "grade": 0,
+    "count": 3.0,
+    "timeWindow": 30,
+    "minRequestAmount": 5,
+    "slowRatioThreshold": 0.6,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:file:uploadBatch",
+    "grade": 0,
+    "count": 5.0,
+    "timeWindow": 60,
+    "minRequestAmount": 3,
+    "slowRatioThreshold": 0.5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:ai:getFileById",
+    "grade": 1,
+    "count": 0.3,
+    "timeWindow": 30,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:ai:getFilesBatch",
+    "grade": 1,
+    "count": 0.4,
+    "timeWindow": 30,
+    "minRequestAmount": 5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:statistics:project",
+    "grade": 0,
+    "count": 2.0,
+    "timeWindow": 20,
+    "minRequestAmount": 5,
+    "slowRatioThreshold": 0.5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:statistics:status",
+    "grade": 0,
+    "count": 1.5,
+    "timeWindow": 20,
+    "minRequestAmount": 5,
+    "slowRatioThreshold": 0.5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:statistics:type",
+    "grade": 0,
+    "count": 1.5,
+    "timeWindow": 20,
+    "minRequestAmount": 5,
+    "slowRatioThreshold": 0.5,
+    "statIntervalMs": 1000
+  },
+  {
+    "resource": "knowledge:achievement:search",
+    "grade": 0,
+    "count": 2.0,
+    "timeWindow": 15,
+    "minRequestAmount": 10,
+    "slowRatioThreshold": 0.6,
+    "statIntervalMs": 1000
+  }
+]
+

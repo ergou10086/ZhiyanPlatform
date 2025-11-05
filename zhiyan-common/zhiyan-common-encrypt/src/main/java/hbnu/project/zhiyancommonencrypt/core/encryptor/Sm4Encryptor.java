@@ -5,6 +5,7 @@ import cn.hutool.crypto.symmetric.SM4;
 import hbnu.project.zhiyancommonencrypt.core.EncryptContext;
 import hbnu.project.zhiyancommonencrypt.enumd.AlgorithmType;
 import hbnu.project.zhiyancommonencrypt.enumd.EncodeType;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -16,6 +17,7 @@ import java.util.Base64;
  * @author ErgouTree
  * @version 2.0.0
  */
+@Slf4j
 public class Sm4Encryptor extends AbstractEncryptor {
 
     private final SM4 sm4;

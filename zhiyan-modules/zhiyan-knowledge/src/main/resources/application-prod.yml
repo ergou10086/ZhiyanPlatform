@@ -42,6 +42,17 @@ spring:
         response:
           enabled: true
 
+    # Sentinel 流控降级配置
+    sentinel:
+      enabled: true
+      eager: true
+      transport:
+        dashboard: 10.7.10.98:8858
+        port: 8724  # 知识库模块的Sentinel客户端端口
+        heartbeat-interval-ms: 5000
+      web-context-unify: false
+      http-method-specify: true
+
   # 数据库配置
   datasource:
     url: jdbc:mysql://10.7.10.98:3306/zhiyan_knowledge_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
@@ -228,3 +239,29 @@ zhiyan:
 
     # 异步处理日志
     async: true
+
+  # Sentinel 流控降级配置
+  sentinel:
+    enabled: true
+    eager: true
+    dashboard:
+      host: 10.7.10.98
+      port: 8858
+      client-port: 8724
+      heartbeat-interval-ms: 5000
+    log:
+      dir: logs/sentinel
+      switch-pid: true
+    global:
+      web-context-unify: false
+      http-method-specify: true
+      global-qps: -1
+      global-thread: -1
+    nacos:
+      enabled: true
+      server-addr: 10.7.10.98:8848
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+      group-id: SENTINEL_GROUP
+      username: nacos
+      password: nacos
+      data-id-suffix: json

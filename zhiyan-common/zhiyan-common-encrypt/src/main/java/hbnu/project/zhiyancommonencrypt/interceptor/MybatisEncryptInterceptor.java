@@ -3,6 +3,13 @@ package hbnu.project.zhiyancommonencrypt.interceptor;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ObjectUtil;
+import hbnu.project.zhiyancommonbasic.utils.StringUtils;
+import hbnu.project.zhiyancommonencrypt.annotation.EncryptField;
+import hbnu.project.zhiyancommonencrypt.core.EncryptContext;
+import hbnu.project.zhiyancommonencrypt.core.EncryptorManager;
+import hbnu.project.zhiyancommonencrypt.enumd.AlgorithmType;
+import hbnu.project.zhiyancommonencrypt.enumd.EncodeType;
+import hbnu.project.zhiyancommonencrypt.properties.EncryptorProperties;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
@@ -10,13 +17,6 @@ import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Signature;
-import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.encrypt.annotation.EncryptField;
-import org.dromara.common.encrypt.core.EncryptContext;
-import org.dromara.common.encrypt.core.EncryptorManager;
-import org.dromara.common.encrypt.enumd.AlgorithmType;
-import org.dromara.common.encrypt.enumd.EncodeType;
-import org.dromara.common.encrypt.properties.EncryptorProperties;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -41,7 +41,7 @@ public class MybatisEncryptInterceptor implements Interceptor {
     private final EncryptorProperties defaultProperties;
 
     @Override
-    public Object intercept(Invocation invocation) throws Throwable {
+    public Object intercept(Invocation invocation) {
         return invocation;
     }
 
@@ -75,7 +75,7 @@ public class MybatisEncryptInterceptor implements Interceptor {
                 return;
             }
             // 判断第一个元素是否含有注解。如果没有直接返回，提高效率
-            Object firstItem = list.get(0);
+            Object firstItem = list.getFirst();
             if (ObjectUtil.isNull(firstItem) || CollUtil.isEmpty(encryptorManager.getFieldCache(firstItem.getClass()))) {
                 return;
             }

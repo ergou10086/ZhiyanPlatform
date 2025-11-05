@@ -4,6 +4,7 @@ import cn.hutool.core.util.HexUtil;
 import hbnu.project.zhiyancommonencrypt.core.EncryptContext;
 import hbnu.project.zhiyancommonencrypt.enumd.AlgorithmType;
 import hbnu.project.zhiyancommonencrypt.enumd.EncodeType;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -15,6 +16,7 @@ import java.util.Base64;
  * @author ErgouTree
  * @version 2.0.0
  */
+@Slf4j
 public class Base64Encryptor extends AbstractEncryptor {
 
     public Base64Encryptor(EncryptContext context) {
