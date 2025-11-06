@@ -390,8 +390,11 @@ public class WikiPageService {
      * @return 搜索结果列表
      */
     public List<WikiSearchDTO> searchByContent(Long projectId, String keyword) {
+        log.info("[Wiki内容搜索] 开始搜索: projectId={}, keyword={}", projectId, keyword);
+        
         // 从MongoDB搜索内容
         List<WikiContent> contents = contentService.searchContent(projectId, keyword);
+        log.info("[Wiki内容搜索] MongoDB返回结果数: {}", contents.size());
 
         // 获取对应的Wiki页面元数据
         List<WikiSearchDTO> results = new ArrayList<>();
@@ -415,6 +418,7 @@ public class WikiPageService {
             }
         }
 
+        log.info("[Wiki内容搜索] 搜索完成: 返回{}个结果", results.size());
         return results;
     }
 

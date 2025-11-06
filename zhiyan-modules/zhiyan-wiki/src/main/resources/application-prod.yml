@@ -192,7 +192,8 @@ logging:
     hbnu.project.zhiyan: INFO
     org.springframework.security: WARN
     org.springframework.web: INFO
-    org.springframework.data.mongodb: WARN
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG  # ✅ 临时开启MongoDB查询日志
+    org.springframework.data.mongodb: DEBUG  # ✅ 临时开启MongoDB DEBUG日志
     com.zaxxer.hikari: INFO
     org.springframework.data.redis.repository: WARN
     com.alibaba.csp.sentinel: WARN

@@ -29,6 +29,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -182,8 +183,8 @@ public class DifyAIChatController {
                             .comment("stream")  // 添加注释保持连接
                             .build();
                 })
-                // ⭐⭐⭐ 添加微小延迟，确保每条消息立即发送，防止批量缓冲
-                .delayElements(Duration.ofMillis(1))
+                // ⭐⭐⭐ 使用单线程调度器确保消息顺序，避免并行导致乱序
+                .publishOn(Schedulers.single())
                 .doOnComplete(() -> log.info("🏁 [Chatflow Stream] 流式响应完成"))
                 .doOnError(error -> log.error("❌ [Chatflow Stream] 流式响应错误", error));
     }
@@ -271,6 +272,8 @@ public class DifyAIChatController {
 
         // 5. 返回流式响应
         return difyStreamService.callChatflowStream(request)
+                // ⭐⭐⭐ 使用单线程调度器确保消息顺序，避免并行导致乱序
+                .publishOn(Schedulers.single())
                 .map(message -> ServerSentEvent.<DifyStreamMessage>builder()
                         .event(message.getEvent())
                         .data(message)

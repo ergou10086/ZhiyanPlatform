@@ -51,11 +51,25 @@ public class WikiSearchController {
         log.info("用户[{}]全文搜索项目[{}]: keyword={}, page={}, size={}", 
                 userId, projectId, keyword, page, size);
 
+        // 参数验证
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return R.fail("搜索关键字不能为空");
+        }
+        if (keyword.length() > 200) {
+            return R.fail("搜索关键字过长，最多200个字符");
+        }
+        if (page < 0) {
+            return R.fail("页码必须大于等于0");
+        }
+        if (size <= 0 || size > 100) {
+            return R.fail("每页数量必须在1-100之间");
+        }
+
         // 权限检查：必须是项目成员
         wikiSecurityUtils.requireProjectMember(projectId);
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<WikiSearchResultDTO> results = searchService.fullTextSearch(projectId, keyword, pageable);
+        Page<WikiSearchResultDTO> results = searchService.fullTextSearch(projectId, keyword.trim(), pageable);
 
         return R.ok(results);
     }
@@ -76,10 +90,21 @@ public class WikiSearchController {
         log.info("用户[{}]简单搜索项目[{}]: keyword={}, limit={}", 
                 userId, projectId, keyword, limit);
 
+        // 参数验证
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return R.fail("搜索关键字不能为空");
+        }
+        if (keyword.length() > 200) {
+            return R.fail("搜索关键字过长，最多200个字符");
+        }
+        if (limit <= 0 || limit > 100) {
+            return R.fail("结果数量必须在1-100之间");
+        }
+
         // 权限检查：必须是项目成员
         wikiSecurityUtils.requireProjectMember(projectId);
 
-        List<WikiSearchResultDTO> results = searchService.simpleSearch(projectId, keyword, limit);
+        List<WikiSearchResultDTO> results = searchService.simpleSearch(projectId, keyword.trim(), limit);
 
         return R.ok(results);
     }
@@ -102,6 +127,20 @@ public class WikiSearchController {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]高级搜索项目[{}]: include={}, exclude={}, phrase={}", 
                 userId, projectId, includeWords, excludeWords, phrase);
+
+        // 参数验证
+        boolean hasInclude = includeWords != null && !includeWords.trim().isEmpty();
+        boolean hasPhrase = phrase != null && !phrase.trim().isEmpty();
+        
+        if (!hasInclude && !hasPhrase) {
+            return R.fail("至少需要提供包含词或精确短语之一");
+        }
+        if (page < 0) {
+            return R.fail("页码必须大于等于0");
+        }
+        if (size <= 0 || size > 100) {
+            return R.fail("每页数量必须在1-100之间");
+        }
 
         // 权限检查：必须是项目成员
         wikiSecurityUtils.requireProjectMember(projectId);

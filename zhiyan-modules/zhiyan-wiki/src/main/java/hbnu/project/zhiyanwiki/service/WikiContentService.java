@@ -319,14 +319,32 @@ public class WikiContentService {
 
 
     /**
-     * 全文搜索Wiki内容
+     * 全文搜索Wiki内容（混合搜索策略）
+     * 
+     * 策略：
+     * 1. 优先使用$text文本索引搜索（适合长文本和多词搜索）
+     * 2. 如果结果为空且关键词较短（<=3个字符），使用正则表达式搜索
+     * 3. 正则搜索适合：中文单字、纯数字、短词
      *
      * @param projectId 项目ID
      * @param keyword   关键字
      * @return 匹配的内容列表
      */
     public List<WikiContent> searchContent(Long projectId, String keyword) {
-        return contentRepo.searchByContent(projectId, keyword);
+        log.info("[MongoDB全文搜索] 执行搜索: projectId={}, keyword={}", projectId, keyword);
+        
+        // 1. 首先尝试文本索引搜索
+        List<WikiContent> results = contentRepo.searchByContent(projectId, keyword);
+        log.info("[MongoDB全文搜索] $text索引找到{}条匹配记录", results.size());
+        
+        // 2. 如果$text搜索没有结果，且关键词较短，使用正则表达式搜索
+        if (results.isEmpty() && keyword.length() <= 10) {
+            log.info("[MongoDB全文搜索] $text无结果，尝试正则表达式搜索...");
+            results = contentRepo.searchByContentRegex(projectId, keyword);
+            log.info("[MongoDB全文搜索] 正则搜索找到{}条匹配记录", results.size());
+        }
+        
+        return results;
     }
 
 
