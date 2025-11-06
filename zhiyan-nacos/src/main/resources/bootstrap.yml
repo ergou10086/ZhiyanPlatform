@@ -5,4 +5,4 @@ spring:
     name: zhiyan-nacos
   profiles:
     # 默认使用dev环境，服务器启动时通过参数指定
-    active: dev
+    active: prod

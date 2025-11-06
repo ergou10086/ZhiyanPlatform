@@ -9,7 +9,6 @@ import hbnu.project.zhiyanaidify.service.DifyFileService;
 import hbnu.project.zhiyanaidify.service.DifyStreamService;
 import hbnu.project.zhiyanaidify.utils.SecurityHelper;
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyancommonbasic.utils.id.UUID;
 import hbnu.project.zhiyancommonsse.dto.DifyStreamMessage;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -101,21 +100,21 @@ public class DifyAIChatController {
      * 从知识库上传文件到 Dify
      *
      * @param fileIds 知识库文件 ID 列表
-     * @return Dify 文件 ID 列表
+     * @return Dify 文件上传响应列表
      */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/files/upload/knowledge")
     @Operation(summary = "从知识库上传文件", description = "从知识库获取文件并上传到 Dify")
     @OperationLog(module = "Dify AI 对话", type = OperationType.UPLOAD, description = "从知识库上传文件到 Dify")
-    public R<List<String>> uploadKnowledgeFiles(
+    public R<List<DifyFileUploadResponse>> uploadKnowledgeFiles(
             @Parameter(description = "知识库文件 ID 列表") @RequestBody List<Long> fileIds
     ) {
         Long userId = securityHelper.getUserId();
         log.info("[Dify 知识库文件上传] fileIds={}, userId={}", fileIds, userId);
 
-        List<String> difyFileIds = difyFileService.uploadKnowledgeFiles(fileIds, userId);
+        List<DifyFileUploadResponse> responses = difyFileService.uploadKnowledgeFiles(fileIds, userId);
 
-        return R.ok(difyFileIds, String.format("成功上传 %d 个文件", difyFileIds.size()));
+        return R.ok(responses, String.format("成功上传 %d 个文件", responses.size()));
     }
 
 
@@ -125,7 +124,6 @@ public class DifyAIChatController {
      * @param query 用户问题
      * @param conversationId 对话 ID（UUID 格式，首次对话可不传）
      * @param fileIds Dify 文件 ID 列表（已上传到 Dify 的文件）
-     * @param inputs 输入变量
      * @return SSE 事件流
      */
     @PreAuthorize("isAuthenticated()")
@@ -165,7 +163,6 @@ public class DifyAIChatController {
         // 如果有文件，添加文件
         if (fileIds != null && !fileIds.isEmpty()) {
             request.setFiles(buildChatFilesList(fileIds));
-            log.info("[Chatflow 对话] 已添加 {} 个文件到请求中", fileIds.size());
         }
 
         // 返回流式响应
@@ -229,8 +226,12 @@ public class DifyAIChatController {
         // 1. 处理知识库文件
         if (knowledgeFileIds != null && !knowledgeFileIds.isEmpty()) {
             log.info("[上传并对话] 从知识库上传 {} 个文件", knowledgeFileIds.size());
-            List<String> knowledgeDifyIds = difyFileService.uploadKnowledgeFiles(knowledgeFileIds, userId);
-            difyFileIds.addAll(knowledgeDifyIds);
+            List<DifyFileUploadResponse> knowledgeResponses = difyFileService.uploadKnowledgeFiles(knowledgeFileIds, userId);
+            knowledgeResponses.forEach(response -> {
+                if (response != null && response.getFileId() != null) {
+                    difyFileIds.add(response.getFileId());
+                }
+            });
         }
 
         // 2. 处理本地文件
@@ -343,8 +344,8 @@ public class DifyAIChatController {
     @GetMapping("/conversation/new")
     @Operation(summary = "创建新对话", description = "创建一个新的对话会话并返回对话ID")
     public R<String> createNewConversation() {
-        // 使用UUID工具类生成新的对话ID
-        String newConversationId = String.valueOf(UUID.randomUUID());
+        // 使用Java标准UUID生成新的对话ID
+        String newConversationId = java.util.UUID.randomUUID().toString();
         log.info("[AI 对话] 创建新对话会话: conversationId={}", newConversationId);
         return R.ok(newConversationId, "对话会话创建成功");
     }
@@ -386,15 +387,15 @@ public class DifyAIChatController {
 
 
     /**
-     * 使用您自己的UUID工具类验证UUID格式
+     * 验证UUID格式是否有效
      *
      * @param uuid 要验证的UUID字符串
      * @return 是否有效
      */
     private boolean isValidUUID(String uuid) {
         try {
-            // 使用模块的UUID工具类进行验证
-            UUID.fromString(uuid);
+            // 使用Java标准UUID进行验证
+            java.util.UUID.fromString(uuid);
             return true;
         } catch (IllegalArgumentException e) {
             return false;
@@ -422,31 +423,15 @@ public class DifyAIChatController {
 
 
     /**
-     * 构建聊天文件列表（使用完整的文件响应信息）
-     * 优先使用此方法，因为它包含正确的 MIME 类型
-     */
-    private List<ChatRequest.DifyFile> buildChatFilesListFromResponses(List<DifyFileUploadResponse> responses) {
-        return responses.stream()
-                .map(response -> {
-                    log.info("[构建文件列表] fileId={}, mimeType={}, fileName={}",
-                            response.getFileId(), response.getMimeType(), response.getFileName());
-                    return ChatRequest.DifyFile.builder()
-                            .type(response.getMimeType())  // 使用文件的 MIME 类型
-                            .transferMethod("local_file")  // 本地文件
-                            .uploadFileId(response.getFileId())  // 上传的文件 ID
-                            .build();
-                })
-                .toList();
-    }
-
-    /**
-     * 构建聊天文件列表（仅有 fileId，用于知识库文件）
-     * 注意：此方法使用默认类型，可能不适用于所有文件
+     * 构建聊天文件列表（根据 Dify Chat API 规范）
+     * 
+     * ⚠️ 注意：Dify API 的文件类型只接受 "image" 或 "document"
+     * 不能使用 "file"，否则会报错：'file' is not a valid FileType
      */
     private List<ChatRequest.DifyFile> buildChatFilesList(List<String> fileIds) {
         return fileIds.stream()
                 .map(fileId -> ChatRequest.DifyFile.builder()
-                        .type("document")  // 默认为 document 类型（适用于大多数文本文件）
+                        .type("document")  // ✅ 使用 "document" 而不是 "file"（图片也可以用document）
                         .transferMethod("local_file")  // 本地文件
                         .uploadFileId(fileId)  // 上传的文件 ID
                         .build())

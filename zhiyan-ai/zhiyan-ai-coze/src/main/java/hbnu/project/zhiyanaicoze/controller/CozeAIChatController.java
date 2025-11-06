@@ -6,6 +6,7 @@ import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanaicoze.config.properties.CozeProperties;
 import hbnu.project.zhiyanaicoze.model.dto.CozeStreamMessage;
 import hbnu.project.zhiyanaicoze.model.request.CozeChatRequest;
+import hbnu.project.zhiyanaicoze.model.request.CozeChatStreamRequest;
 import hbnu.project.zhiyanaicoze.model.response.CozeChatResponse;
 import hbnu.project.zhiyanaicoze.model.response.CozeFileDetailResponse;
 import hbnu.project.zhiyanaicoze.model.response.CozeFileUploadResponse;
@@ -59,30 +60,31 @@ public class CozeAIChatController {
 
     /**
      * Coze 对话（流式响应，不带文件）
+     * ⭐ 修复版本：使用@RequestBody接收参数，避免URL过长导致431错误
      *
-     * @param query 用户问题
-     * @param conversationId 对话 ID（可选，用于维持会话）
-     * @param customVariables 自定义变量
+     * @param requestBody 聊天请求体（包含query、conversationId、customVariables）
+     * @param authorizationHeader Authorization请求头
      * @return SSE 事件流
      */
-    @Deprecated
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(
             summary = "Coze 对话（流式）",
             description = "调用 Coze 智能体进行流式对话，不涉及文件上传。" +
+                    "使用POST body传递参数，支持长文本输入。" +
                     "首次对话无需传 conversationId，Coze 会在响应中返回新的对话ID。" +
                     "后续对话使用返回的 conversationId 维持上下文。"
     )
-    @CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")
-    @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体进行流式对话，不涉及文件上传,已废弃", type = OperationType.OTHER)
+    @CrossOrigin(origins = {"http://localhost:8001", "http://localhost:8002", "http://127.0.0.1:8001", "http://127.0.0.1:8002"}, allowCredentials = "true")
+    @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体进行流式对话，不涉及文件上传", type = OperationType.OTHER)
     public Flux<ServerSentEvent<String>> chatStream(
-            @Parameter(description = "用户问题") @RequestParam String query,
-            @Parameter(description = "对话 ID（可选，用于维持会话）") @RequestParam(required = false) String conversationId,
-            @Parameter(description = "自定义变量") @RequestBody(required = false) Map<String, String> customVariables,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "聊天请求体") 
+            @RequestBody CozeChatStreamRequest requestBody,
             @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
     ){
         log.info("[Coze 对话] ========== 收到请求 ==========");
-        log.info("[Coze 对话] query={}, conversationId={}", query, conversationId);
+        log.info("[Coze 对话] query长度={}, conversationId={}", 
+                requestBody.getQuery() != null ? requestBody.getQuery().length() : 0, 
+                requestBody.getConversationId());
         log.info("[Coze 对话] 请求方法: POST, 路径: /api/coze/chat/stream");
         log.info("[Coze 对话] Authorization 头是否存在: {}", authorizationHeader != null && !authorizationHeader.isEmpty());
         
@@ -115,8 +117,13 @@ public class CozeAIChatController {
         
         String userIdentifier = String.valueOf(userId);
 
-        log.info("[Coze 对话] query={}, conversationId={}, userId={}",
-                query, conversationId, userIdentifier);
+        // 从请求体提取参数
+        String query = requestBody.getQuery();
+        String conversationId = requestBody.getConversationId();
+        Map<String, Object> customVariables = requestBody.getCustomVariables();
+
+        log.info("[Coze 对话] query长度={}, conversationId={}, userId={}, customVariables={}",
+                query != null ? query.length() : 0, conversationId, userIdentifier, customVariables);
 
         // 构建消息列表
         List<CozeChatRequest.CozeMessage> messages = new ArrayList<>();
@@ -263,11 +270,11 @@ public class CozeAIChatController {
                 userIdentifier);
 
         // 解析自定义变量（如果提供）
-        Map<String, String> customVariables = null;
+        Map<String, Object> customVariables = null;
         if (customVariablesJson != null && !customVariablesJson.trim().isEmpty()) {
             try {
                 customVariables = objectMapper.readValue(customVariablesJson, 
-                        new TypeReference<Map<String, String>>() {});
+                        new TypeReference<Map<String, Object>>() {});
                 log.info("[Coze 高级对话] 解析自定义变量成功: {}", customVariables);
             } catch (Exception e) {
                 log.warn("[Coze 高级对话] 解析自定义变量失败: {}", customVariablesJson, e);
