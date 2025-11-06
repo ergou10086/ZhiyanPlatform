@@ -68,9 +68,16 @@ public class TaskController {
         fallbackClass = ProjectSentinelHandler.class,
         fallback = "handleCreateTaskFallback"
     )
-    @Idempotent(type = IdempotentType.SPEL, key = "#taskId", timeout = 1, message = "任务创建中，请勿重复提交")
+    @Idempotent(type = IdempotentType.SPEL, key = "#request.projectId + ':' + #request.title", timeout = 3, message = "任务创建中，请勿重复提交")
     public R<Tasks> createTask(@Valid @RequestBody CreateTaskRequest request) {
         Long currentUserId = SecurityUtils.getUserId();
+        
+        // 检查用户是否已登录
+        if (currentUserId == null) {
+            log.warn("创建任务失败: 用户未登录或Token无效");
+            return R.fail("请先登录");
+        }
+        
         log.info("用户[{}]在项目[{}]中创建任务: {}", currentUserId, request.getProjectId(), request.getTitle());
 
         try {

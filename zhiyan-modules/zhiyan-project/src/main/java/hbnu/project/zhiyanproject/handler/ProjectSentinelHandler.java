@@ -43,7 +43,7 @@ public class ProjectSentinelHandler {
      * 创建项目 - 降级处理
      */
     public static R<Project> handleCreateProjectFallback(CreateProjectRequest request, Throwable ex) {
-        log.error("[Sentinel] 创建项目接口降级: {}", ex.getMessage(), ex);
+        log.error("[Sentinel] 创建项目接口降级: {}", ex != null ? ex.getMessage() : "未知错误", ex);
         return R.fail("服务暂时不可用，请稍后重试");
     }
 
@@ -103,7 +103,18 @@ public class ProjectSentinelHandler {
      * 创建任务 - 降级处理
      */
     public static R<Tasks> handleCreateTaskFallback(CreateTaskRequest request, Throwable ex) {
-        log.error("[Sentinel] 创建任务接口降级: {}", ex.getMessage());
+        String errorMsg = ex != null ? ex.getMessage() : "未知错误";
+        String exClass = ex != null ? ex.getClass().getSimpleName() : "Unknown";
+        log.error("[Sentinel] 创建任务接口降级 - 异常类型: {}, 错误信息: {}, 项目ID: {}, 任务标题: {}", 
+                exClass, errorMsg, 
+                request != null ? request.getProjectId() : "null", 
+                request != null ? request.getTitle() : "null", ex);
+        
+        // 如果是业务异常，返回具体错误信息
+        if (ex instanceof IllegalArgumentException) {
+            return R.fail(errorMsg != null && !errorMsg.isEmpty() ? errorMsg : "参数错误，请检查输入");
+        }
+        
         return R.fail("服务暂时不可用，请稍后重试");
     }
 
