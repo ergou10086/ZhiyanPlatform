@@ -164,6 +164,7 @@ public class DifyAIChatController {
         // 如果有文件，添加文件
         if (fileIds != null && !fileIds.isEmpty()) {
             request.setFiles(buildChatFilesList(fileIds));
+            log.info("[Chatflow 对话] 已添加 {} 个文件到请求中", fileIds.size());
         }
 
         // 返回流式响应
@@ -227,7 +228,7 @@ public class DifyAIChatController {
             allUploadResponses.addAll(localUploadResponses);
         }
 
-        log.info("[上传并对话] 总共上传了 {} 个文件到 Dify, count={}", allUploadResponses.size());
+        log.info("[上传并对话] 总共上传了 {} 个文件到 Dify", allUploadResponses.size());
 
         // 3. 构建聊天请求
         ChatRequest request = ChatRequest.builder()

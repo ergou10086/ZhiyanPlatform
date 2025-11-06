@@ -65,6 +65,7 @@ public class CozeAIChatController {
      * @param customVariables 自定义变量
      * @return SSE 事件流
      */
+    @Deprecated
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(
             summary = "Coze 对话（流式）",
@@ -210,7 +211,6 @@ public class CozeAIChatController {
      * @param conversationId 对话 ID（可选）
      * @param localFiles 本地上传的文件（可选）
      * @param knowledgeFileIds 知识库文件ID列表（可选）
-     * @param customVariables 自定义变量
      * @return SSE 事件流
      */
     @PostMapping(value = "/chat/stream-with-files", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

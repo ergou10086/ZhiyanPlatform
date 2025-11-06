@@ -39,7 +39,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients
 @EnableDiscoveryClient
 public class ZhiyanAiDifyApplication {
-
     public static void main(String[] args) {
 
         SpringApplication.run(ZhiyanAiDifyApplication.class, args);
@@ -48,5 +47,4 @@ public class ZhiyanAiDifyApplication {
         System.out.println("666,这个人开了（指AI模块）");
         System.out.println("========================================");
     }
-
 }
