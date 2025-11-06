@@ -46,7 +46,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/zhiyan_knowledge_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
     username: root
-    password: zjm10086
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       pool-name: WikiServiceHikariPool

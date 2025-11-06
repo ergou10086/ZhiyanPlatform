@@ -12,6 +12,9 @@ import hbnu.project.zhiyanproject.model.form.UpdateTaskRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -105,14 +108,31 @@ public class ProjectSentinelHandler {
     public static R<Tasks> handleCreateTaskFallback(CreateTaskRequest request, Throwable ex) {
         String errorMsg = ex != null ? ex.getMessage() : "未知错误";
         String exClass = ex != null ? ex.getClass().getSimpleName() : "Unknown";
-        log.error("[Sentinel] 创建任务接口降级 - 异常类型: {}, 错误信息: {}, 项目ID: {}, 任务标题: {}", 
-                exClass, errorMsg, 
+        String exType = ex != null ? ex.getClass().getName() : "Unknown";
+        
+        log.error("[Sentinel] 创建任务接口降级 - 异常类型: {} ({}), 错误信息: {}, 项目ID: {}, 任务标题: {}", 
+                exClass, exType, errorMsg, 
                 request != null ? request.getProjectId() : "null", 
                 request != null ? request.getTitle() : "null", ex);
+        
+        // 如果是认证异常，返回认证失败的错误信息
+        if (ex instanceof AccessDeniedException || 
+            ex instanceof AuthenticationException ||
+            ex instanceof AuthenticationCredentialsNotFoundException ||
+            (exType != null && (exType.contains("AccessDenied") || exType.contains("Authentication")))) {
+            log.warn("[Sentinel] 创建任务失败: 用户未认证或Token无效");
+            return R.fail(401, "请先登录，Token可能已过期");
+        }
         
         // 如果是业务异常，返回具体错误信息
         if (ex instanceof IllegalArgumentException) {
             return R.fail(errorMsg != null && !errorMsg.isEmpty() ? errorMsg : "参数错误，请检查输入");
+        }
+        
+        // 如果异常为null，可能是认证拦截导致的
+        if (ex == null) {
+            log.warn("[Sentinel] 创建任务失败: 异常为null，可能是认证拦截");
+            return R.fail(401, "请先登录，Token可能已过期");
         }
         
         return R.fail("服务暂时不可用，请稍后重试");
