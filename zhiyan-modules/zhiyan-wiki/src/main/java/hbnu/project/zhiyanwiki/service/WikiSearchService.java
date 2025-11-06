@@ -261,19 +261,39 @@ public class WikiSearchService {
     }
 
     /**
-     * 高亮关键字
+     * 高亮关键字（优化版：避免重复高亮，保持HTML标签完整性）
      */
     private String highlightKeyword(String text, String keyword) {
-        if (text == null || keyword == null) {
+        if (text == null || keyword == null || keyword.trim().isEmpty()) {
             return text;
         }
 
-        // 使用<em>标签包裹关键字（不区分大小写）
-        String[] words = keyword.split("\\s+");
+        // 使用<mark>标签包裹关键字（更符合HTML5语义）
+        String[] words = keyword.trim().split("\\s+");
+        
+        // 过滤掉过短的词（避免误匹配）
+        List<String> validWords = new ArrayList<>();
         for (String word : words) {
-            // 使用正则表达式进行不区分大小写的替换
-            text = text.replaceAll("(?i)(" + java.util.regex.Pattern.quote(word) + ")",
-                    "<em>$1</em>");
+            if (word.length() >= 2) {  // 至少2个字符才高亮
+                validWords.add(word);
+            }
+        }
+        
+        if (validWords.isEmpty()) {
+            return text;
+        }
+
+        // 按词长度降序排序（先匹配长词，避免短词被长词包含时重复高亮）
+        validWords.sort((a, b) -> b.length() - a.length());
+
+        // 使用正则表达式进行不区分大小写的替换
+        for (String word : validWords) {
+            // 使用\b单词边界，避免匹配到词的一部分
+            // (?!<mark>) 负向前瞻断言，避免重复高亮已标记的内容
+            text = text.replaceAll(
+                    "(?i)(?!<mark>)\\b(" + java.util.regex.Pattern.quote(word) + ")\\b(?!</mark>)",
+                    "<mark>$1</mark>"
+            );
         }
 
         return text;
