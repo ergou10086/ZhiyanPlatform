@@ -1,0 +1,328 @@
+# 生产环境（服务器环境）
+
+# zhiyan-project
+server:
+  port: 8095
+
+spring:
+  application:
+    name: zhiyan-project
+  
+  # 启动性能优化：懒加载Bean
+  main:
+    lazy-initialization: false  # 暂不启用全局懒加载，避免首次请求慢
+    allow-circular-references: false
+
+  cloud:
+    nacos:
+      # Nacos服务发现
+      discovery:
+        # Nacos地址
+        server-addr: 10.7.10.98:8848
+        # 命名空间
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        # 组
+        group: DEFAULT_GROUP
+        # 权重
+        weight: 1
+        username: nacos
+        password: nacos
+
+      # Nacos配置中心
+      config:
+        # 和服务发现的一样
+        server-addr: 10.7.10.98:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        username: nacos
+        password: nacos
+
+    # Sentinel 流控配置
+    sentinel:
+      # 开启 Sentinel
+      enabled: true
+      # 饥饿加载（立即初始化）
+      eager: true
+
+      # 连接到 Sentinel Dashboard
+      transport:
+        # Sentinel Dashboard 地址
+        dashboard: localhost:8858
+        # 与 Dashboard 通信的端口（每个服务不同，避免冲突）
+        port: 8721
+        # 心跳发送周期（毫秒）
+        heartbeat-interval-ms: 5000
+
+      # 日志配置
+      log:
+        dir: logs/sentinel
+        switch-pid: true
+
+      # Web 过滤器配置
+      web-context-unify: false
+      http-method-specify: true
+
+    # OpenFeign配置
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 500000  # 连接超时时间 50秒
+            read-timeout: 500000     # 读取超时时间 50秒
+            logger-level: basic
+          zhiyan-auth:
+            connect-timeout: 500000  # zhiyan-auth 服务连接超时 50秒
+            read-timeout: 500000     # zhiyan-auth 服务读取超时 50秒
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+
+  # 数据库配置
+  datasource:
+    url: jdbc:mysql://10.7.10.98:3306/zhiyan_projectteam_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&maxReconnects=10
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池
+    hikari:
+      pool-name: ProjectServiceHikariPool
+      # 最小空闲连接数
+      minimum-idle: 4
+      # 最大连接池大小（增加到20以应对高并发）
+      maximum-pool-size: 30
+      # 空闲连接超时时间（10分钟）
+      idle-timeout: 600000
+      # 连接最大生命周期（30分钟，必须小于MySQL的wait_timeout）
+      max-lifetime: 1800000
+      # 连接超时时间（30秒）
+      connection-timeout: 30000
+      # 启动优化：延迟初始化连接池
+      initialization-fail-timeout: 1
+      # 连接验证超时（5秒）
+      validation-timeout: 5000
+      # 连接泄漏检测（60秒，帮助发现未关闭的连接）
+      leak-detection-threshold: 60000
+      # Keepalive时间（5分钟，保持连接活跃）
+      keepalive-time: 300000
+      # 连接属性
+      connection-test-query: SELECT 1
+      # 自动提交
+      auto-commit: true
+      # 数据库连接属性
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+
+  # Jackson配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+  # JPA配置
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        # 性能优化：禁用启动时的schema验证（生产环境）
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    hibernate:
+      # 生产环境建议使用 validate 或 none，避免每次启动检查DDL
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+# JWT配置（需与认证服务保持一致）
+jwt:
+  secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
+  issuer: "zhiyan-platform"
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+    info:
+      enabled: true
+  health:
+    mongo:
+      enabled: false  # 禁用MongoDB健康检查
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    git:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project.zhiyan: INFO
+    org.springframework.security: WARN
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    # HikariCP详细日志，帮助诊断连接池问题
+    com.zaxxer.hikari: DEBUG
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari.pool: DEBUG
+    # 关闭特定框架的冗余日志
+    org.springframework.data.redis.repository: WARN
+    # 关闭 Nacos 客户端的频繁日志
+    com.alibaba.nacos.client: WARN
+    com.alibaba.nacos.shaded.io.grpc: WARN
+    org.springframework.cloud.alibaba.nacos: WARN
+    # 关闭 Sentinel 控制台输出
+    com.alibaba.csp.sentinel: WARN
+  file:
+    name: logs/zhiyan-project-service.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+
+# Swagger配置
+swagger:
+  enabled: false
+  title: "智研平台的项目管理模块"
+  description: "项目、任务、团队成员管理"
+
+  
+# MinIO 配置 - 用户头像存储
+minio:
+  # MinIO服务地址
+  endpoint: http://10.7.10.98:9000
+  # 访问密钥
+  accessKey: root
+  # 密钥
+  secretKey: rootroot
+  # 是否使用HTTPS
+  secure: false
+  # 桶配置
+  buckets:
+    # 用户头像
+    userAvatars: user-avatars
+    # 项目封面
+    projectCovers: project-covers
+    # Wiki资源
+    wikiAssets: wiki-assets
+    # 成果附件
+    achievementFiles: achievement-files
+    # 临时上传
+    tempUploads: temp-uploads
+  # 文件上传配置
+  upload:
+    # 最大文件大小 (512MB)
+    maxFileSize: 536870912
+    # 最大图片大小 (10MB)
+    maxImageSize: 10485760
+    # 临时文件保留时间 (小时)
+    tempFileRetentionHours: 24
+    # 允许的图片类型
+    allowedImageTypes: jpg,jpeg,png,gif,bmp,webp
+    # 允许的文件类型 (* 表示所有)
+    allowedFileTypes: "*"
+  # 图片处理配置
+  image:
+    # 图片质量 (0.0-1.0)
+    quality: 0.85
+    # 是否生成WebP格式
+    generateWebP: true
+
+
+
+# 智研日志系统配置
+zhiyan:
+  log:
+    # 启用日志系统
+    enabled: true
+
+    # 启用操作日志
+    operation-enabled: true
+
+    # 启用访问日志
+    access-enabled: true
+
+    # 启用异常日志
+    exception-enabled: true
+
+    # 记录请求参数
+    record-request-params: true
+
+    # 记录响应结果
+    record-response-result: true
+
+    # 响应结果最大长度
+    max-response-length: 2000
+
+    # 请求参数最大长度
+    max-request-length: 2000
+
+    # 排除的 URL 路径
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /doc.html
+      - /knife4j/**
+
+    # 慢请求阈值（毫秒）
+    slow-request-threshold: 2000
+
+    # 异步处理日志
+    async: true
+
+  # 自定义 Sentinel 流控保护配置
+  sentinel:
+    enabled: true
+    eager: true
+    dashboard:
+      host: localhost
+      port: 8858
+      client-port: 8721
+    log:
+      dir: logs/sentinel
+    # Nacos 数据源配置（规则持久化）
+    nacos:
+      enabled: true
+      server-addr: 10.7.10.98:8848
+      namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+      group-id: SENTINEL_GROUP
+      username: nacos
+      password: nacos
+      data-id-suffix: json
+
+
+

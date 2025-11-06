@@ -1,0 +1,269 @@
+# 开发环境（本地环境）
+
+# zhiyan-auth
+server:
+  port: 8091
+
+spring:
+  application:
+    name: zhiyan-auth
+
+  cloud:
+    nacos:
+      # Nacos服务发现
+      discovery:
+        # Nacos地址
+        server-addr: 127.0.0.1:8848
+        # 命名空间
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        # 组
+        group: DEFAULT_GROUP
+        # 权重
+        weight: 1
+        ip: 127.0.0.1
+
+      # Nacos配置中心
+      config:
+        # 和服务发现的一样
+        server-addr: 127.0.0.1:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP
+        file-extension: yaml
+
+    # OpenFeign配置
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: basic
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+
+  # 数据库配置
+  datasource:
+    url: jdbc:mysql://localhost:3306/zhiyan_userauth_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    username: root
+    password: zjm10086
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池
+    hikari:
+      pool-name: AuthServiceHikariPool
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+
+  # 邮件配置 - 网易163邮箱
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: 18833121375@163.com
+    password: BBgBLZe89LzSCkwp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+            required: true
+          # 163邮箱需要SSL连接
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
+            port: 465
+    default-encoding: UTF-8
+
+  # Jackson配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+  # JPA配置 - 新增配置解决方言问题
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+
+# 验证码配置
+app:
+  verification-code:
+    length: 6
+    expire-minutes: 10
+    rate-limit-minutes: 1
+    enable-database-storage: true
+    enable-email-sending: true
+    enable-cleanup-task: true
+    max-retry-attempts: 3
+  name: 智研平台
+
+# JWT配置
+jwt:
+  secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
+  issuer: "zhiyan-platform"
+  access-token-expire-minutes: 1440  # 1天 = 24小时 = 1440分钟
+  refresh-token-expire-minutes: 10080  # 7天
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+    info:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    git:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project.zhiyan: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.zaxxer.hikari: INFO
+    # 关闭特定框架的冗余日志
+    org.springframework.data.redis.repository: WARN
+    # 关闭 Nacos 客户端的频繁日志
+    com.alibaba.nacos.client: WARN
+    com.alibaba.nacos.shaded.io.grpc: WARN
+    org.springframework.cloud.alibaba.nacos: WARN
+    # 关闭 Sentinel 控制台输出
+    com.alibaba.csp.sentinel: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-auth-service.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+
+
+# Swagger 开发环境配置（继承主配置，可覆盖）
+swagger:
+  enabled: true
+
+# MinIO 配置 - 用户头像存储（开发环境）
+minio:
+  # MinIO服务地址
+  endpoint: http://localhost:9005
+  # 访问密钥
+  accessKey: minioadmin
+  # 密钥
+  secretKey: minioadmin
+  # 是否使用HTTPS
+  secure: false
+  # 桶配置
+  buckets:
+    # 用户头像
+    userAvatars: user-avatars
+    # 项目封面
+    projectCovers: project-covers
+    # Wiki资源
+    wikiAssets: wiki-assets
+    # 成果附件
+    achievementFiles: achievement-files
+    # 临时上传
+    tempUploads: temp-uploads
+  # 文件上传配置
+  upload:
+    # 最大文件大小 (512MB)
+    maxFileSize: 536870912
+    # 最大图片大小 (10MB)
+    maxImageSize: 10485760
+    # 临时文件保留时间 (小时)
+    tempFileRetentionHours: 24
+    # 允许的图片类型
+    allowedImageTypes: jpg,jpeg,png,gif,bmp,webp
+    # 允许的文件类型 (* 表示所有)
+    allowedFileTypes: "*"
+  # 图片处理配置
+  image:
+    # 图片质量 (0.0-1.0)
+    quality: 0.85
+    # 是否生成WebP格式
+    generateWebP: true
+
+
+zhiyan:
+  log:
+    # 启用日志系统
+    enabled: true
+
+    # 启用操作日志（记录用户操作）
+    operation-enabled: true
+
+    # 启用访问日志（记录所有 API 访问）
+    access-enabled: true
+
+    # 启用异常日志（全局异常捕获）
+    exception-enabled: true
+
+    # 记录请求参数（开发环境建议开启）
+    record-request-params: true
+
+    # 记录响应结果（开发环境建议开启，生产环境根据需要）
+    record-response-result: true
+
+    # 记录请求头（开发环境可选）
+    record-headers: true
+
+    # 响应结果最大长度（超过则截断）
+    max-response-length: 3000
+
+    # 请求参数最大长度（超过则截断）
+    max-request-length: 2000
+
+    # 排除的 URL 路径（不记录日志）
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /doc.html
+      - /webjars/**
+      - /zhiyan/auth/validate-token  # 高频接口，不记录
+
+    # 慢请求阈值（毫秒）- 认证服务建议设置较低
+    slow-request-threshold: 1000
+
+    # 异步处理日志（开发环境可设为 false 方便调试）
+    async: false
+
+    # 日志处理线程池配置
+    thread-pool:
+      core-size: 2
+      max-size: 4
+      queue-capacity: 100
+      thread-name-prefix: auth-log-

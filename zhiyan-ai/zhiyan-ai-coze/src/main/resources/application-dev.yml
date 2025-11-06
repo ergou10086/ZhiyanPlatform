@@ -1,0 +1,67 @@
+# 开发环境（本地环境）
+
+server:
+  port: 8096
+
+spring:
+  application:
+    name: zhiyan-ai-coze
+
+  cloud:
+    nacos:
+      # Nacos服务发现
+      discovery:
+        # Nacos地址
+        server-addr: 127.0.0.1:8848
+        # 命名空间
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        # 组
+        group: DEFAULT_GROUP
+        # 权重
+        weight: 1
+
+      # Nacos配置中心
+      config:
+        # 和服务发现的一样
+        server-addr: 127.0.0.1:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP
+        file-extension: yaml
+
+# Coze AI 配置
+coze:
+  # API前缀地址
+  api-url: https://api.coze.cn
+  # Personal Access Token
+  token: pat_ih9ougAlHVbc5JX56lbgrPKbTj1voME7yQ8HtnUAdSBfDi12qedJStHszsHi6LuO
+  # 智能体ID
+  bot-id: '7566182621098115087'
+  # 智能体链接
+  bot-url: https://www.coze.cn/s/KSEEgceeEXI/
+  # 超时时间（毫秒）
+  timeout: 60000
+  # 最大 token 数量
+  max-tokens: 4096
+  # 是否启用流式传输
+  stream-enabled: true
+  # 连接超时时间（秒）
+  connect-timeout: 30
+  # 读取超时时间（秒）
+  read-timeout: 60
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project.zhiyanaicoze: DEBUG
+    org.springframework.web.reactive: DEBUG
+    org.springframework.cloud: INFO
+    com.alibaba.nacos: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-ai-coze.log
+    max-size: 10MB
+    max-history: 30
+

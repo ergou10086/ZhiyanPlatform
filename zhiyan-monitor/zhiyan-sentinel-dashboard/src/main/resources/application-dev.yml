@@ -1,0 +1,88 @@
+# 开发环境配置
+
+server:
+  port: 9236
+
+spring:
+  cloud:
+    nacos:
+      discovery:
+        metadata:
+          username: ${NACOS_METADATA_USERNAME:sentinel}
+          userpassword: ${NACOS_METADATA_PASSWORD:sentinel}
+
+# Sentinel Dashboard 配置
+sentinel:
+  dashboard:
+    # Sentinel Dashboard 服务器地址
+    address: ${SENTINEL_DASHBOARD_ADDRESS:localhost:8858}
+    # 是否启用
+    enabled: true
+  transport:
+    # 与 Dashboard 通信端口
+    port: 8719
+    # Dashboard 地址
+    dashboard: ${SENTINEL_DASHBOARD_ADDRESS:localhost:8858}
+  # Nacos 数据源配置（用于规则持久化）
+  datasource:
+    nacos:
+      server-addr: ${NACOS_SERVER_ADDR:localhost:8848}
+      namespace: ${NACOS_NAMESPACE:3936229d-c8b3-4947-9192-6b984dca44bf}
+      group-id: SENTINEL_GROUP
+      username: ${NACOS_USERNAME:nacos}
+      password: ${NACOS_PASSWORD:zjm10086}
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project.zhiyansentineldashboard: DEBUG
+    com.alibaba.csp.sentinel: DEBUG
+  file:
+    name: logs/zhiyan-sentinel/zhiyan-sentinel.log
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+    sentinel:
+      enabled: true
+
+# Swagger 配置
+swagger:
+  enabled: true
+  title: 智研平台 Sentinel 流控管理 API
+  description: 流量控制、熔断降级、系统负载保护管理接口
+  version: 1.0.0
+  contact:
+    name: 智研平台开发团队
+    email: zjm88822201@126.com
+    url: https://github.com/ergou10086/ZhiyanPlatform
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  auth-enabled: false
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  packages-to-scan: hbnu.project.zhiyansentineldashboard
+  paths-to-match: /**
+
+# Knife4j 增强配置
+knife4j:
+  enable: true
+  production: false
+  setting:
+    language: zh_CN
+

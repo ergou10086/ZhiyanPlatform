@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: zhiyan-common-elasticsearch
+
+  # Spring Data Elasticsearch 配置
+  elasticsearch:
+    # Elasticsearch 9.x 使用 uris 配置
+    uris:
+      - http://localhost:9200
+    # 如果启用了安全认证，配置用户名密码
+    username: elastic
+    password: zjm10086
+    # 连接超时时间（毫秒）
+    connection-timeout: 5000
+    # Socket 超时时间（毫秒）
+    socket-timeout: 60000
+
+# Easy-ES 配置
+easy-es:
+  # 是否启用
+  enable: true
+  # Elasticsearch 地址
+  address: localhost:9200
+  # 用户名（如果没有启用安全认证，可以不配置）
+  username: elastic
+  # 密码（如果没有启用安全认证，可以不配置）
+  password: zjm10086
+  # 协议
+  schema: http
+  # 连接超时时间（毫秒）
+  connect-timeout: 5000
+  # Socket 超时时间（毫秒）
+  socket-timeout: 60000
+  # 请求超时时间（毫秒）
+  request-timeout: 5000
+  # 连接池最大连接数
+  max-conn-total: 100
+  # 每个路由的最大连接数
+  max-conn-per-route: 100
+  # 是否打印 DSL 语句
+  print-dsl: true
+  # 全局配置
+  global-config:
+    # 索引前缀（可选）
+    index-prefix: zhiyan_
+    # 是否异步处理
+    async-process-index-blocking: true
+    # 数据刷新策略
+    db-config:
+      # 字段策略
+      field-strategy: not_null
+

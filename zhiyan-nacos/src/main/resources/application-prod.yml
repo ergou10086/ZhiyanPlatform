@@ -1,0 +1,112 @@
+# 生产环境（服务器上的环境）
+
+server:
+  # 服务端口
+  port: 8849
+
+spring:
+  boot:
+    # Spring Boot Admin客户端配置
+    admin:
+      client:
+        username: zhiyan
+        password: zhiyan
+
+
+# Nacos 管理配置（用于配置管理模块）
+nacos:
+  management:
+    server-addr: ${NACOS_SERVER_ADDR:10.7.10.98:8848}
+    namespace: ${NACOS_NAMESPACE:3936229d-c8b3-4947-9192-6b984dca44bf}
+    group: DEFAULT_GROUP
+    username: ${NACOS_USERNAME:nacos}
+    password: ${NACOS_PASSWORD:nacos}
+    backup-enabled: true
+    backup-dir: ./nacos-backup
+    backup-cron: "0 0 2 * * ?"
+    listener-enabled: true
+    encryption-key: ${NACOS_ENCRYPTION_KEY:zhiyan-platform-secret-key}
+
+
+logging:
+  level:
+    # 根日志级别
+    root: INFO
+    # Nacos客户端日志级别
+    com.alibaba.nacos: INFO
+    # Spring Cloud相关日志级别
+    org.springframework.cloud: INFO
+  file:
+    # 日志文件路径
+    name: logs/zhiyan-nacos/zhiyan-nacos.log
+  pattern:
+    # 控制台日志格式
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    # 文件日志格式
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+
+# 管理端点配置（Spring Boot Actuator）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+    info:
+      # 启用info端点
+      enabled: true
+    metrics:
+      # 启用 metrics 端点，用于监控
+      enabled: true
+
+
+# 应用信息配置（供info端点使用）
+info:
+  app:
+    name: zhiyan-nacos
+    version: 0.0.1-SNAPSHOT
+    description: '智研项目微服务注册中心（基于Nacos）'
+    environment: prod
+  java:
+    version: ${java.version}
+  spring:
+    version: ${spring.boot.version}
+
+
+# Swagger 配置
+swagger:
+  enabled: true
+  title: 智研平台 Nacos 配置管理 API 文档
+  description: Nacos 配置中心和服务注册中心管理接口
+  version: 1.0.0
+  contact:
+    name: 智研平台开发团队
+    email: zjm88822201@126.com
+    url: https://github.com/ergou10086/ZhiyanPlatform
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  auth-enabled: false
+
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+  packages-to-scan: hbnu.project.zhiyannacos
+  paths-to-match: /**
+
+
+# Knife4j 增强配置
+knife4j:
+  enable: true
+  production: false
+  setting:
+    language: zh_CN

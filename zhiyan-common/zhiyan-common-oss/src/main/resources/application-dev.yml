@@ -1,0 +1,49 @@
+# MinIO配置 - 开发环境示例
+# 注意：这是公共模块的示例配置，实际使用时需要在业务模块（如 zhiyan-knowledge）中配置
+
+minio:
+  # MinIO服务地址（开发环境）
+  endpoint: http://localhost:9005
+  # 访问密钥
+  access-key: root
+  # 密钥
+  secret-key: zjm10086
+  # 是否启用HTTPS
+  secure: false
+  
+  # 桶配置
+  buckets:
+    achievement-files: achievement-files
+    wiki-assets: wiki-assets
+    temp-uploads: temp-uploads
+    project-covers: project-covers
+    user-avatars: user-avatars
+  
+  # 文件上传配置
+  upload:
+    # 最大文件大小（100MB）
+    max-file-size: 104857600
+    # 最大图片大小（5MB）
+    max-image-size: 5242880
+    # 允许的文件类型
+    allowed-file-types: 
+      - "*"
+    # 允许的图片类型
+    allowed-image-types:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - webp
+      - svg
+      - bmp
+    # 临时文件保留时间（小时）
+    temp-file-retention-hours: 24
+  
+  # 图片处理配置
+  image:
+    # 图片质量（0.0-1.0）
+    quality: 0.85
+    # 是否生成WebP格式
+    generate-web-p: true
+
