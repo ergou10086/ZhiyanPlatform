@@ -5,6 +5,7 @@ import hbnu.project.common.log.model.LogRecord
 import hbnu.project.common.log.model.LogType
 import hbnu.project.common.log.util.LogUtils
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.ServletWebRequest
+import org.springframework.web.context.request.WebRequest
 import java.time.LocalDateTime
 
 /**
@@ -36,7 +39,26 @@ class GlobalExceptionHandler(
      * 处理所有异常
      */
     @ExceptionHandler(Exception::class)
-    fun handleException(e: Exception, request: HttpServletRequest): Map<String, Any> {
+    fun handleException(e: Exception, request: HttpServletRequest, webRequest: WebRequest): Map<String, Any>? {
+        // 特殊处理：如果是响应流冲突异常，只记录日志不返回响应
+        if (e is IllegalStateException && 
+            (e.message?.contains("getWriter()") == true || e.message?.contains("getOutputStream()") == true)) {
+            logger.warn("响应流已被使用，跳过异常处理器的响应返回: ${e.message}")
+            return null
+        }
+        
+        // 检查响应是否已提交
+        val response = (webRequest as? ServletWebRequest)?.response
+        if (response?.isCommitted == true) {
+            // 响应已提交，只记录日志，不再返回响应
+            logger.warn("响应已提交，无法返回异常响应: ${e.message}")
+            if (logProperties.enabled && logProperties.exceptionEnabled) {
+                val logRecord = createExceptionLog(e, request)
+                handleLogAsync(logRecord)
+            }
+            return null
+        }
+        
         // 记录异常日志
         if (logProperties.enabled && logProperties.exceptionEnabled) {
             val logRecord = createExceptionLog(e, request)

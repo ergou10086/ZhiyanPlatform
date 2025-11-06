@@ -37,7 +37,15 @@ public interface WikiContentRepository extends MongoRepository<WikiContent, Stri
 
     /**
      * 全文搜索（MongoDB 文本索引）
+     * 注意：$text 查询必须与其他条件正确组合
      */
-    @Query("{ 'projectId': ?0, '$text': { '$search': ?1 } }")
+    @Query("{ '$and': [ { 'projectId': ?0 }, { '$text': { '$search': ?1 } } ] }")
     List<WikiContent> searchByContent(Long projectId, String keyword);
+
+    /**
+     * 正则表达式搜索（用于短关键词和中文单字）
+     * 当文本索引搜索失败时使用此方法作为备选
+     */
+    @Query("{ 'projectId': ?0, 'content': { $regex: ?1, $options: 'i' } }")
+    List<WikiContent> searchByContentRegex(Long projectId, String keyword);
 }

@@ -187,7 +187,7 @@ public class WikiPageController {
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = SecurityUtils.getUserId();
-        log.debug("用户[{}]搜索项目[{}]的Wiki: keyword={}", userId, projectId, keyword);
+        log.info("用户[{}]搜索项目[{}]的Wiki标题: keyword={}, page={}, size={}", userId, projectId, keyword, page, size);
 
         // 权限检查：必须是项目成员
         wikiSecurityUtils.requireProjectMember(projectId);
@@ -210,7 +210,7 @@ public class WikiPageController {
             @RequestParam String keyword) {
 
         Long userId = SecurityUtils.getUserId();
-        log.debug("用户[{}]全文搜索项目[{}]的Wiki: keyword={}", userId, projectId, keyword);
+        log.info("用户[{}]全文搜索项目[{}]的Wiki: keyword={}", userId, projectId, keyword);
 
         // 权限检查：必须是项目成员
         wikiSecurityUtils.requireProjectMember(projectId);

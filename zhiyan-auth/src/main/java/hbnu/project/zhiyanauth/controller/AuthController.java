@@ -21,6 +21,7 @@ import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -168,6 +170,56 @@ public class AuthController {
             log.info("自动登录检查失败: token已过期或无效");
             return R.ok(AutoLoginCheckResponse.invalid(), "RememberMe token已过期");
         }
+    }
+
+
+    /**
+     * 测试接口 - 验证JWT Token是否被正确携带
+     * 用于前端诊断Token传递问题
+     */
+    @GetMapping("/debug/token-check")
+    @Operation(summary = "Token诊断接口", description = "检查请求是否正确携带JWT Token")
+    public R<Map<String, Object>> debugTokenCheck(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            HttpServletRequest request) {
+        
+        Map<String, Object> debugInfo = new HashMap<>();
+        debugInfo.put("timestamp", System.currentTimeMillis());
+        debugInfo.put("requestPath", request.getRequestURI());
+        
+        // 检查 Authorization header
+        debugInfo.put("hasAuthHeader", authHeader != null);
+        if (authHeader != null) {
+            debugInfo.put("authHeaderLength", authHeader.length());
+            debugInfo.put("startsWithBearer", authHeader.startsWith("Bearer "));
+            
+            if (authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7);
+                debugInfo.put("tokenLength", token.length());
+                
+                // 尝试验证token
+                try {
+                    String userId = authService.validateToken(token);
+                    debugInfo.put("tokenValid", userId != null);
+                    debugInfo.put("userId", userId);
+                    
+                    if (userId != null) {
+                        // 获取token详细信息
+                        TokenValidateResponse validateResponse = authService.validateTokenWithDetails(token);
+                        debugInfo.put("roles", validateResponse.getRoles());
+                        debugInfo.put("remainingTime", validateResponse.getRemainingTime());
+                    }
+                } catch (Exception e) {
+                    debugInfo.put("tokenValid", false);
+                    debugInfo.put("error", e.getMessage());
+                }
+            }
+        } else {
+            debugInfo.put("message", "缺少 Authorization header！前端需要在请求头中添加: Authorization: Bearer <token>");
+        }
+        
+        log.info("Token诊断 - {}", debugInfo);
+        return R.ok(debugInfo, "Token诊断完成");
     }
 
 

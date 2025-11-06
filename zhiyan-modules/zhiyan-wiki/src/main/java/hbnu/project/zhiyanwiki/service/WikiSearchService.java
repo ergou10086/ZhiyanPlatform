@@ -43,6 +43,7 @@ public class WikiSearchService {
      * @param pageable  分页参数
      * @return 搜索结果分页
      */
+    @SuppressWarnings("unchecked")
     public Page<WikiSearchResultDTO> fullTextSearch(Long projectId, String keyword, Pageable pageable) {
         log.info("执行全文搜索: projectId={}, keyword={}, page={}", projectId, keyword, pageable.getPageNumber());
 
@@ -63,7 +64,7 @@ public class WikiSearchService {
                 .include("wikiPageId", "projectId", "content", "updatedAt", "lastEditorId")
                 .include("score");  // 包含搜索评分
 
-        // 执行搜索
+        // 执行搜索（返回原始Map类型）
         List<Map> results = mongoTemplate.find(query, Map.class, "wiki_contents");
 
         // 统计总数
@@ -88,6 +89,7 @@ public class WikiSearchService {
      * @param limit     结果数量限制
      * @return 搜索结果列表
      */
+    @SuppressWarnings("unchecked")
     public List<WikiSearchResultDTO> simpleSearch(Long projectId, String keyword, int limit) {
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage()
                 .matchingAny(keyword);
@@ -116,6 +118,7 @@ public class WikiSearchService {
      * @param pageable      分页参数
      * @return 搜索结果分页
      */
+    @SuppressWarnings("unchecked")
     public Page<WikiSearchResultDTO> advancedSearch(
             Long projectId,
             String includeWords,
@@ -123,18 +126,28 @@ public class WikiSearchService {
             String phrase,
             Pageable pageable) {
 
+        // 参数验证：至少需要一个搜索条件
+        boolean hasInclude = includeWords != null && !includeWords.trim().isEmpty();
+        boolean hasPhrase = phrase != null && !phrase.trim().isEmpty();
+        boolean hasExclude = excludeWords != null && !excludeWords.trim().isEmpty();
+        
+        if (!hasInclude && !hasPhrase) {
+            // 如果只有排除词没有包含词，返回空结果
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+
         // 构建文本搜索条件
         TextCriteria textCriteria = TextCriteria.forDefaultLanguage();
 
-        if (includeWords != null && !includeWords.isEmpty()) {
+        if (hasInclude) {
             textCriteria.matchingAny(includeWords);
         }
 
-        if (phrase != null && !phrase.isEmpty()) {
+        if (hasPhrase) {
             textCriteria.matchingPhrase(phrase);
         }
 
-        if (excludeWords != null && !excludeWords.isEmpty()) {
+        if (hasExclude) {
             textCriteria.notMatching(excludeWords);
         }
 
@@ -154,7 +167,9 @@ public class WikiSearchService {
                 "wiki_contents"
         );
 
-        List<WikiSearchResultDTO> dtoList = convertToSearchResults(results, includeWords);
+        // 修复：使用有效的关键词进行高亮（优先使用phrase，其次includeWords）
+        String highlightKeyword = hasPhrase ? phrase : includeWords;
+        List<WikiSearchResultDTO> dtoList = convertToSearchResults(results, highlightKeyword);
 
         return new PageImpl<>(dtoList, pageable, total);
     }
@@ -162,6 +177,7 @@ public class WikiSearchService {
     /**
      * 转换MongoDB结果为DTO
      */
+    @SuppressWarnings("unchecked")
     private List<WikiSearchResultDTO> convertToSearchResults(List<Map> results, String keyword) {
         // 提取所有wikiPageId
         List<Long> wikiPageIds = results.stream()
@@ -212,7 +228,7 @@ public class WikiSearchService {
     }
 
     /**
-     * 提取匹配内容的上下文片段
+     * 提取匹配内容的上下文片段（优化版：缓存toLowerCase结果）
      */
     private String extractSnippet(String content, String keyword, int maxLength) {
         if (content == null || keyword == null || keyword.isEmpty()) {
@@ -220,16 +236,22 @@ public class WikiSearchService {
                     content.substring(0, maxLength) + "..." : content;
         }
 
+        // 缓存toLowerCase结果，避免重复调用
+        String lowerContent = content.toLowerCase();
+        String lowerKeyword = keyword.toLowerCase();
+
         // 查找关键字位置（不区分大小写）
-        int index = content.toLowerCase().indexOf(keyword.toLowerCase());
+        int index = lowerContent.indexOf(lowerKeyword);
 
         if (index == -1) {
             // 如果没找到，尝试查找关键字的第一个词
             String[] words = keyword.split("\\s+");
             for (String word : words) {
-                index = content.toLowerCase().indexOf(word.toLowerCase());
-                if (index != -1) {
-                    break;
+                if (word.length() > 0) {
+                    index = lowerContent.indexOf(word.toLowerCase());
+                    if (index != -1) {
+                        break;
+                    }
                 }
             }
         }
@@ -261,7 +283,8 @@ public class WikiSearchService {
     }
 
     /**
-     * 高亮关键字（优化版：避免重复高亮，保持HTML标签完整性）
+     * 高亮关键字（优化版：支持中文，避免重复高亮）
+     * 移除\b单词边界限制以支持中文、日文等语言
      */
     private String highlightKeyword(String text, String keyword) {
         if (text == null || keyword == null || keyword.trim().isEmpty()) {
@@ -274,7 +297,7 @@ public class WikiSearchService {
         // 过滤掉过短的词（避免误匹配）
         List<String> validWords = new ArrayList<>();
         for (String word : words) {
-            if (word.length() >= 2) {  // 至少2个字符才高亮
+            if (word.length() >= 1) {  // 中文单字也可以高亮
                 validWords.add(word);
             }
         }
@@ -288,10 +311,11 @@ public class WikiSearchService {
 
         // 使用正则表达式进行不区分大小写的替换
         for (String word : validWords) {
-            // 使用\b单词边界，避免匹配到词的一部分
-            // (?!<mark>) 负向前瞻断言，避免重复高亮已标记的内容
+            // 修复：移除\b单词边界以支持中文
+            // 使用负向前瞻和后顾断言，避免重复高亮已标记的内容
+            String escapedWord = java.util.regex.Pattern.quote(word);
             text = text.replaceAll(
-                    "(?i)(?!<mark>)\\b(" + java.util.regex.Pattern.quote(word) + ")\\b(?!</mark>)",
+                    "(?i)(?!<mark>)(" + escapedWord + ")(?!</mark>)",
                     "<mark>$1</mark>"
             );
         }
@@ -300,10 +324,10 @@ public class WikiSearchService {
     }
 
     /**
-     * 统计关键字出现次数
+     * 统计关键字出现次数（优化版：缓存toLowerCase结果）
      */
     private Integer countMatches(String content, String keyword) {
-        if (content == null || keyword == null) {
+        if (content == null || keyword == null || keyword.isEmpty()) {
             return 0;
         }
 
@@ -312,6 +336,9 @@ public class WikiSearchService {
         String[] words = keyword.toLowerCase().split("\\s+");
 
         for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
             int index = 0;
             while ((index = lowerContent.indexOf(word, index)) != -1) {
                 count++;

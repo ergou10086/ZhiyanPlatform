@@ -20,13 +20,50 @@ bin/
 *.zip
 *.tar.gz
 
-resources/application-dev.yml
-resources/bootstrap-dev.yml
-resources/application.yml
-resources/bootstrap.yml
+# 配置文件 - 忽略所有环境的配置文件
+# application 配置文件
+**/application.yml
+**/application.yaml
+**/application.properties
+**/application-*.yml
+**/application-*.yaml
+**/application-*.properties
 
-*-dev.yml
-*-dev.yaml
+# bootstrap 配置文件
+**/bootstrap.yml
+**/bootstrap.yaml
+**/bootstrap.properties
+**/bootstrap-*.yml
+**/bootstrap-*.yaml
+**/bootstrap-*.properties
+
+# 其他可能的配置文件
+**/config/application*.yml
+**/config/application*.yaml
+**/config/application*.properties
+**/config/bootstrap*.yml
+**/config/bootstrap*.yaml
+**/config/bootstrap*.properties
+
+# Nacos配置文件
+**/nacos-config.properties
+**/nacos-config.yml
+**/nacos-config.yaml
+
+# 数据库配置
+**/db.properties
+**/database.properties
+**/datasource.properties
+
+# Redis配置
+**/redis.properties
+**/redis.yml
+**/redis.yaml
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
 
 # 日志文件
 logs/

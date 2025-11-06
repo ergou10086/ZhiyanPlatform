@@ -96,9 +96,10 @@ public class CozeChatRequest {
      * 智能体中定义的变量。在智能体 prompt 中设置变量 {{key}} 后，可以通过该参数传入变量值，同时支持 Jinja2 语法。详细说明可参考变量示例。
      *
      * 变量名只支持英文字母和下划线。
+     * ⭐ 修改为 Object 类型，支持更灵活的变量类型（字符串、数字、布尔值等）
      */
     @JsonProperty("custom_variables")
-    private Map<String, String> customVariables;
+    private Map<String, Object> customVariables;
 
 
     /**

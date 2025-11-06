@@ -65,7 +65,7 @@
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-loadbalancer</artifactId>
-               <!-- 排除间接引入的Redis依赖 -->
+               <!-- 排除间接引入的依赖 -->
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>

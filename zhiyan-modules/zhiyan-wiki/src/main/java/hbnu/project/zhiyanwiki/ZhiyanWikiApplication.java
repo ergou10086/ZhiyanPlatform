@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableFeignClients
 // 明确指定 JPA 和 MongoDB repositories 的扫描路径
 @EnableJpaRepositories(basePackages = "hbnu.project.zhiyanwiki.repository")
+@EnableMongoRepositories(basePackages = "hbnu.project.zhiyanwiki.repository")  // ✅ 添加MongoDB支持
 public class ZhiyanWikiApplication {
 
     public static void main(String[] args) {
