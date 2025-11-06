@@ -6,6 +6,8 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
+import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
 import hbnu.project.zhiyanknowledge.model.dto.UploadFileDTO;
@@ -47,6 +49,7 @@ public class AchievementFileController {
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD, description = "上传成果文件", recordParams = false, recordResult = true)
     @SentinelResource(value = "knowledge:file:upload", blockHandler = "uploadBlockHandler", fallback = "uploadFallback")
+    @Idempotent(type = IdempotentType.PARAM, timeout = 2, message = "文件上传中，请勿重复提交")    // 添加幂等注解 - 基于成果ID和文件名防重，10秒内不允许重复上传
     public R<AchievementFileDTO> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -76,6 +79,7 @@ public class AchievementFileController {
     @Operation(summary = "批量上传成果文件", description = "为指定成果批量上传多个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD,description = "批量上传成果文件", recordParams = false, recordResult = true)
     @SentinelResource(value = "knowledge:file:uploadBatch", blockHandler = "uploadBatchBlockHandler", fallback = "uploadBatchFallback")
+    @Idempotent(type = IdempotentType.PARAM, timeout = 2, message = "文件上传中，请勿重复提交")
     public R<List<AchievementFileDTO>> uploadFilesBatch(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -117,6 +121,7 @@ public class AchievementFileController {
     @DeleteMapping("/{fileId}")
     @Operation(summary = "删除成果文件", description = "删除指定的成果文件")
     @OperationLog(module = "成果文件管理", type = OperationType.DELETE,description = "删除指定成果的文件", recordParams = true, recordResult = true)
+    @Idempotent(type = IdempotentType.SPEL, key = "#fileId", timeout = 3, message = "文件删除中，请勿重复操作")
     public R<Void> deleteAchievementFile(
             @Parameter(description = "文件ID")  @PathVariable Long fileId
     ){

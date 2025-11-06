@@ -9,7 +9,6 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <groupId>hbnu.project</groupId>
     <artifactId>zhiyan-common-idempotent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>zhiyan-common-idempotent</name>

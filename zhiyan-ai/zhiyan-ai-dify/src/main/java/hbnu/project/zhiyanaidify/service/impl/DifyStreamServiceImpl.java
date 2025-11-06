@@ -18,6 +18,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 /**
  * Dify 流式调用服务
@@ -168,15 +171,12 @@ public class DifyStreamServiceImpl implements DifyStreamService {
             log.warn("[Dify Chatflow] 无法序列化请求体", e);
         }
 
+        // 使用已配置好的 webClientBuilder（带有 DNS 解析器修复）
         WebClient webClient = webClientBuilder
                 .baseUrl(difyProperties.getApiUrl())
                 .defaultHeader("Authorization", "Bearer " + difyProperties.getApiKey())
                 .defaultHeader("Content-Type", "application/json")
                 .defaultHeader("Accept", "text/event-stream")  // ✅ 关键：告诉 Dify 我们要 SSE 流式响应
-                // ⭐ 设置合理的内存缓冲大小（512 KB）
-                .codecs(configurer -> configurer
-                        .defaultCodecs()
-                        .maxInMemorySize(524288))  // 512 KB（足够处理SSE消息）
                 .build();
 
         // 确保是流式模式
@@ -196,16 +196,36 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                                 .flatMap(body -> {
                                     log.error("[Dify Chatflow] 错误响应体: {}", body);
                                     String errorMsg = "Dify API 返回错误 " + response.statusCode() + ": " + body;
-                                    return Mono.error(new RuntimeException(errorMsg));
+                                    return Mono.error(new DifyApiException(errorMsg));
                                 });
                     }
                 )
                 .bodyToFlux(String.class)
+                // ⭐⭐⭐ 添加重试机制：网络错误时自动重试 3 次
+                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2))
+                        .filter(throwable -> {
+                            // 只对网络相关错误重试（DNS 解析、连接超时等）
+                            boolean shouldRetry = throwable instanceof java.net.UnknownHostException
+                                    || throwable instanceof java.net.ConnectException
+                                    || throwable instanceof java.util.concurrent.TimeoutException
+                                    || (throwable instanceof org.springframework.web.reactive.function.client.WebClientRequestException
+                                        && throwable.getMessage().contains("resolve"));
+                            
+                            if (shouldRetry) {
+                                log.warn("⚠️ [Dify Chatflow] 网络错误，2秒后重试: {}", throwable.getMessage());
+                            }
+                            return shouldRetry;
+                        })
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            log.error("❌ [Dify Chatflow] 重试 3 次后仍然失败");
+                            return new DifyApiException("连接 Dify 服务失败，已重试 3 次: " + retrySignal.failure().getMessage());
+                        })
+                )
                 .doOnSubscribe(sub -> log.info("🔄 [Dify Chatflow] 开始订阅流式响应"))
                 // ⭐ 打印 Dify 返回的原始数据（用于调试流式传输）
                 .doOnNext(rawData -> {
                     String preview = rawData.length() > 100 ? rawData.substring(0, 100) + "..." : rawData;
-                    log.info("📦 [Dify Chatflow] 收到原始数据: {}", preview);
+                    log.debug("📦 [Dify Chatflow] 收到原始数据: {}", preview);
                 })
                 // 使用 handle 而不是 map + filter，因为 map 不允许返回 null
                 .<DifyStreamMessage>handle((data, sink) -> {
@@ -214,23 +234,33 @@ public class DifyStreamServiceImpl implements DifyStreamService {
                         String dataPreview = message.getData() != null && message.getData().length() > 50 
                             ? message.getData().substring(0, 50) + "..." 
                             : message.getData();
-                        log.info("✅ [Dify Chatflow] 解析成功: event={}, data={}", 
+                        log.debug("✅ [Dify Chatflow] 解析成功: event={}, data={}", 
                                 message.getEvent(), dataPreview);
                         sink.next(message);  // 只有非 null 时才发出
                     } else {
-                        log.warn("⚠️ [Dify Chatflow] 解析返回 null，原始数据: {}", data);
+                        log.debug("⚠️ [Dify Chatflow] 解析返回 null，原始数据: {}", data);
                     }
                 })
                 // ⭐⭐⭐ 添加背压策略，确保流式传输不会因缓冲而延迟
                 .onBackpressureBuffer(100,  // 缓冲区最多100条消息
                     dropped -> log.warn("⚠️ [Dify Chatflow] 缓冲区满，丢弃消息"))
-                .doOnNext(msg -> log.info("📤 [Dify Chatflow] 向上游发送消息: event={}", msg.getEvent()))
+                .doOnNext(msg -> log.debug("📤 [Dify Chatflow] 向上游发送消息: event={}", msg.getEvent()))
                 .doOnError(error -> {
                     log.error("❌ [Dify Chatflow] 调用错误", error);
+                    
                     // 如果是 WebClientResponseException，打印响应体
                     if (error instanceof WebClientResponseException ex) {
                         log.error("[Dify Chatflow] 错误响应: status={}, body={}",
                                 ex.getStatusCode(), ex.getResponseBodyAsString());
+                    }
+                    
+                    // 如果是网络错误，提供更友好的错误提示
+                    if (error instanceof java.net.UnknownHostException) {
+                        log.error("[Dify Chatflow] DNS 解析失败: {}", error.getMessage());
+                        log.error("[Dify Chatflow] 请检查：1) 网络连接；2) DNS 配置；3) Dify 服务地址是否正确");
+                    } else if (error.getMessage() != null && error.getMessage().contains("resolve")) {
+                        log.error("[Dify Chatflow] DNS 解析超时，已重试 3 次均失败");
+                        log.error("[Dify Chatflow] 建议：1) 检查防火墙设置；2) 尝试使用 IP 地址替代域名；3) 检查 DNS 服务器配置");
                     }
                 })
                 .doOnComplete(() -> log.info("🏁 [Dify Chatflow] 调用完成"));

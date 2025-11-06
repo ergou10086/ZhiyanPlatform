@@ -69,7 +69,9 @@ public class ChatRequest {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class DifyFile {
         /**
-         * 文件类型：image, file, custom
+         * 文件 MIME 类型
+         * 例如：text/markdown, image/png, application/pdf
+         * 必须是有效的 MIME 类型，否则 Dify API 会返回 400 错误
          */
         private String type;
 

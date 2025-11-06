@@ -22,9 +22,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
-// ⭐ 启用响应头设置和延迟发送（使用 Servlet API）
-import jakarta.servlet.http.HttpServletResponse;
-import java.time.Duration;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -168,6 +165,7 @@ public class DifyAIChatController {
         // 如果有文件，添加文件
         if (fileIds != null && !fileIds.isEmpty()) {
             request.setFiles(buildChatFilesList(fileIds));
+            log.info("[Chatflow 对话] 已添加 {} 个文件到请求中", fileIds.size());
         }
 
         // 返回流式响应
@@ -424,15 +422,31 @@ public class DifyAIChatController {
 
 
     /**
-     * 构建聊天文件列表（根据 Dify Chat API 规范）
-     * 
-     * ⚠️ 注意：Dify API 的文件类型只接受 "image" 或 "document"
-     * 不能使用 "file"，否则会报错：'file' is not a valid FileType
+     * 构建聊天文件列表（使用完整的文件响应信息）
+     * 优先使用此方法，因为它包含正确的 MIME 类型
+     */
+    private List<ChatRequest.DifyFile> buildChatFilesListFromResponses(List<DifyFileUploadResponse> responses) {
+        return responses.stream()
+                .map(response -> {
+                    log.info("[构建文件列表] fileId={}, mimeType={}, fileName={}",
+                            response.getFileId(), response.getMimeType(), response.getFileName());
+                    return ChatRequest.DifyFile.builder()
+                            .type(response.getMimeType())  // 使用文件的 MIME 类型
+                            .transferMethod("local_file")  // 本地文件
+                            .uploadFileId(response.getFileId())  // 上传的文件 ID
+                            .build();
+                })
+                .toList();
+    }
+
+    /**
+     * 构建聊天文件列表（仅有 fileId，用于知识库文件）
+     * 注意：此方法使用默认类型，可能不适用于所有文件
      */
     private List<ChatRequest.DifyFile> buildChatFilesList(List<String> fileIds) {
         return fileIds.stream()
                 .map(fileId -> ChatRequest.DifyFile.builder()
-                        .type("document")  // ✅ 使用 "document" 而不是 "file"（图片也可以用document）
+                        .type("document")  // 默认为 document 类型（适用于大多数文本文件）
                         .transferMethod("local_file")  // 本地文件
                         .uploadFileId(fileId)  // 上传的文件 ID
                         .build())

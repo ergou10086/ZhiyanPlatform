@@ -86,15 +86,21 @@ public class WikiSecurityUtils {
      */
     public boolean canAccess(Long wikiPageId) {
         WikiPage page = wikiPageRepository.findById(wikiPageId)
-                .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
+                .orElseThrow(() -> new ServiceException("Wiki页面不存在，ID: " + wikiPageId));
+
+        log.debug("检查访问权限: wikiPageId={}, isPublic={}, projectId={}", 
+                wikiPageId, page.getIsPublic(), page.getProjectId());
 
         // 公开页面所有人都可以访问
         if (Boolean.TRUE.equals(page.getIsPublic())) {
+            log.debug("页面为公开，允许访问");
             return true;
         }
 
         // 非公开页面需要是项目成员
-        return isProjectMember(wikiPageId);
+        boolean isMember = isProjectMember(wikiPageId);
+        log.debug("页面非公开，是否为项目成员: {}", isMember);
+        return isMember;
     }
 
 

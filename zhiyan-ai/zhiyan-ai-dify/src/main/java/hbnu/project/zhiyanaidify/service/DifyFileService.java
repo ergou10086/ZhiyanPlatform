@@ -37,9 +37,9 @@ public interface DifyFileService {
      *
      * @param fileIds 知识库文件 ID 列表
      * @param userId 用户 ID
-     * @return Dify 文件 ID 列表
+     * @return Dify 文件上传响应列表
      */
-    List<String> uploadKnowledgeFiles(List<Long> fileIds, Long userId);
+    List<DifyFileUploadResponse> uploadKnowledgeFiles(List<Long> fileIds, Long userId);
 
     /**
      * 删除 Dify 上的文件

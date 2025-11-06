@@ -95,6 +95,7 @@
         <zhiyan-common-sse.version>0.0.1-SNAPSHOT</zhiyan-common-sse.version>
         <zhiyan-common-log.version>0.0.1-SNAPSHOT</zhiyan-common-log.version>
         <zhiyan-common-sentinel.version>0.0.1-SNAPSHOT</zhiyan-common-sentinel.version>
+        <zhiyan-common-idempotent.version>0.0.1-SNAPSHOT</zhiyan-common-idempotent.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -610,6 +611,12 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-common-log</artifactId>
                 <version>${zhiyan-common-log.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-common-idempotent</artifactId>
+                <version>${zhiyan-common-idempotent.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

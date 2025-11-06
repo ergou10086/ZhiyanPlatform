@@ -100,10 +100,7 @@ public class ProjectSecurityUtils {
      */
     public boolean hasPermission(Long projectId, Long userId, ProjectPermission permission) {
         Optional<ProjectMember> member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
-        if (member.isEmpty()) {
-            return false;
-        }
-        return member.get().getProjectRole().hasPermission(permission);
+        return member.map(projectMember -> projectMember.getProjectRole().hasPermission(permission)).orElse(false);
     }
 
     /**
