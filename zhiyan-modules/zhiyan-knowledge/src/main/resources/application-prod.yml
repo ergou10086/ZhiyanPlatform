@@ -59,13 +59,25 @@ spring:
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池配置优化
     hikari:
       pool-name: KnowledgeServiceHikariPool
-      minimum-idle: 5
-      maximum-pool-size: 20
-      idle-timeout: 300000
-      max-lifetime: 1200000
-      connection-timeout: 20000
+      # 最小空闲连接数（减少到4）
+      minimum-idle: 4
+      # 最大连接池大小（减少到14，多服务共享数据库时避免连接数过多）
+      maximum-pool-size: 14
+      # 空闲连接超时时间（10分钟）
+      idle-timeout: 600000
+      # 连接最大生命周期（30分钟）
+      max-lifetime: 1800000
+      # 连接超时时间（30秒）
+      connection-timeout: 30000
+      # 连接测试查询
+      connection-test-query: SELECT 1
+      # 启用连接泄漏检测（超过30秒未归还的连接会被记录）
+      leak-detection-threshold: 30000
+      # 注册JMX监控
+      register-mbeans: true
 
   # Jackson配置
   jackson:
@@ -265,3 +277,10 @@ zhiyan:
       username: nacos
       password: nacos
       data-id-suffix: json
+
+# 幂等配置（可选，使用默认值也可以）
+idempotent:
+  # 是否启用幂等Token控制器（提供Token申请接口）
+  enable-controller: true
+  # 是否启用旧版RepeatSubmit注解支持
+  enable-repeat-submit: true

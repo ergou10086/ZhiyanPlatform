@@ -73,21 +73,6 @@
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-security</artifactId>
-            <!-- Knowledge模块不需要Redis，排除Redis相关依赖 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>hbnu.project</groupId>
-                    <artifactId>zhiyan-common-redis</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-redis</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.redisson</groupId>
-                    <artifactId>redisson-spring-boot-starter</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- 添加Feign客户端依赖 -->
@@ -95,6 +80,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
+
 
         <dependency>
             <groupId>hbnu.project</groupId>
@@ -115,6 +101,11 @@
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-sentinel</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-idempotent</artifactId>
         </dependency>
     </dependencies>
 

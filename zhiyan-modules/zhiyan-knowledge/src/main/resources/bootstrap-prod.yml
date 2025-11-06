@@ -19,6 +19,10 @@ spring:
         # Spring Cloud Alibaba 会自动加载以下配置文件：
         # 1. banner.txt.yaml (根据 application.name + file-extension)
         # 2. banner.txt-${profile}.yaml (如果配置了 spring.profiles.active)
+        shared-configs:
+          - data-id: zhiyan-common-redis-prod.yaml
+            group: DEFAULT_GROUP
+            refresh: true
 
       # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
       discovery:

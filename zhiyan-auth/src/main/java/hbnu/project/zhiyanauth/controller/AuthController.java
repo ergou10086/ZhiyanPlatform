@@ -15,6 +15,8 @@ import hbnu.project.zhiyanauth.service.AuthService;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanauth.service.PermissionService;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
+import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
+import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +64,14 @@ public class AuthController {
             value = "auth:send-code",  // 资源名称
             blockHandler = "sendCodeBlockHandler"  // 限流处理方法
     )
+    // 幂等 - 60秒内相同邮箱不允许重复发送
+    @Idempotent(
+            type = IdempotentType.SPEL,
+            key = "#verificationCodeBody.email + ':' + #verificationCodeBody.type",
+            timeout = 60,
+            timeUnit = TimeUnit.SECONDS,
+            message = "验证码发送过于频繁，请稍后再试"
+    )
     public R<Void> sendVerificationCode(
             @Valid @RequestBody VerificationCodeBody verificationCodeBody) {
         log.info("发送验证码请求: 邮箱={}, 类型={}", verificationCodeBody.getEmail(), verificationCodeBody.getType());
@@ -77,6 +88,12 @@ public class AuthController {
     @Operation(summary = "用户注册", description = "通过邮箱和验证码进行用户注册")
     @OperationLog(module = "认证管理", type = OperationType.INSERT, description = "用户注册", recordParams = true,
             recordResult = false  // 不记录响应（包含敏感信息）
+    )
+    // 邮箱防重
+    @Idempotent(type = IdempotentType.SPEL,
+            key = "#request.email",
+            timeout = 10,
+            message = "注册请求处理中，请勿重复提交"
     )
     public R<UserRegisterResponse> register(
             @Valid @RequestBody RegisterBody request) {
@@ -99,6 +116,14 @@ public class AuthController {
             value = "auth:login",
             blockHandler = "loginBlockHandler",
             fallback = "loginFallback"  // 异常降级
+    )
+    // 添加幂等注解 - 1秒内相同邮箱不允许重复登录请求
+    @Idempotent(
+            type = IdempotentType.SPEL,
+            key = "#loginBody.email",
+            timeout = 1,
+            message = "登录请求处理中，请勿重复提交",
+            deleteOnError = true  // 登录失败允许立即重试
     )
     public R<UserLoginResponse> login(
             @Valid @RequestBody LoginBody loginBody, HttpServletResponse response) {
@@ -209,6 +234,7 @@ public class AuthController {
     @PostMapping("/refresh")
     @Operation(summary = "刷新令牌", description = "使用Refresh Token获取新的Access Token")
     @OperationLog(module = "认证管理", type = OperationType.OTHER, description = "刷新令牌", recordResult = false)
+    @Idempotent(type = IdempotentType.SPEL, key = "#request.refreshToken", timeout = 1, message = "Token刷新中")
     public R<TokenDTO> refreshToken(@Valid @RequestBody TokenRefreshBody request) {
         log.info("令牌刷新请求 - refreshToken: {}", request.getRefreshToken());
         TokenDTO tokenDTO = authService.refreshToken(request.getRefreshToken());
@@ -250,6 +276,7 @@ public class AuthController {
      */
     @PostMapping("/reset-password")
     @Operation(summary = "重置密码", description = "通过验证码重置密码")
+    @Idempotent(type = IdempotentType.PARAM, timeout = 5, message = "密码重置请求处理中，请勿重复提交")
     public R<Void> resetPassword(@Valid @RequestBody ResetPasswordBody request) {
         log.info("重置密码请求: 邮箱={}", request.getEmail());
 

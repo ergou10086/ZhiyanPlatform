@@ -5,6 +5,8 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
+import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.handler.ProjectSentinelHandler;
 import hbnu.project.zhiyanproject.model.dto.ImageUploadResponse;
@@ -63,6 +65,7 @@ public class ProjectController {
         blockHandlerClass = ProjectSentinelHandler.class,
         blockHandler = "handleUploadImageBlock"
     )
+    @Idempotent(type = IdempotentType.PARAM, timeout = 3, message = "图片上传中，请勿重复提交")
     public R<ImageUploadResponse> uploadProjectImage(
             @Parameter(description = "图片文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "项目ID（可选）") @RequestParam(required = false) Long projectId) {
@@ -111,6 +114,7 @@ public class ProjectController {
         fallbackClass = ProjectSentinelHandler.class,
         fallback = "handleCreateProjectFallback"
     )
+    @Idempotent(type = IdempotentType.PARAM, timeout = 2, message = "项目创建中，请勿重复提交")
     public R<Project> createProject(@RequestBody @Valid CreateProjectRequest request) {
 
         // 从 Spring Security Context 获取当前登录用户ID
@@ -139,6 +143,7 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目", description = "更新项目信息，只有项目创建人可以编辑")
     @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "更新项目信息，只有项目创建人可以编辑")
+    @Idempotent(type = IdempotentType.PARAM, timeout = 1, message = "项目更新中，请勿重复提交")
     public R<Project> updateProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
             @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectRequest request) {
@@ -166,6 +171,12 @@ public class ProjectController {
         value = "deleteProject",
         blockHandlerClass = ProjectSentinelHandler.class,
         blockHandler = "handleDeleteProjectBlock"
+    )
+    @Idempotent(
+            type = IdempotentType.SPEL,
+            key = "#projectId",
+            timeout = 2,
+            message = "项目删除中，请勿重复操作"
     )
     public R<Void> deleteProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();

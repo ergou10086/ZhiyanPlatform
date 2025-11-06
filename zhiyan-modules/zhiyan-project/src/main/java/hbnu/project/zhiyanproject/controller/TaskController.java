@@ -5,6 +5,8 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
+import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.handler.ProjectSentinelHandler;
 import hbnu.project.zhiyanproject.model.dto.TaskBoardDTO;
@@ -66,6 +68,7 @@ public class TaskController {
         fallbackClass = ProjectSentinelHandler.class,
         fallback = "handleCreateTaskFallback"
     )
+    @Idempotent(type = IdempotentType.SPEL, key = "#taskId", timeout = 1, message = "任务创建中，请勿重复提交")
     public R<Tasks> createTask(@Valid @RequestBody CreateTaskRequest request) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]在项目[{}]中创建任务: {}", currentUserId, request.getProjectId(), request.getTitle());
@@ -121,6 +124,7 @@ public class TaskController {
         blockHandlerClass = ProjectSentinelHandler.class,
         blockHandler = "handleDeleteTaskBlock"
     )
+    @Idempotent(type = IdempotentType.SPEL, key = "#taskId", timeout = 1, message = "任务删除中，请勿重复操作")
     public R<Void> deleteTask(@PathVariable @Parameter(description = "任务ID") Long taskId) {
         Long currentUserId = SecurityUtils.getUserId();
         log.info("用户[{}]删除任务[{}]", currentUserId, taskId);
@@ -142,6 +146,7 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新任务状态", description = "更新任务的状态（TODO/IN_PROGRESS/BLOCKED/DONE）")
     @OperationLog(module = "任务管理", type = OperationType.UPDATE, description = "更新任务状态", recordParams = true, recordResult = true)
+    @Idempotent(type = IdempotentType.SPEL, key = "#taskId + ':' + #request.status", timeout = 1, message = "状态更新中，请稍候")
     public R<Tasks> updateTaskStatus(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
             @Valid @RequestBody hbnu.project.zhiyanproject.model.form.UpdateTaskStatusRequest request) {
@@ -166,6 +171,7 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "分配任务", description = "将任务分配给项目成员")
     @OperationLog(module = "任务管理", type = OperationType.GRANT, description = "分配任务", recordParams = true, recordResult = true)
+    @Idempotent(type = IdempotentType.SPEL, key = "#taskId", timeout = 1, message = "任务分配中，请勿重复操作")
     public R<Tasks> assignTask(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
             @RequestBody @Parameter(description = "执行者ID列表") List<Long> assigneeIds) {

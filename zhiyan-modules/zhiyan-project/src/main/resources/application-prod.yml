@@ -90,9 +90,9 @@ spring:
     hikari:
       pool-name: ProjectServiceHikariPool
       # 最小空闲连接数
-      minimum-idle: 10
-      # 最大连接池大小（增加到50以应对高并发）
-      maximum-pool-size: 50
+      minimum-idle: 4
+      # 最大连接池大小（增加到20以应对高并发）
+      maximum-pool-size: 30
       # 空闲连接超时时间（10分钟）
       idle-timeout: 600000
       # 连接最大生命周期（30分钟，必须小于MySQL的wait_timeout）

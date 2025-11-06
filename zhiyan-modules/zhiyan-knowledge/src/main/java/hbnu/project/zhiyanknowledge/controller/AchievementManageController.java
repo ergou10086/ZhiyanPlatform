@@ -4,6 +4,8 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
+import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
@@ -18,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 成果管理接口
@@ -49,6 +53,7 @@ public class AchievementManageController {
     @PostMapping("/create")
     @Operation(summary = "创建成果", description = "为指定项目创建新的成果记录")
     @OperationLog(module = "成果管理", type = OperationType.INSERT, description = "创建成果", recordParams = true, recordResult = true)
+    @Idempotent(type = IdempotentType.PARAM, timeout = 1, timeUnit = TimeUnit.SECONDS, message = "成果创建请求重复，请勿频繁提交")   // 添加幂等注解 - 使用参数防重，1秒内相同参数不允许重复提交
     public R<AchievementDTO> createAchievement(
             @Valid @RequestBody CreateAchievementDTO createDTO
     ){
@@ -78,6 +83,7 @@ public class AchievementManageController {
     @PatchMapping("/{achievementId}/status")
     @Operation(summary = "更新成果状态", description = "修改成果的发布状态")
     @OperationLog(module = "成果管理", type = OperationType.UPDATE, description = "更新成果状态", recordParams = true, recordResult = false)
+    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId + ':' + #status", timeout = 1, message = "状态更新中，请稍候")
     public R<Void> updateAchievementStatus(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
             @Parameter(description = "新状态") @RequestParam AchievementStatus status
@@ -124,6 +130,7 @@ public class AchievementManageController {
     @DeleteMapping("/{achievementId}")
     @Operation(summary = "删除成果", description = "删除指定成果及其关联数据")
     @OperationLog(module = "成果管理", type = OperationType.DELETE, description = "删除成果", recordParams = true, recordResult = false)
+    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId", timeout = 2, message = "删除操作正在处理中")
     public R<Void> deleteAchievement(
             @Parameter(description = "成果ID") @PathVariable Long achievementId
     ){
