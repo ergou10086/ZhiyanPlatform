@@ -1,9 +1,0 @@
-# 主bootstrap配置文件 - 通用配置
-
-spring:
-  application:
-    name: zhiyan-auth
-  profiles:
-    # 默认使用prod环境，连接服务器的Nacos
-    # 如需使用本地Nacos，请在IDE运行配置中添加: -Dspring.profiles.active=dev
-    active: ${SPRING_PROFILES_ACTIVE:prod}

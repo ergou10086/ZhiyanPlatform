@@ -1,8 +1,0 @@
-# 主bootstrap配置文件 - 通用配置
-
-spring:
-  application:
-    name: zhiyan-gateway
-  profiles:
-    # 默认使用prod环境，服务器启动时通过参数指定
-    active: prod
