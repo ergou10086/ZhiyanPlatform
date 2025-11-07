@@ -136,9 +136,36 @@ object LogUtils {
         logType: LogType,
         request: HttpServletRequest? = getCurrentRequest()
     ): LogRecord {
+      // 尝试获取当前登录用户信息
+        var userId: String? = null
+        var username: String? = null
+        try {
+            // 使用反射调用SecurityUtils（避免直接依赖，保持模块独立）
+            val securityUtilsClass = Class.forName("hbnu.project.zhiyancommonsecurity.utils.SecurityUtils")
+            
+            // 获取用户ID
+            val getUserIdMethod = securityUtilsClass.getMethod("getUserId")
+            val userIdObj = getUserIdMethod.invoke(null)
+            if (userIdObj != null) {
+                userId = userIdObj.toString()
+            }
+            
+            // 获取用户名
+            val getUsernameMethod = securityUtilsClass.getMethod("getUsername")
+            val usernameObj = getUsernameMethod.invoke(null)
+            if (usernameObj != null) {
+                username = usernameObj.toString()
+            }
+        } catch (e: Exception) {
+            // 如果获取失败（如SecurityUtils不存在），忽略异常，继续创建日志
+            // 这样可以保证即使没有安全模块，日志功能仍然可用
+        }
+        
         return LogRecord(
             logId = generateLogId(),
             logType = logType,
+            userId = userId,
+            username = username,
             serverIp = getServerIp(),
             serverHost = getServerHost(),
             clientIp = request?.let { getClientIp(it) },

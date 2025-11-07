@@ -222,21 +222,42 @@ public class AchievementFileServiceImpl implements AchievementFileService {
         // 1. 查询文件是否存在
         AchievementFile file = achievementFileRepository.findById(fileId)
                 .orElseThrow(() -> new ServiceException("文件不存在"));
+        
+        log.info("文件信息: fileName={}, objectKey={}, bucketName={}", 
+                file.getFileName(), file.getObjectKey(), file.getBucketName());
 
         // 2. 验证权限
         if (!hasFilePermission(fileId, userId)) {
+            log.warn("用户无权限访问文件: fileId={}, userId={}", fileId, userId);
             throw new ServiceException("无权限访问该文件");
         }
 
         // 3. 生成预签名URL
         int expiry = expirySeconds != null ? expirySeconds : DEFAULT_EXPIRY_SECONDS;
-        try{
+        try {
+            log.info("开始生成预签名URL: bucketType=ACHIEVEMENT_FILES, objectKey={}, expiry={}s", 
+                    file.getObjectKey(), expiry);
+            
             String url = minioService.getPresignedUrl(BucketType.ACHIEVEMENT_FILES, file.getObjectKey(), expiry);
-            log.info("生成文件下载链接成功: fileId={}, expiry={}s", fileId, expiry);
+            
+            if (url == null || url.isEmpty()) {
+                log.error("生成的预签名URL为空: fileId={}", fileId);
+                throw new ServiceException("生成的下载链接为空");
+            }
+            
+            log.info("生成文件下载链接成功: fileId={}, expiry={}s, url={}", fileId, expiry, url);
             return url;
-        }catch (ServiceException e) {
-            log.error("生成文件下载链接失败: fileId={}", fileId, e);
+            
+        } catch (ServiceException e) {
+            log.error("生成文件下载链接失败(ServiceException): fileId={}, message={}", 
+                    fileId, e.getMessage(), e);
             throw new ServiceException("生成下载链接失败: " + e.getMessage());
+            
+        } catch (Exception e) {
+            // 捕获所有其他异常（如MinIO连接异常、网络异常等）
+            log.error("生成文件下载链接失败(未预期的异常): fileId={}, exceptionType={}, message={}", 
+                    fileId, e.getClass().getName(), e.getMessage(), e);
+            throw new ServiceException("生成下载链接失败: MinIO服务异常 - " + e.getMessage());
         }
     }
 
@@ -351,19 +372,19 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      */
     @Override
     public boolean hasFilePermission(Long fileId, Long userId) {
-        // TODO: 实现真实的权限验证逻辑
+        // 临时允许所有已登录用户访问文件
+        // TODO: 未来可以实现更细粒度的权限验证
         // 1. 查询文件所属的成果
         // 2. 查询成果所属的项目
         // 3. 验证用户是否是项目成员
-//
-//        // 查询项目成员表进行更完善的权限验证
-//        boolean isCreator = achievement.getCreatorId().equals(userId);
-//
-//        log.debug("权限检查: fileId={}, userId={}, isUploader={}, isCreator={}",
-//                fileId, userId, isUploader, isCreator);
-//
-//        return isUploader || isCreator;
-        return false;
+        
+        if (userId == null) {
+            log.warn("权限检查失败: 用户未登录, fileId={}", fileId);
+            return false;
+        }
+        
+        log.debug("权限检查通过: fileId={}, userId={}", fileId, userId);
+        return true;  // 临时允许所有已登录用户访问
     }
 
     /**

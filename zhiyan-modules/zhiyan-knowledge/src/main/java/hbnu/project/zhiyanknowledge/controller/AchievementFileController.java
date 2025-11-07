@@ -149,11 +149,22 @@ public class AchievementFileController {
     ) {
         // 从安全上下文获取当前登录用户ID
         Long userId = SecurityUtils.getUserId();
-        log.info("获取文件下载URL: fileId={}, expirySeconds={}", fileId, expirySeconds);
+        log.info("获取文件下载URL: fileId={}, userId={}, expirySeconds={}", fileId, userId, expirySeconds);
+        
+        // 检查用户是否已登录
+        if (userId == null) {
+            log.error("用户未登录或token失效: fileId={}", fileId);
+            return R.fail(401, "用户未登录或登录已过期，请重新登录");
+        }
 
-        String downloadUrl = achievementFileService.getFileDownloadUrl(fileId, userId, expirySeconds);
-
-        return R.ok(downloadUrl, "下载链接生成成功");
+        try {
+            String downloadUrl = achievementFileService.getFileDownloadUrl(fileId, userId, expirySeconds);
+            log.info("文件下载URL生成成功: fileId={}, userId={}", fileId, userId);
+            return R.ok(downloadUrl, "下载链接生成成功");
+        } catch (Exception e) {
+            log.error("获取文件下载URL失败: fileId={}, userId={}, error={}", fileId, userId, e.getMessage(), e);
+            return R.fail(500, "获取下载链接失败: " + e.getMessage());
+        }
     }
 
     // ==================== Sentinel 限流和降级处理方法 ====================

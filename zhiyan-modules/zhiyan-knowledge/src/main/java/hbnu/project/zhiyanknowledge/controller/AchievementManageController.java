@@ -10,7 +10,9 @@ import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils;
+import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
 import hbnu.project.zhiyanknowledge.service.AchievementDetailsService;
+import hbnu.project.zhiyanknowledge.service.AchievementFileService;
 import hbnu.project.zhiyanknowledge.service.AchievementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,9 +21,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 成果管理接口
@@ -42,6 +47,12 @@ public class AchievementManageController {
 
     @Autowired
     private final AchievementDetailsService achievementDetailsService;
+
+    @Autowired
+    private final AchievementFileService achievementFileService;
+
+    @Autowired
+    private final AchievementRepository achievementRepository;
 
     @Autowired
     private final KnowledgeSecurityUtils knowledgeSecurityUtils;
@@ -131,20 +142,40 @@ public class AchievementManageController {
     @Operation(summary = "删除成果", description = "删除指定成果及其关联数据")
     @OperationLog(module = "成果管理", type = OperationType.DELETE, description = "删除成果", recordParams = true, recordResult = false)
     @Idempotent(type = IdempotentType.SPEL, key = "#achievementId", timeout = 2, message = "删除操作正在处理中")
+    @Transactional(rollbackFor = Exception.class)
     public R<Void> deleteAchievement(
             @Parameter(description = "成果ID") @PathVariable Long achievementId
     ){
         // 从安全上下文获取当前登录用户ID
         Long userId = SecurityUtils.getUserId();
-        log.info("删除成果: achievementId={}, userId={}", achievementId, userId);
+        log.info("删除成果开始: achievementId={}, userId={}", achievementId, userId);
 
         // 权限检查：必须有删除权限
         knowledgeSecurityUtils.requireDelete(achievementId);
 
-        // 删除详情数据
-        achievementDetailsService.deleteDetailByAchievementId(achievementId);
+        // 1. 删除所有关联的文件（数据库记录 + MinIO文件）
+        List<AchievementFileDTO> files = achievementFileService.getFilesByAchievementId(achievementId);
+        if (!files.isEmpty()) {
+            List<Long> fileIds = files.stream()
+                    .map(AchievementFileDTO::getId)
+                    .map(Long::valueOf)  // 将String类型的ID转换为Long类型
+                    .collect(Collectors.toList());
+            log.info("开始删除成果关联的文件: achievementId={}, fileCount={}", achievementId, fileIds.size());
+            achievementFileService.deleteFiles(fileIds, userId);
+            log.info("成果关联文件删除完成: achievementId={}", achievementId);
+        }
 
-        log.info("成果删除成功: achievementId={}", achievementId);
+        // 2. 删除详情数据
+        log.info("开始删除成果详情: achievementId={}", achievementId);
+        achievementDetailsService.deleteDetailByAchievementId(achievementId);
+        log.info("成果详情删除完成: achievementId={}", achievementId);
+
+        // 3. 删除成果主表记录
+        log.info("开始删除成果主表记录: achievementId={}", achievementId);
+        achievementRepository.deleteById(achievementId);
+        log.info("成果主表记录删除完成: achievementId={}", achievementId);
+
+        log.info("成果删除全部完成: achievementId={}", achievementId);
         return R.ok(null, "成果删除成功");
     }
 }
