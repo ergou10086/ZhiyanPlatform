@@ -49,7 +49,7 @@ public class AchievementFileController {
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD, description = "上传成果文件", recordParams = false, recordResult = true)
     @SentinelResource(value = "knowledge:file:upload", blockHandler = "uploadBlockHandler", fallback = "uploadFallback")
-    @Idempotent(type = IdempotentType.PARAM, timeout = 2, message = "文件上传中，请勿重复提交")    // 添加幂等注解 - 基于成果ID和文件名防重，10秒内不允许重复上传
+    @Idempotent(type = IdempotentType.PARAM, timeout = 3, message = "文件上传中，请勿重复提交")    // 添加幂等注解 - 基于成果ID和文件名防重，10秒内不允许重复上传
     public R<AchievementFileDTO> uploadFile(
             @Parameter(description = "文件") @RequestParam("file") MultipartFile file,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId
@@ -79,7 +79,7 @@ public class AchievementFileController {
     @Operation(summary = "批量上传成果文件", description = "为指定成果批量上传多个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD,description = "批量上传成果文件", recordParams = false, recordResult = true)
     @SentinelResource(value = "knowledge:file:uploadBatch", blockHandler = "uploadBatchBlockHandler", fallback = "uploadBatchFallback")
-    @Idempotent(type = IdempotentType.PARAM, timeout = 2, message = "文件上传中，请勿重复提交")
+    @Idempotent(type = IdempotentType.PARAM, timeout = 3, message = "文件上传中，请勿重复提交")
     public R<List<AchievementFileDTO>> uploadFilesBatch(
             @Parameter(description = "文件列表") @RequestParam("files") List<MultipartFile> files,
             @Parameter(description = "成果ID") @RequestParam("achievementId") Long achievementId

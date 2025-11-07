@@ -111,8 +111,13 @@ public class AuthController {
      */
     @PostMapping("/login")
     @Operation(summary = "用户登录", description = "用户登录获取访问令牌")
-    @OperationLog(module = "认证管理", type = OperationType.LOGIN, description = "用户登录", recordParams = true,
-            recordResult = false  // 不记录 token
+    @OperationLog(
+            module = "认证管理", 
+            type = OperationType.LOGIN, 
+            description = "用户登录", 
+            recordParams = false,  // 不记录密码等敏感参数
+            recordResult = false,  // 不记录token等敏感结果
+            recordException = true
     )
     @SentinelResource(
             value = "auth:login",
@@ -124,22 +129,38 @@ public class AuthController {
             type = IdempotentType.SPEL,
             key = "#loginBody.email",
             timeout = 1,
+            timeUnit = TimeUnit.SECONDS,
             message = "登录请求处理中，请勿重复提交",
             deleteOnError = true  // 登录失败允许立即重试
     )
     public R<UserLoginResponse> login(
             @Valid @RequestBody LoginBody loginBody, HttpServletResponse response) {
         log.info("用户登录API请求: 邮箱={}", loginBody.getEmail());
-        R<UserLoginResponse> result = authService.login(loginBody);
-        if (R.isSuccess(result)&& Boolean.TRUE.equals(result.getData().getRememberMe())) {
-            Cookie cookie = new Cookie("remember_me_token", result.getData().getRememberMeToken());
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(30 * 24 * 60 * 60);
-            response.addCookie(cookie);
+        
+        try {
+            R<UserLoginResponse> result = authService.login(loginBody);
+            
+            // 安全地添加RememberMe Cookie
+            if (R.isSuccess(result) && result.getData() != null 
+                && Boolean.TRUE.equals(result.getData().getRememberMe())
+                && result.getData().getRememberMeToken() != null) {
+                try {
+                    Cookie cookie = new Cookie("remember_me_token", result.getData().getRememberMeToken());
+                    cookie.setHttpOnly(true);
+                    cookie.setPath("/");
+                    cookie.setMaxAge(30 * 24 * 60 * 60);
+                    response.addCookie(cookie);
+                    log.debug("已添加RememberMe Cookie");
+                } catch (Exception e) {
+                    log.warn("添加RememberMe Cookie失败", e);
+                }
+            }
+            
+            return result;
+        } catch (Exception e) {
+            log.error("登录处理异常", e);
+            return R.fail("登录失败：" + e.getMessage());
         }
-
-        return result;
     }
 
 

@@ -142,6 +142,8 @@ management:
 
 # 日志配置
 logging:
+  # 明确指定不使用外部日志配置文件，使用Spring Boot默认的Logback
+  config: ""  # 覆盖Nacos中可能存在的log4j2配置
   level:
     root: INFO
     hbnu.project.zhiyan: DEBUG
