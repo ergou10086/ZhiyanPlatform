@@ -41,6 +41,7 @@ public abstract class AchievementConverter {
     @Mapping(target = "typeName", expression = "java(getTypeName(achievement.getType()))")
     @Mapping(target = "fileCount", expression = "java(getFileCount(achievement))")
     @Mapping(target = "abstractText", expression = "java(getAbstractText(achievement))")
+    @Mapping(target = "isPublic", source = "isPublic")
     @Mapping(target = "creatorName", ignore = true) // 需要从auth服务获取
     public abstract AchievementDTO toDTO(Achievement achievement);
 
@@ -56,11 +57,6 @@ public abstract class AchievementConverter {
     @Mapping(target = "status", defaultValue = "draft")
     @Mapping(target = "detail", ignore = true)
     @Mapping(target = "files", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     public abstract Achievement CreateDTOtoEntity(CreateAchievementDTO dto);
 
     /**
@@ -71,6 +67,7 @@ public abstract class AchievementConverter {
     @Mapping(target = "creatorId", source = "creatorId")
     @Mapping(target = "typeName", expression = "java(getTypeName(achievement.getType()))")
     @Mapping(target = "fileCount", expression = "java(getFileCount(achievement))")
+    @Mapping(target = "isPublic", source = "isPublic")
     @Mapping(target = "abstractText", expression = "java(getAbstractFromDetail(achievement))")
     @Mapping(target = "detailData", expression = "java(parseDetailData(achievement.getDetail()))")
     @Mapping(target = "files", source = "files")
@@ -84,13 +81,9 @@ public abstract class AchievementConverter {
      */
     @Mapping(target = "id", ignore = true) // 由雪花算法生成
     @Mapping(target = "status", expression = "java(getStatusOrDefault(dto.getStatus()))")
+    @Mapping(target = "isPublic", expression = "java(getIsPublicOrDefault(dto.getIsPublic()))")
     @Mapping(target = "detail", ignore = true) // 需要单独处理
     @Mapping(target = "files", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     public abstract Achievement toEntity(CreateAchievementDTO dto);
 
     /**
@@ -102,11 +95,6 @@ public abstract class AchievementConverter {
     @Mapping(target = "creatorId", ignore = true) // 创建者不允许修改
     @Mapping(target = "detail", ignore = true)
     @Mapping(target = "files", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     public abstract void updateEntityFromDTO(UpdateAchievementDTO dto, @org.mapstruct.MappingTarget Achievement achievement);
 
     // ==================== AchievementDetail 相关转换 ====================
@@ -119,11 +107,6 @@ public abstract class AchievementConverter {
     @Mapping(target = "detailData", expression = "java(mapToJson(dto.getDetailData()))")
     @Mapping(target = "abstractText", source = "abstractText")
     @Mapping(target = "achievement", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
-    @Mapping(target = "updatedBy", ignore = true)
-    @Mapping(target = "version", ignore = true)
     public abstract AchievementDetail createDTOToDetail(CreateAchievementDTO dto);
 
     // ==================== AchievementFile 相关转换 ====================
@@ -302,5 +285,13 @@ public abstract class AchievementConverter {
     @Named("getStatusOrDefault")
     protected AchievementStatus getStatusOrDefault(AchievementStatus status) {
         return status != null ? status : AchievementStatus.draft;
+    }
+
+    /**
+     * 获取公开性或默认值（默认为私有）
+     */
+    @Named("getIsPublicOrDefault")
+    protected Boolean getIsPublicOrDefault(Boolean isPublic) {
+        return isPublic != null ? isPublic : false;
     }
 }

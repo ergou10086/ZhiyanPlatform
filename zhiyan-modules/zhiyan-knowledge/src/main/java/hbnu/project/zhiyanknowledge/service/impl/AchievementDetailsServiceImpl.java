@@ -66,6 +66,7 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
                 .type(createDTO.getType())
                 .creatorId(createDTO.getCreatorId())
                 .status(createDTO.getStatus() != null ? createDTO.getStatus() : AchievementStatus.draft)
+                .isPublic(createDTO.getIsPublic() != null ? createDTO.getIsPublic() : false)
                 .build();
 
         // 2. 持久化
@@ -123,6 +124,7 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
                 .typeName(achievement.getType().getName())
                 .status(achievement.getStatus())
                 .creatorId(String.valueOf(achievement.getCreatorId()))
+                .isPublic(achievement.getIsPublic())
                 .abstractText(detail.getAbstractText())
                 .detailData(detailDataMap)
                 .files(files)

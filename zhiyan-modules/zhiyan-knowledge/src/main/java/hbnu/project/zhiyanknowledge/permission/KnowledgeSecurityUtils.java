@@ -156,14 +156,23 @@ public class KnowledgeSecurityUtils {
 
 
     /**
-     * 验证当前用户有访问权限，如果没有则抛出异常
+     * 验证当前用户是否有成果的访问权限，如果没有则抛出异常
      *
      * @param achievementId 成果ID
      * @throws SecurityException 如果没有权限
      */
     public void requireAccess(Long achievementId) {
+        Achievement achievement = achievementRepository.findById(achievementId)
+                .orElseThrow(() -> new ServiceException("成果不存在"));
+
+        // 如果是公开成果，允许访问
+        if (Boolean.TRUE.equals(achievement.getIsPublic())) {
+            return;
+        }
+
+        // 如果是私有成果，必须是项目成员
         if (!canAccess(achievementId)) {
-            throw new SecurityException("您没有权限访问此成果，只有项目成员可以访问");
+            throw new SecurityException("您没有权限访问此成果，该成果为项目私有，只有项目成员可以访问");
         }
     }
 
@@ -205,5 +214,26 @@ public class KnowledgeSecurityUtils {
         if (userId == null || !isProjectMemberByProjectId(projectId, userId)) {
             throw new SecurityException("您不是该项目的成员，无权访问");
         }
+    }
+
+    /**
+     * 检查当前用户是否有权限访问该成果
+     * 公开成果：所有人可访问
+     * 私有成果：仅项目成员可访问
+     *
+     * @param achievementId 成果ID
+     * @return 是否有访问权限
+     */
+    public boolean canAccessAchievementId(Long achievementId) {
+        Achievement achievement = achievementRepository.findById(achievementId)
+                .orElseThrow(() -> new ServiceException("成果不存在"));
+
+        // 如果是公开成果，所有人都可以访问
+        if (Boolean.TRUE.equals(achievement.getIsPublic())) {
+            return true;
+        }
+
+        // 如果是私有成果，必须是项目成员
+        return isProjectMember(achievementId);
     }
 }

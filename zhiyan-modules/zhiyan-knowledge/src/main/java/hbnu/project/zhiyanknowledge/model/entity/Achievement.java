@@ -6,10 +6,7 @@ import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -66,6 +63,13 @@ public class Achievement extends BaseAuditEntity {
      */
     @Column(name = "title", nullable = false, length = 50, columnDefinition = "VARCHAR(50) COMMENT '标题'")
     private String title;
+
+    /**
+     * 成果的公开性，默认不公开
+     */
+    @Column(name = "is_public", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE COMMENT '公开性'")
+    @Builder.Default
+    private Boolean isPublic = false;
 
     /**
      * 创建者ID

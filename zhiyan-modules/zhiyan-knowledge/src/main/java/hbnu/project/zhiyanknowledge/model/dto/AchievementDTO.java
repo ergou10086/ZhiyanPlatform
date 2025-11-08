@@ -62,6 +62,13 @@ public class AchievementDTO {
     private String creatorName;
 
     /**
+     * 成果的公开性
+     * true: 公开成果
+     * false: 项目私有
+     */
+    private Boolean isPublic;
+
+    /**
      * 摘要（截取前200字符用于列表展示）
      */
     private String abstractText;

@@ -4,10 +4,13 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.exception.ControllerException;
+import hbnu.project.zhiyancommonbasic.exception.ServiceException;
 import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
+import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils;
 import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
@@ -177,5 +180,35 @@ public class AchievementManageController {
 
         log.info("成果删除全部完成: achievementId={}", achievementId);
         return R.ok(null, "成果删除成功");
+    }
+
+
+    /**
+     * 更新成果公开性
+     * 修改成果是否公开（需要编辑权限）
+     */
+    @PatchMapping("/{achievementId}/visibility")
+    @Operation(summary = "更新成果的公开性", description = "修改成果的公开/私有状态")
+    @OperationLog(module = "成果管理", type = OperationType.UPDATE, description = "更新成果公开性", recordParams = true, recordResult = false)
+    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId + ':visibility'", timeout = 2, message = "公开性更新中，请稍候")
+    public R<Void> updateAchievementVisibility(
+            @Parameter(description = "成果ID") @PathVariable Long achievementId,
+            @Parameter(description = "公开性") @RequestParam Boolean isPublic
+    ){
+        Long userId = SecurityUtils.getUserId();
+        log.info("更新成果公开性: achievementId={}, isPublic={}, userId={}",
+                achievementId, isPublic, userId);
+
+        // 权限检查：必须有编辑权限
+        knowledgeSecurityUtils.requireEdit(achievementId);
+
+        Achievement achievement = achievementRepository.findById(achievementId)
+                .orElseThrow(() -> new ControllerException("成果不存在"));
+
+        achievement.setIsPublic(isPublic);
+        achievementRepository.save(achievement);
+
+        log.info("成果公开性更新成功: achievementId={}, isPublic={}", achievementId, isPublic);
+        return R.ok(null, "公开性更新成功");
     }
 }

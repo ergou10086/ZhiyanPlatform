@@ -46,6 +46,13 @@ public class UpdateAchievementDTO {
     private AchievementStatus status;
 
     /**
+     * 成果的公开性（必选）
+     * true: 公开成果，所有人可见
+     * false: 项目私有，仅项目成员可见
+     */
+    private Boolean isPublic;
+
+    /**
      * 摘要/描述（可选）
      */
     @Size(max = 5000, message = "摘要长度不能超过5000字符")
