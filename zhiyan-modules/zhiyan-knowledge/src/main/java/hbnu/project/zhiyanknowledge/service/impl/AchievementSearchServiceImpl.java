@@ -48,9 +48,15 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
     private final AchievementFileRepository achievementFileRepository;
 
     private final AchievementConverter achievementConverter;
+    
+    @Autowired
+    private final hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils knowledgeSecurityUtils;
 
     /**
      * 根据项目ID查询成果列表
+     * 根据用户权限自动过滤：
+     * - 项目成员：显示所有成果（公开+私有）
+     * - 非项目成员/未登录：只显示公开成果
      *
      * @param projectId 项目ID
      * @param pageable  分页参数
@@ -64,19 +70,46 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
             throw new ServiceException("项目ID不能为空");
         }
 
+        // 获取当前用户ID
+        Long currentUserId = hbnu.project.zhiyancommonsecurity.utils.SecurityUtils.getUserId();
+        
+        // 判断当前用户是否为项目成员
+        boolean isProjectMember = false;
+        if (currentUserId != null) {
+            isProjectMember = knowledgeSecurityUtils.isProjectMemberByProjectId(projectId, currentUserId);
+        }
+        
+        log.info("用户权限检查: userId={}, projectId={}, isProjectMember={}", 
+                currentUserId, projectId, isProjectMember);
+
         // 使用急加载查询避免LazyInitializationException
         List<Achievement> achievements = achievementRepository.findByProjectIdWithFiles(projectId);
         
+        // 根据权限过滤成果
+        List<Achievement> filteredAchievements;
+        if (isProjectMember) {
+            // 项目成员可以看到所有成果
+            filteredAchievements = achievements;
+            log.info("项目成员，显示所有成果: 共{}个", achievements.size());
+        } else {
+            // 非项目成员只能看到公开成果
+            filteredAchievements = achievements.stream()
+                    .filter(achievement -> Boolean.TRUE.equals(achievement.getIsPublic()))
+                    .collect(java.util.stream.Collectors.toList());
+            log.info("非项目成员，只显示公开成果: 共{}个（总数{}个）", 
+                    filteredAchievements.size(), achievements.size());
+        }
+        
         // 手动分页
         int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), achievements.size());
-        List<Achievement> pageContent = achievements.subList(start, end);
+        int end = Math.min((start + pageable.getPageSize()), filteredAchievements.size());
+        List<Achievement> pageContent = filteredAchievements.subList(start, end);
         
         // 转换为Page对象
         Page<Achievement> achievementPage = new org.springframework.data.domain.PageImpl<>(
             pageContent, 
             pageable, 
-            achievements.size()
+            filteredAchievements.size()
         );
         
         return achievementPage.map(achievementConverter::toDTO);
@@ -253,6 +286,7 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
 
     /**
      * 根据创建时间范围查询成果
+     * 自动根据用户权限过滤私有成果
      *
      * @param projectId 项目ID
      * @param startTime 开始时间
@@ -283,6 +317,28 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
         Page<Achievement> achievementPage = achievementRepository
                 .findByProjectIdAndCreatedAtBetween(projectId, startTime, endTime, pageable);
 
+        // 获取当前用户ID并判断是否为项目成员
+        Long currentUserId = hbnu.project.zhiyancommonsecurity.utils.SecurityUtils.getUserId();
+        boolean isProjectMember = false;
+        if (currentUserId != null) {
+            isProjectMember = knowledgeSecurityUtils.isProjectMemberByProjectId(projectId, currentUserId);
+        }
+        
+        // 如果不是项目成员，过滤掉私有成果
+        if (!isProjectMember) {
+            List<Achievement> filtered = achievementPage.getContent().stream()
+                    .filter(achievement -> Boolean.TRUE.equals(achievement.getIsPublic()))
+                    .collect(java.util.stream.Collectors.toList());
+            
+            achievementPage = new org.springframework.data.domain.PageImpl<>(
+                    filtered,
+                    pageable,
+                    filtered.size()
+            );
+            
+            log.info("非项目成员，过滤后显示{}个公开成果", filtered.size());
+        }
+
         return achievementPage.map(achievementConverter::toDTO);
     }
 
@@ -291,6 +347,7 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
     /**
      * 构建动态查询条件（Specification）
      * 根据查询DTO动态组合查询条件
+     * 自动添加权限过滤：非项目成员只能查询公开成果
      *
      * @param queryDTO 查询条件
      * @return Specification对象
@@ -302,6 +359,21 @@ public class AchievementSearchServiceImpl implements AchievementSearchService {
             // 1. 项目ID条件
             if (queryDTO.getProjectId() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("projectId"), queryDTO.getProjectId()));
+                
+                // 权限过滤：如果指定了项目ID，检查用户是否为项目成员
+                Long currentUserId = hbnu.project.zhiyancommonsecurity.utils.SecurityUtils.getUserId();
+                boolean isProjectMember = false;
+                if (currentUserId != null) {
+                    isProjectMember = knowledgeSecurityUtils.isProjectMemberByProjectId(
+                            queryDTO.getProjectId(), currentUserId);
+                }
+                
+                // 非项目成员只能看到公开成果
+                if (!isProjectMember) {
+                    predicates.add(criteriaBuilder.equal(root.get("isPublic"), true));
+                    log.debug("非项目成员查询，添加公开性过滤: projectId={}, userId={}", 
+                            queryDTO.getProjectId(), currentUserId);
+                }
             }
 
             // 2. 成果类型条件

@@ -36,6 +36,9 @@ public class AchievementDetailController {
 
     @Autowired
     private final AchievementDetailsService achievementDetailsService;
+    
+    @Autowired
+    private final hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils knowledgeSecurityUtils;
 
 
     /**
@@ -49,6 +52,9 @@ public class AchievementDetailController {
             @Valid @RequestBody UpdateDetailDataDTO updateDTO
     ){
         log.info("更新成果详情: achievementId={}", updateDTO.getAchievementId());
+
+        // 权限检查：必须有编辑权限（项目成员且是创建者或管理员）
+        knowledgeSecurityUtils.requireEdit(updateDTO.getAchievementId());
 
         achievementDetailsService.updateDetailData(updateDTO);
 
@@ -74,6 +80,9 @@ public class AchievementDetailController {
         log.info("批量更新详情字段: achievementId={}, fieldsCount={}, userId={}", 
                 achievementId, fieldUpdates.size(), userId);
 
+        // 权限检查：必须有编辑权限（项目成员且是创建者或管理员）
+        knowledgeSecurityUtils.requireEdit(achievementId);
+
         AchievementDetailDTO result = achievementDetailsService.updateDetailFields(
                 achievementId, fieldUpdates, userId
         );
@@ -95,6 +104,9 @@ public class AchievementDetailController {
             @Parameter(description = "摘要内容") @RequestBody String abstractText
     ) {
         log.info("更新成果摘要: achievementId={}", achievementId);
+
+        // 权限检查：必须有编辑权限（项目成员且是创建者或管理员）
+        knowledgeSecurityUtils.requireEdit(achievementId);
 
         achievementDetailsService.updateAbstract(achievementId, abstractText);
 
