@@ -217,6 +217,7 @@ public class CozeAIChatController {
      * @param query 用户问题
      * @param conversationId 对话 ID（可选）
      * @param localFiles 本地上传的文件（可选）
+     * @param cozeFileIds 已上传到 Coze 的文件 ID 列表（可选，前端已上传）
      * @param knowledgeFileIds 知识库文件ID列表（可选）
      * @return SSE 事件流
      */
@@ -224,7 +225,7 @@ public class CozeAIChatController {
     @Operation(
             summary = "Coze 高级对话（流式 + 文件）",
             description = "支持上传本地文件或引用知识库文件进行对话。" +
-                    "可同时传递 localFiles（本地文件）和 knowledgeFileIds（知识库文件）。" +
+                    "可同时传递 localFiles（本地文件）、cozeFileIds（已上传的文件ID）和 knowledgeFileIds（知识库文件）。" +
                     "文件会先上传到 Coze，然后在对话中使用。"
     )
     @OperationLog(module = "Coze AI 对话", description = "调用 Coze 智能体支持上传本地文件或引用知识库文件进行对话", type = OperationType.OTHER)
@@ -232,6 +233,7 @@ public class CozeAIChatController {
             @Parameter(description = "用户问题") @RequestParam String query,
             @Parameter(description = "对话 ID（可选）") @RequestParam(required = false) String conversationId,
             @Parameter(description = "本地上传的文件列表") @RequestParam(required = false) List<MultipartFile> localFiles,
+            @Parameter(description = "已上传到 Coze 的文件 ID 列表（前端已上传）") @RequestParam(required = false) List<String> cozeFileIds,
             @Parameter(description = "知识库文件 ID 列表") @RequestParam(required = false) List<Long> knowledgeFileIds,
             @Parameter(description = "自定义变量（JSON字符串）") @RequestParam(required = false) String customVariablesJson,
             @Parameter(description = "Authorization 请求头") @RequestHeader(value = "Authorization", required = false) String authorizationHeader
@@ -263,9 +265,10 @@ public class CozeAIChatController {
         
         String userIdentifier = String.valueOf(userId);
 
-        log.info("[Coze 高级对话] query={}, conversationId={}, localFiles={}, knowledgeFiles={}, userId={}",
+        log.info("[Coze 高级对话] query={}, conversationId={}, localFiles={}, cozeFileIds={}, knowledgeFiles={}, userId={}",
                 query, conversationId,
                 localFiles != null ? localFiles.size() : 0,
+                cozeFileIds != null ? cozeFileIds.size() : 0,
                 knowledgeFileIds != null ? knowledgeFileIds.size() : 0,
                 userIdentifier);
 
@@ -282,7 +285,13 @@ public class CozeAIChatController {
         }
 
         // 1. 收集所有 Coze 文件 ID（使用原生 file_ids 机制）
-        List<String> cozeFileIds = new ArrayList<>();
+        List<String> allCozeFileIds = new ArrayList<>();
+        
+        // 🔥 如果前端已经上传了文件到 Coze，直接使用这些文件 ID
+        if (cozeFileIds != null && !cozeFileIds.isEmpty()) {
+            allCozeFileIds.addAll(cozeFileIds);
+            log.info("[Coze 高级对话] 使用前端已上传的 {} 个文件ID: {}", cozeFileIds.size(), cozeFileIds);
+        }
 
         // 2. 上传本地文件到 Coze，获取 file ID
         if(localFiles != null && !localFiles.isEmpty()) {
@@ -293,7 +302,7 @@ public class CozeAIChatController {
                     if (uploadResponse != null && uploadResponse.getData() != null 
                             && uploadResponse.getData().getFileId() != null) {
                         String cozeFileId = uploadResponse.getData().getFileId();
-                        cozeFileIds.add(cozeFileId);
+                        allCozeFileIds.add(cozeFileId);
                         log.info("[Coze 高级对话] 本地文件上传成功: fileName={}, cozeFileId={}", 
                                 file.getOriginalFilename(), cozeFileId);
                     } else {
@@ -317,7 +326,7 @@ public class CozeAIChatController {
                     if (response != null && response.getData() != null 
                             && response.getData().getFileId() != null) {
                         String cozeFileId = response.getData().getFileId();
-                        cozeFileIds.add(cozeFileId);
+                        allCozeFileIds.add(cozeFileId);
                         log.info("[Coze 高级对话] 知识库文件上传成功: cozeFileId={}", cozeFileId);
                     }
                 }
@@ -326,7 +335,7 @@ public class CozeAIChatController {
             }
         }
 
-        log.info("[Coze 高级对话] 总共获得 {} 个 Coze 文件ID", cozeFileIds.size());
+        log.info("[Coze 高级对话] 总共获得 {} 个 Coze 文件ID", allCozeFileIds.size());
 
         // 4. 构建消息（使用 Coze 原生 file_ids 机制）
         List<CozeChatRequest.CozeMessage> messages = new ArrayList<>();
@@ -338,9 +347,9 @@ public class CozeAIChatController {
                 .contentType("text");
         
         // 如果有文件，添加 file_ids（Coze 原生支持）
-        if (!cozeFileIds.isEmpty()) {
-            messageBuilder.fileIds(cozeFileIds);
-            log.info("[Coze 高级对话] 添加文件ID到消息 file_ids 字段: {}", cozeFileIds);
+        if (!allCozeFileIds.isEmpty()) {
+            messageBuilder.fileIds(allCozeFileIds);
+            log.info("[Coze 高级对话] 添加文件ID到消息 file_ids 字段: {}", allCozeFileIds);
         }
         
         messages.add(messageBuilder.build());

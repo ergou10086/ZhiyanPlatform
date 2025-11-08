@@ -13,9 +13,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SecurityConfig {
 
-    @Value("${spring.boot.admin.client.username}")
+    @Value("${spring.boot.admin.client.username:admin}")
     private String username;
-    @Value("${spring.boot.admin.client.password}")
+    @Value("${spring.boot.admin.client.password:admin}")
     private String password;
 
     @Bean

@@ -12,6 +12,8 @@ import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectPermission;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import hbnu.project.zhiyanproject.handler.ProjectSentinelHandler;
 import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -58,6 +60,13 @@ public class ProjectMemberController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "邀请成员", description = "项目负责人直接将用户添加到项目中（无需对方同意）")
     @OperationLog(module = "项目成员管理", type = OperationType.INSERT, description = "邀请成员加入项目", recordParams = true, recordResult = true)
+    @SentinelResource(
+        value = "inviteMember",
+        blockHandlerClass = ProjectSentinelHandler.class,
+        blockHandler = "handleInviteMemberBlock",
+        fallbackClass = ProjectSentinelHandler.class,
+        fallback = "handleInviteMemberFallback"
+    )
     public R<ProjectMember> inviteMember(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @Valid @RequestBody InviteMemberRequest request) {

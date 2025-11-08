@@ -44,7 +44,11 @@ spring:
   # 不需要也不应该使用 spring.config.import 导入 Nacos 配置
 
 # 日志基础配置（启动阶段日志，避免日志配置加载延迟）
+# 注意：这里的配置优先级最高，会覆盖Nacos中的日志配置
 logging:
+  # 明确指定不使用外部日志配置文件，使用Spring Boot默认的Logback
+  # 这个设置会覆盖Nacos中可能存在的 logging.config 配置
+  config: ""
   level:
     root: INFO
     org.springframework.cloud: INFO   # 关闭配置加载的详细日志

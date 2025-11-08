@@ -49,6 +49,14 @@ public class CreateAchievementDTO {
     private AchievementStatus status;
 
     /**
+     * 成果的公开性（可选，默认为私有）
+     * true: 公开成果，所有人可见
+     * false: 项目私有，仅项目成员可见
+     */
+    @Builder.Default
+    private Boolean isPublic = false;
+
+    /**
      * 摘要/描述（可选）
      */
     @Size(max = 5000, message = "摘要长度不能超过5000字符")

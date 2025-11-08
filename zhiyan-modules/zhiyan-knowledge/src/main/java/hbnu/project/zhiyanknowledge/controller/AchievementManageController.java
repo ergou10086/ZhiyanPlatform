@@ -4,10 +4,13 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.exception.ControllerException;
+import hbnu.project.zhiyancommonbasic.exception.ServiceException;
 import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.model.dto.*;
+import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.permission.KnowledgeSecurityUtils;
 import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
@@ -64,7 +67,7 @@ public class AchievementManageController {
     @PostMapping("/create")
     @Operation(summary = "创建成果", description = "为指定项目创建新的成果记录")
     @OperationLog(module = "成果管理", type = OperationType.INSERT, description = "创建成果", recordParams = true, recordResult = true)
-    @Idempotent(type = IdempotentType.PARAM, timeout = 1, timeUnit = TimeUnit.SECONDS, message = "成果创建请求重复，请勿频繁提交")   // 添加幂等注解 - 使用参数防重，1秒内相同参数不允许重复提交
+    @Idempotent(type = IdempotentType.PARAM, timeout = 5, timeUnit = TimeUnit.SECONDS, message = "成果创建请求重复，请勿频繁提交", deleteOnError = true)   // 幂等注解 - 使用参数防重，5秒内相同参数不允许重复提交，失败时允许重试
     public R<AchievementDTO> createAchievement(
             @Valid @RequestBody CreateAchievementDTO createDTO
     ){
@@ -94,7 +97,7 @@ public class AchievementManageController {
     @PatchMapping("/{achievementId}/status")
     @Operation(summary = "更新成果状态", description = "修改成果的发布状态")
     @OperationLog(module = "成果管理", type = OperationType.UPDATE, description = "更新成果状态", recordParams = true, recordResult = false)
-    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId + ':' + #status", timeout = 1, message = "状态更新中，请稍候")
+    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId + ':' + #status", timeout = 2, message = "状态更新中，请稍候")
     public R<Void> updateAchievementStatus(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
             @Parameter(description = "新状态") @RequestParam AchievementStatus status
@@ -141,8 +144,8 @@ public class AchievementManageController {
     @DeleteMapping("/{achievementId}")
     @Operation(summary = "删除成果", description = "删除指定成果及其关联数据")
     @OperationLog(module = "成果管理", type = OperationType.DELETE, description = "删除成果", recordParams = true, recordResult = false)
-    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId", timeout = 2, message = "删除操作正在处理中")
     @Transactional(rollbackFor = Exception.class)
+    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId", timeout = 3, message = "删除操作正在处理中")
     public R<Void> deleteAchievement(
             @Parameter(description = "成果ID") @PathVariable Long achievementId
     ){
@@ -177,5 +180,35 @@ public class AchievementManageController {
 
         log.info("成果删除全部完成: achievementId={}", achievementId);
         return R.ok(null, "成果删除成功");
+    }
+
+
+    /**
+     * 更新成果公开性
+     * 修改成果是否公开（需要编辑权限）
+     */
+    @PatchMapping("/{achievementId}/visibility")
+    @Operation(summary = "更新成果的公开性", description = "修改成果的公开/私有状态")
+    @OperationLog(module = "成果管理", type = OperationType.UPDATE, description = "更新成果公开性", recordParams = true, recordResult = false)
+    @Idempotent(type = IdempotentType.SPEL, key = "#achievementId + ':visibility'", timeout = 2, message = "公开性更新中，请稍候")
+    public R<Void> updateAchievementVisibility(
+            @Parameter(description = "成果ID") @PathVariable Long achievementId,
+            @Parameter(description = "公开性") @RequestParam Boolean isPublic
+    ){
+        Long userId = SecurityUtils.getUserId();
+        log.info("更新成果公开性: achievementId={}, isPublic={}, userId={}",
+                achievementId, isPublic, userId);
+
+        // 权限检查：必须有编辑权限
+        knowledgeSecurityUtils.requireEdit(achievementId);
+
+        Achievement achievement = achievementRepository.findById(achievementId)
+                .orElseThrow(() -> new ControllerException("成果不存在"));
+
+        achievement.setIsPublic(isPublic);
+        achievementRepository.save(achievement);
+
+        log.info("成果公开性更新成功: achievementId={}, isPublic={}", achievementId, isPublic);
+        return R.ok(null, "公开性更新成功");
     }
 }

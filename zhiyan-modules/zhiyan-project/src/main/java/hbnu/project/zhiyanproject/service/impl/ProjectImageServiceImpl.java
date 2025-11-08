@@ -170,7 +170,7 @@ public class ProjectImageServiceImpl implements ProjectImageService {
 
     /**
      * 从URL中提取对象键
-     * 例如：http://localhost:9000/project-covers/2025/01/file.jpg -> 2025/01/file.jpg
+     * 例如：<a href="http://localhost:9000/project-covers/2025/01/file.jpg">...</a> -> 2025/01/file.jpg
      */
     private String extractObjectKeyFromUrl(String url) {
         // 简单实现：提取桶名称后面的路径
