@@ -5,4 +5,8 @@ spring:
     name: zhiyan-wiki
   profiles:
     # 默认使用prod环境，服务器启动时通过参数指定
+<<<<<<< HEAD
     active: prod
+=======
+    active: prod
+>>>>>>> eaaf758d243241a118132c81491509758892a3a1

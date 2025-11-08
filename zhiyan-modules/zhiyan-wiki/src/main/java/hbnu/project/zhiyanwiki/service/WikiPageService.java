@@ -464,8 +464,26 @@ public class WikiPageService {
      * @return 统计信息
      */
     public WikiStatisticsDTO getProjectStatistics(Long projectId) {
+        log.info("获取项目[{}]的Wiki统计信息", projectId);
+        
+        if (projectId == null) {
+            log.warn("projectId为空，返回空统计信息");
+            return WikiStatisticsDTO.builder()
+                    .projectId("0")
+                    .totalPages(0L)
+                    .documentCount(0L)
+                    .directoryCount(0L)
+                    .totalContentSize(0L)
+                    .contributorCount(0)
+                    .recentUpdates(0L)
+                    .totalVersions(0L)
+                    .contributorStats(new HashMap<>())
+                    .build();
+        }
+        
         // 获取所有页面
         List<WikiPage> allPages = wikiPageRepository.findByProjectId(projectId);
+        log.debug("项目[{}]共有{}个Wiki页面", projectId, allPages.size());
 
         // 统计文档和目录数量
         long documentCount = allPages.stream()
@@ -474,6 +492,8 @@ public class WikiPageService {
         long directoryCount = allPages.stream()
                 .filter(p -> p.getPageType() == PageType.DIRECTORY)
                 .count();
+        
+        log.debug("项目[{}]文档数: {}, 目录数: {}", projectId, documentCount, directoryCount);
 
         // 统计总内容大小
         long totalContentSize = allPages.stream()
@@ -482,9 +502,11 @@ public class WikiPageService {
                 .sum();
 
         // 统计贡献者
-        Set<Long> contributors = allPages.stream()
+        Set<Long> contributors = new HashSet<>();
+        allPages.stream()
                 .map(WikiPage::getCreatorId)
-                .collect(Collectors.toSet());
+                .filter(Objects::nonNull)
+                .forEach(contributors::add);
         allPages.stream()
                 .map(WikiPage::getLastEditorId)
                 .filter(Objects::nonNull)
@@ -499,11 +521,25 @@ public class WikiPageService {
         // 统计各贡献者编辑次数（简化版）
         Map<String, Integer> contributorStats = new HashMap<>();
         for (WikiPage page : allPages) {
-            String creatorId = String.valueOf(page.getCreatorId());
-            contributorStats.put(creatorId, contributorStats.getOrDefault(creatorId, 0) + 1);
+            if (page.getCreatorId() != null) {
+                String creatorId = String.valueOf(page.getCreatorId());
+                contributorStats.put(creatorId, contributorStats.getOrDefault(creatorId, 0) + 1);
+            }
+        }
+        
+        // 统计总版本数（需要查询MongoDB，这里简化处理）
+        long totalVersions = 0L;
+        try {
+            for (WikiPage page : allPages) {
+                if (page.getCurrentVersion() != null) {
+                    totalVersions += page.getCurrentVersion();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("统计总版本数时出错: {}", e.getMessage());
         }
 
-        return WikiStatisticsDTO.builder()
+        WikiStatisticsDTO result = WikiStatisticsDTO.builder()
                 .projectId(String.valueOf(projectId))
                 .totalPages((long) allPages.size())
                 .documentCount(documentCount)
@@ -511,8 +547,15 @@ public class WikiPageService {
                 .totalContentSize(totalContentSize)
                 .contributorCount(contributors.size())
                 .recentUpdates(recentUpdates)
+                .totalVersions(totalVersions)
                 .contributorStats(contributorStats)
                 .build();
+        
+        log.info("项目[{}]的Wiki统计信息: 总页面数={}, 文档数={}, 目录数={}, 贡献者数={}", 
+                projectId, result.getTotalPages(), result.getDocumentCount(), 
+                result.getDirectoryCount(), result.getContributorCount());
+        
+        return result;
     }
 
 
