@@ -34,7 +34,12 @@ public enum BucketType {
     /**
      * 用户头像桶
      */
-    USER_AVATARS("useravatars");
+    USER_AVATARS("useravatars"),
+
+    /**
+     * 任务提交相关文件（新增）
+     */
+    TASK_SUBMISSION("tasksubmission");
 
 
     /**
