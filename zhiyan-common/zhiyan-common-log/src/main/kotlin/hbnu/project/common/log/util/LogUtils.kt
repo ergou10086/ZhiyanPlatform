@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import hbnu.project.common.log.model.LogRecord
 import hbnu.project.common.log.model.LogType
 import jakarta.servlet.http.HttpServletRequest
+import kotlin.jvm.JvmName
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.web.context.request.RequestContextHolder
@@ -190,55 +191,10 @@ object LogUtils {
 }
 
 /**
- * Logger 扩展函数
+ * Logger 扩展函数已移至 LoggerExtensions.kt 文件
+ * 请导入：import hbnu.project.common.log.util.logger
+ * 或：import hbnu.project.common.log.util.*
  */
-
-/**
- * 获取 Logger
- */
-inline fun <reified T> T.logger(): Logger {
-    return LoggerFactory.getLogger(T::class.java)
-}
-
-/**
- * Info 日志 - DSL 风格
- */
-inline fun Logger.info(message: () -> String) {
-    if (this.isInfoEnabled) {
-        this.info(message())
-    }
-}
-
-/**
- * Debug 日志 - DSL 风格
- */
-inline fun Logger.debug(message: () -> String) {
-    if (this.isDebugEnabled) {
-        this.debug(message())
-    }
-}
-
-/**
- * Warn 日志 - DSL 风格
- */
-inline fun Logger.warn(message: () -> String) {
-    if (this.isWarnEnabled) {
-        this.warn(message())
-    }
-}
-
-/**
- * Error 日志 - DSL 风格
- */
-inline fun Logger.error(throwable: Throwable? = null, message: () -> String) {
-    if (this.isErrorEnabled) {
-        if (throwable != null) {
-            this.error(message(), throwable)
-        } else {
-            this.error(message())
-        }
-    }
-}
 
 /**
  * 彩色日志输出

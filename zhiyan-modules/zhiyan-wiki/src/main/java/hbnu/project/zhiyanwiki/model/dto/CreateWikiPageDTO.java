@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanwiki.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import hbnu.project.zhiyanwiki.model.enums.PageType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,9 +17,10 @@ import lombok.NoArgsConstructor;
  * @author ErgouTree
  */
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateWikiPageDTO {
 
     /**
@@ -37,7 +39,6 @@ public class CreateWikiPageDTO {
     /**
      * 页面类型（目录DIRECTORY或文档DOCUMENT，默认文档）
      */
-    @Builder.Default
     private PageType pageType = PageType.DOCUMENT;
 
     /**
@@ -58,7 +59,6 @@ public class CreateWikiPageDTO {
     /**
      * 是否公开（默认false）
      */
-    @Builder.Default
     private Boolean isPublic = false;
 
     /**

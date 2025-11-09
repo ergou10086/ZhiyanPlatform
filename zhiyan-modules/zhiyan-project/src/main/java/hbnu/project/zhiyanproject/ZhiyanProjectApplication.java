@@ -19,6 +19,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyancommonsecurity",
         "hbnu.project.zhiyancommonoss",
         "hbnu.project.zhiyancommonswagger",
+        "hbnu.project.common.log",  // 日志模块
 })
 @EnableJpaRepositories(basePackages = "hbnu.project.zhiyanproject.repository")
 @EntityScan(basePackages = "hbnu.project.zhiyanproject.model.entity")

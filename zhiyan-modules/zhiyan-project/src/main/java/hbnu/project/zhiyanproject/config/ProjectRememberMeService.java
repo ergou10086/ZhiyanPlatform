@@ -2,6 +2,7 @@ package hbnu.project.zhiyanproject.config;
 
 import hbnu.project.zhiyancommonsecurity.service.RememberMeService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,8 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@ConditionalOnMissingBean(RememberMeService.class)
+@ConditionalOnClass(name = "hbnu.project.zhiyancommonsecurity.service.RememberMeService")
+@ConditionalOnMissingBean(name = {"inMemoryRememberMeService", "customRememberMeServiceImpl"})
 public class ProjectRememberMeService implements RememberMeService {
 
     @Override

@@ -57,7 +57,7 @@ CREATE TABLE tasks (
     project_id BIGINT NOT NULL COMMENT '所属项目ID（本服务内关联projects表）',
     title VARCHAR(200) NOT NULL COMMENT '任务标题',
     description TEXT COMMENT '任务描述',
-    status ENUM('TODO', 'IN_PROGRESS', 'BLOCKED', 'DONE') DEFAULT 'TODO' COMMENT '任务状态（待办/进行中/阻塞/已完成）',
+    status ENUM('TODO', 'IN_PROGRESS', 'BLOCKED', 'PENDING_REVIEW', 'DONE') DEFAULT 'TODO' COMMENT '任务状态（待办/进行中/阻塞/待审核/已完成）',
     priority ENUM('HIGH', 'MEDIUM', 'LOW') DEFAULT 'MEDIUM' COMMENT '任务优先级（高/中/低）',
     -- 移除与用户服务users表的外键约束，仅保留逻辑关联的用户ID
     assignee_id JSON NOT NULL COMMENT '负责人ID（逻辑关联用户服务的用户ID，可为空表示未分配）JSON类型存储多个负责人ID',

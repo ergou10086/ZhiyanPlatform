@@ -8,12 +8,13 @@ import hbnu.project.zhiyanproject.model.dto.TaskSubmissionDTO;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.TaskSubmission;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
-import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ReviewStatus;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import hbnu.project.zhiyanproject.model.form.ReviewSubmissionRequest;
 import hbnu.project.zhiyanproject.model.form.SubmitTaskRequest;
+import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
+import hbnu.project.zhiyanproject.repository.ProjectRepository;
 import hbnu.project.zhiyanproject.repository.TaskRepository;
 import hbnu.project.zhiyanproject.repository.TaskSubmissionRepository;
 import hbnu.project.zhiyanproject.repository.TaskUserRepository;
@@ -32,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +50,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     private final TaskRepository taskRepository;
     private final TaskUserRepository taskUserRepository;
     private final ProjectMemberRepository projectMemberRepository;
+    private final ProjectRepository projectRepository;
     private final UserCacheService userCacheService;
     private final ObjectMapper objectMapper;
 
@@ -142,18 +145,15 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             throw new IllegalArgumentException("该提交已审核，无法重复操作");
         }
 
-        // 3. 验证审核权限（必须是项目负责人或任务创建者）
+        // 3. 验证审核权限（必须是任务创建者）
         Tasks task = taskRepository.findById(submission.getTaskId())
                 .orElseThrow(() -> new IllegalArgumentException("关联任务不存在"));
 
-        // 检查是否为项目负责人
-        boolean isOwner = projectMemberRepository.findUserRoleInProject(reviewerId, task.getProjectId())
-                .map(role -> role == ProjectMemberRole.OWNER)
-                .orElse(false);
+        // 检查是否为任务创建者
         boolean isCreator = task.getCreatedBy().equals(reviewerId);
 
-        if (!isOwner && !isCreator) {
-            throw new IllegalArgumentException("只有项目负责人或任务创建者才能审核提交");
+        if (!isCreator) {
+            throw new IllegalArgumentException("只有任务创建者才能审核提交");
         }
 
         // 4. 验证审核结果
@@ -220,6 +220,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TaskSubmissionDTO getSubmissionDetail(Long submissionId) {
         TaskSubmission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new IllegalArgumentException("提交记录不存在"));
@@ -235,6 +236,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskSubmissionDTO> getTaskSubmissions(Long taskId) {
         List<TaskSubmission> submissions = submissionRepository
                 .findByTaskIdAndIsDeletedFalseOrderByVersionDesc(taskId);
@@ -248,6 +250,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TaskSubmissionDTO getLatestSubmission(Long taskId) {
         TaskSubmission submission = submissionRepository
                 .findFirstByTaskIdAndIsDeletedFalseOrderByVersionDesc(taskId)
@@ -260,13 +263,16 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     }
 
     @Override
-    public Page<TaskSubmissionDTO> getPendingSubmissions(Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<TaskSubmissionDTO> getPendingSubmissions(Long userId, Pageable pageable) {
+        // 返回用户相关的待审核提交：包括用户提交的 + 需要用户审核的（任务创建者是该用户）
         return submissionRepository
-                .findByReviewStatusAndIsDeletedFalseOrderBySubmissionTimeDesc(ReviewStatus.PENDING, pageable)
+                .findPendingSubmissionsForUser(userId, ReviewStatus.PENDING, pageable)
                 .map(this::convertToDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TaskSubmissionDTO> getProjectPendingSubmissions(Long projectId, Pageable pageable) {
         return submissionRepository
                 .findByProjectIdAndReviewStatusAndIsDeletedFalseOrderBySubmissionTimeDesc(
@@ -275,6 +281,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<TaskSubmissionDTO> getUserSubmissions(Long userId, Pageable pageable) {
         return submissionRepository
                 .findBySubmitterIdAndIsDeletedFalseOrderBySubmissionTimeDesc(userId, pageable)
@@ -282,14 +289,45 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     }
 
     @Override
-    public long countPendingSubmissions() {
-        return submissionRepository.countByReviewStatusAndIsDeletedFalse(ReviewStatus.PENDING);
+    public long countPendingSubmissions(Long userId) {
+        // 统计用户相关的待审核提交：包括用户提交的 + 需要用户审核的（任务创建者是该用户）
+        return submissionRepository.countPendingSubmissionsForUser(userId, ReviewStatus.PENDING);
     }
 
     @Override
     public long countProjectPendingSubmissions(Long projectId) {
         return submissionRepository.countByProjectIdAndReviewStatusAndIsDeletedFalse(
                 projectId, ReviewStatus.PENDING);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TaskSubmissionDTO> getMyPendingSubmissions(Long userId, Pageable pageable) {
+        // 查询我提交的待审核任务（我提交的，等待别人审核）
+        return submissionRepository
+                .findMyPendingSubmissions(userId, ReviewStatus.PENDING, pageable)
+                .map(this::convertToDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TaskSubmissionDTO> getPendingSubmissionsForReview(Long userId, Pageable pageable) {
+        // 查询待我审核的提交（别人提交的，需要我审核的，因为我是任务创建者）
+        return submissionRepository
+                .findPendingSubmissionsForReviewer(userId, ReviewStatus.PENDING, pageable)
+                .map(this::convertToDTO);
+    }
+
+    @Override
+    public long countMyPendingSubmissions(Long userId) {
+        // 统计我提交的待审核任务数量
+        return submissionRepository.countMyPendingSubmissions(userId, ReviewStatus.PENDING);
+    }
+
+    @Override
+    public long countPendingSubmissionsForReview(Long userId) {
+        // 统计待我审核的提交数量（任务创建者是我）
+        return submissionRepository.countPendingSubmissionsForReviewer(userId, ReviewStatus.PENDING);
     }
 
     /**
@@ -328,14 +366,17 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             log.warn("获取用户信息失败", e);
         }
 
-        // 安全地获取项目名称，处理懒加载异常
+        // 安全地获取项目名称，通过 projectId 直接查询，避免懒加载问题
         String projectName = null;
         try {
-            if (task != null && task.getProject() != null) {
-                projectName = task.getProject().getName();
+            if (submission.getProjectId() != null) {
+                Optional<Project> projectOpt = projectRepository.findById(submission.getProjectId());
+                if (projectOpt.isPresent()) {
+                    projectName = projectOpt.get().getName();
+                }
             }
-        } catch (org.hibernate.LazyInitializationException e) {
-            log.warn("无法访问懒加载的Project实体，taskId: {}, projectId: {}", submission.getTaskId(), submission.getProjectId());
+        } catch (Exception e) {
+            log.warn("获取项目名称失败，projectId: {}", submission.getProjectId(), e);
             projectName = null;
         }
 
@@ -343,6 +384,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
                 .id(String.valueOf(submission.getId()))
                 .taskId(String.valueOf(submission.getTaskId()))
                 .taskTitle(task != null ? task.getTitle() : null)
+                .taskCreatorId(task != null && task.getCreatedBy() != null ? String.valueOf(task.getCreatedBy()) : null)
                 .projectId(String.valueOf(submission.getProjectId()))
                 .projectName(projectName)
                 .submitterId(String.valueOf(submission.getSubmitterId()))
