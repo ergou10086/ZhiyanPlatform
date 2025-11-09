@@ -113,11 +113,11 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
         submission = submissionRepository.save(submission);
         log.info("任务提交成功: submissionId={}, version={}", submission.getId(), nextVersion);
 
-        // 7. 如果是最终提交，更新任务状态为已提交（可选，取决于是否扩展了TaskStatus枚举）
-        // 如果没有扩展TaskStatus，可以保持IN_PROGRESS状态
+        // 7. 如果是最终提交，更新任务状态为待审核
         if (Boolean.TRUE.equals(request.getIsFinal())) {
-            // task.setStatus(TaskStatus.SUBMITTED); // 如果扩展了枚举则启用
-            // taskRepository.save(task);
+            task.setStatus(TaskStatus.PENDING_REVIEW);
+            taskRepository.save(task);
+            log.info("任务状态已更新为待审核: taskId={}", taskId);
         }
 
         // 8. 转换为DTO返回
@@ -328,12 +328,23 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             log.warn("获取用户信息失败", e);
         }
 
+        // 安全地获取项目名称，处理懒加载异常
+        String projectName = null;
+        try {
+            if (task != null && task.getProject() != null) {
+                projectName = task.getProject().getName();
+            }
+        } catch (org.hibernate.LazyInitializationException e) {
+            log.warn("无法访问懒加载的Project实体，taskId: {}, projectId: {}", submission.getTaskId(), submission.getProjectId());
+            projectName = null;
+        }
+
         return TaskSubmissionDTO.builder()
                 .id(String.valueOf(submission.getId()))
                 .taskId(String.valueOf(submission.getTaskId()))
-                .taskTitle(task.getTitle())
+                .taskTitle(task != null ? task.getTitle() : null)
                 .projectId(String.valueOf(submission.getProjectId()))
-                .projectName(task.getProject() != null ? task.getProject().getName() : null)
+                .projectName(projectName)
                 .submitterId(String.valueOf(submission.getSubmitterId()))
                 .submitter(submitter)
                 .submissionType(submission.getSubmissionType())
@@ -351,7 +362,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
                 .createdAt(instantToLocalDateTime(submission.getCreatedAt()))
                 .updatedAt(instantToLocalDateTime(submission.getUpdatedAt()))
                 .build();
-    }
+        }
 
     /**
      * 转换实体为DTO（不带任务信息）

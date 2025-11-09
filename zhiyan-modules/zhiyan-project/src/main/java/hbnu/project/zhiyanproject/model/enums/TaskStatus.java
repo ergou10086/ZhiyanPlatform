@@ -23,6 +23,11 @@ public enum TaskStatus {
     BLOCKED("阻塞", "任务被阻塞"),
 
     /**
+     * 待审核
+     */
+    PENDING_REVIEW("待审核", "任务已提交，等待审核"),
+
+    /**
      * 已完成
      */
     DONE("已完成", "任务已完成");
