@@ -175,7 +175,7 @@ public class MinioService {
         String bucketName = minioUtils.getBucketName(bucketType);
 
         try {
-            if (bucketExists(bucketName)) {
+            if (!bucketExists(bucketName)) {
                 createBucket(bucketName);
             }
 

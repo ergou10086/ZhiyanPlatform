@@ -84,6 +84,11 @@ public class MinioProperties {
          * 用户头像桶
          */
         private String userAvatars = "user-avatars";
+
+        /**
+         * 任务提交文件桶
+         */
+        private String taskSubmission = "task-submission";
     }
 
     /**

@@ -43,6 +43,8 @@ public class MinioUtils {
                 return buckets.getProjectCovers();
             case USER_AVATARS:
                 return buckets.getUserAvatars();
+            case TASK_SUBMISSION:
+                return buckets.getTaskSubmission();
             default:
                 throw new IllegalArgumentException("未知的桶类型: " + bucketType);
         }
