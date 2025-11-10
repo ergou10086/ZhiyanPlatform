@@ -33,6 +33,9 @@ public class TaskSubmissionDTO {
     @Schema(description = "任务标题", example = "设计数据库模型")
     private String taskTitle;
 
+    @Schema(description = "任务创建者ID", example = "1977989681735929856")
+    private String taskCreatorId;
+
     @Schema(description = "项目ID", example = "1977989681735929856")
     private String projectId;
 

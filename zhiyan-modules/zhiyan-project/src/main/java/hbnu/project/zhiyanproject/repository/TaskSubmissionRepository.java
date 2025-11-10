@@ -82,6 +82,7 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
     Integer getNextVersionNumber(@Param("taskId") Long taskId);
 
     /**
+<<<<<<< HEAD
      * 查询我创建的任务中的待审核提交（分页）
      * 只查询我创建的任务，且任务所属项目未删除
      */
@@ -97,10 +98,29 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
            "ORDER BY ts.submissionTime DESC")
     Page<TaskSubmission> findPendingSubmissionsForMyCreatedTasks(
             @Param("creatorId") Long creatorId,
+=======
+     * 查询需要指定用户审核的待审核提交记录（任务创建者是该用户）
+     * 
+     * @param taskCreatorId 任务创建者ID
+     * @param reviewStatus 审核状态
+     * @param pageable 分页参数
+     * @return 提交记录分页
+     */
+    @Query("SELECT s FROM TaskSubmission s " +
+           "JOIN Tasks t ON s.taskId = t.id " +
+           "WHERE t.createdBy = :taskCreatorId " +
+           "AND s.reviewStatus = :reviewStatus " +
+           "AND s.isDeleted = false " +
+           "AND t.isDeleted = false " +
+           "ORDER BY s.submissionTime DESC")
+    Page<TaskSubmission> findPendingSubmissionsForReviewer(
+            @Param("taskCreatorId") Long taskCreatorId,
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
             @Param("reviewStatus") ReviewStatus reviewStatus,
             Pageable pageable);
 
     /**
+<<<<<<< HEAD
      * 统计我创建的任务中的待审核提交数量
      */
     @Query("SELECT COUNT(ts) FROM TaskSubmission ts " +
@@ -114,5 +134,95 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
            ")")
     long countPendingSubmissionsForMyCreatedTasks(
             @Param("creatorId") Long creatorId,
+=======
+     * 查询用户相关的待审核提交记录（包括：用户提交的 + 需要用户审核的）
+     * 
+     * @param userId 用户ID
+     * @param reviewStatus 审核状态
+     * @param pageable 分页参数
+     * @return 提交记录分页
+     */
+    @Query("SELECT s FROM TaskSubmission s " +
+           "LEFT JOIN Tasks t ON s.taskId = t.id " +
+           "WHERE s.reviewStatus = :reviewStatus " +
+           "AND s.isDeleted = false " +
+           "AND (s.submitterId = :userId OR t.createdBy = :userId) " +
+           "AND (t.isDeleted = false OR t.id IS NULL) " +
+           "ORDER BY s.submissionTime DESC")
+    Page<TaskSubmission> findPendingSubmissionsForUser(
+            @Param("userId") Long userId,
+            @Param("reviewStatus") ReviewStatus reviewStatus,
+            Pageable pageable);
+
+    /**
+     * 统计用户相关的待审核提交数量（包括：用户提交的 + 需要用户审核的）
+     * 
+     * @param userId 用户ID
+     * @param reviewStatus 审核状态
+     * @return 数量
+     */
+    @Query("SELECT COUNT(s) FROM TaskSubmission s " +
+           "LEFT JOIN Tasks t ON s.taskId = t.id " +
+           "WHERE s.reviewStatus = :reviewStatus " +
+           "AND s.isDeleted = false " +
+           "AND (s.submitterId = :userId OR t.createdBy = :userId) " +
+           "AND (t.isDeleted = false OR t.id IS NULL)")
+    long countPendingSubmissionsForUser(
+            @Param("userId") Long userId,
+            @Param("reviewStatus") ReviewStatus reviewStatus);
+
+    /**
+     * 查询我提交的待审核任务（我提交的，等待别人审核）
+     * 
+     * @param submitterId 提交人ID
+     * @param reviewStatus 审核状态
+     * @param pageable 分页参数
+     * @return 提交记录分页
+     */
+    @Query("SELECT s FROM TaskSubmission s " +
+           "JOIN Tasks t ON s.taskId = t.id " +
+           "WHERE s.submitterId = :submitterId " +
+           "AND s.reviewStatus = :reviewStatus " +
+           "AND s.isDeleted = false " +
+           "AND t.isDeleted = false " +
+           "ORDER BY s.submissionTime DESC")
+    Page<TaskSubmission> findMyPendingSubmissions(
+            @Param("submitterId") Long submitterId,
+            @Param("reviewStatus") ReviewStatus reviewStatus,
+            Pageable pageable);
+
+    /**
+     * 统计我提交的待审核任务数量
+     * 
+     * @param submitterId 提交人ID
+     * @param reviewStatus 审核状态
+     * @return 数量
+     */
+    @Query("SELECT COUNT(s) FROM TaskSubmission s " +
+           "JOIN Tasks t ON s.taskId = t.id " +
+           "WHERE s.submitterId = :submitterId " +
+           "AND s.reviewStatus = :reviewStatus " +
+           "AND s.isDeleted = false " +
+           "AND t.isDeleted = false")
+    long countMyPendingSubmissions(
+            @Param("submitterId") Long submitterId,
+            @Param("reviewStatus") ReviewStatus reviewStatus);
+
+    /**
+     * 统计待我审核的提交数量（任务创建者是我）
+     * 
+     * @param taskCreatorId 任务创建者ID
+     * @param reviewStatus 审核状态
+     * @return 数量
+     */
+    @Query("SELECT COUNT(s) FROM TaskSubmission s " +
+           "JOIN Tasks t ON s.taskId = t.id " +
+           "WHERE t.createdBy = :taskCreatorId " +
+           "AND s.reviewStatus = :reviewStatus " +
+           "AND s.isDeleted = false " +
+           "AND t.isDeleted = false")
+    long countPendingSubmissionsForReviewer(
+            @Param("taskCreatorId") Long taskCreatorId,
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
             @Param("reviewStatus") ReviewStatus reviewStatus);
 }

@@ -78,7 +78,7 @@ public class Tasks extends BaseAuditEntity {
      * 任务状态
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", columnDefinition = "ENUM('TODO','IN_PROGRESS','BLOCKED','DONE') DEFAULT 'TODO' COMMENT '任务状态（待办/进行中/阻塞/已完成）'")
+    @Column(name = "status", columnDefinition = "ENUM('TODO','IN_PROGRESS','BLOCKED','PENDING_REVIEW','DONE') DEFAULT 'TODO' COMMENT '任务状态（待办/进行中/阻塞/待审核/已完成）'")
     private TaskStatus status = TaskStatus.TODO;
 
     /**

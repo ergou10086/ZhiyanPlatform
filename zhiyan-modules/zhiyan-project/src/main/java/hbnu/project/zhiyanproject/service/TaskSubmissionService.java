@@ -70,11 +70,13 @@ public interface TaskSubmissionService {
 
     /**
      * 获取待审核的提交记录（分页）
+     * 返回用户相关的待审核提交：包括用户提交的 + 需要用户审核的（任务创建者是该用户）
      *
+     * @param userId   用户ID
      * @param pageable 分页参数
      * @return 提交记录分页
      */
-    Page<TaskSubmissionDTO> getPendingSubmissions(Pageable pageable);
+    Page<TaskSubmissionDTO> getPendingSubmissions(Long userId, Pageable pageable);
 
     /**
      * 获取项目的待审核提交记录（分页）
@@ -96,10 +98,12 @@ public interface TaskSubmissionService {
 
     /**
      * 统计待审核的提交数量
+     * 统计用户相关的待审核提交：包括用户提交的 + 需要用户审核的（任务创建者是该用户）
      *
+     * @param userId 用户ID
      * @return 数量
      */
-    long countPendingSubmissions();
+    long countPendingSubmissions(Long userId);
 
     /**
      * 统计项目的待审核提交数量
@@ -110,19 +114,51 @@ public interface TaskSubmissionService {
     long countProjectPendingSubmissions(Long projectId);
 
     /**
+<<<<<<< HEAD
      * 获取我创建的任务中的待审核提交（分页）
+=======
+     * 获取我提交的待审核任务（我提交的，等待别人审核）
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
      *
      * @param userId   用户ID
      * @param pageable 分页参数
      * @return 提交记录分页
      */
+<<<<<<< HEAD
     Page<TaskSubmissionDTO> getMyCreatedTasksPendingSubmissions(Long userId, Pageable pageable);
 
     /**
      * 统计我创建的任务中的待审核提交数量
+=======
+    Page<TaskSubmissionDTO> getMyPendingSubmissions(Long userId, Pageable pageable);
+
+    /**
+     * 获取待我审核的提交（别人提交的，需要我审核的，因为我是任务创建者）
+     *
+     * @param userId   用户ID（任务创建者ID）
+     * @param pageable 分页参数
+     * @return 提交记录分页
+     */
+    Page<TaskSubmissionDTO> getPendingSubmissionsForReview(Long userId, Pageable pageable);
+
+    /**
+     * 统计我提交的待审核任务数量
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
      *
      * @param userId 用户ID
      * @return 数量
      */
+<<<<<<< HEAD
     long countMyCreatedTasksPendingSubmissions(Long userId);
+=======
+    long countMyPendingSubmissions(Long userId);
+
+    /**
+     * 统计待我审核的提交数量（任务创建者是我）
+     *
+     * @param userId 用户ID（任务创建者ID）
+     * @return 数量
+     */
+    long countPendingSubmissionsForReview(Long userId);
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
 }
