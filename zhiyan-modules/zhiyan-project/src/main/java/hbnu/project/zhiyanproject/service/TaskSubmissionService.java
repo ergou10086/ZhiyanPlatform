@@ -108,4 +108,21 @@ public interface TaskSubmissionService {
      * @return 数量
      */
     long countProjectPendingSubmissions(Long projectId);
+
+    /**
+     * 获取我创建的任务中的待审核提交（分页）
+     *
+     * @param userId   用户ID
+     * @param pageable 分页参数
+     * @return 提交记录分页
+     */
+    Page<TaskSubmissionDTO> getMyCreatedTasksPendingSubmissions(Long userId, Pageable pageable);
+
+    /**
+     * 统计我创建的任务中的待审核提交数量
+     *
+     * @param userId 用户ID
+     * @return 数量
+     */
+    long countMyCreatedTasksPendingSubmissions(Long userId);
 }

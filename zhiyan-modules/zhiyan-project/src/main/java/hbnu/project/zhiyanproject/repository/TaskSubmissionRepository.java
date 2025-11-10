@@ -80,4 +80,39 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
     @Query("SELECT COALESCE(MAX(s.version), 0) + 1 FROM TaskSubmission s " +
             "WHERE s.taskId = :taskId AND s.isDeleted = false")
     Integer getNextVersionNumber(@Param("taskId") Long taskId);
+
+    /**
+     * 查询我创建的任务中的待审核提交（分页）
+     * 只查询我创建的任务，且任务所属项目未删除
+     */
+    @Query("SELECT ts FROM TaskSubmission ts " +
+           "WHERE ts.reviewStatus = :reviewStatus " +
+           "AND ts.isDeleted = false " +
+           "AND ts.taskId IN (" +
+           "  SELECT t.id FROM Tasks t " +
+           "  WHERE t.createdBy = :creatorId " +
+           "  AND t.isDeleted = false " +
+           "  AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)" +
+           ") " +
+           "ORDER BY ts.submissionTime DESC")
+    Page<TaskSubmission> findPendingSubmissionsForMyCreatedTasks(
+            @Param("creatorId") Long creatorId,
+            @Param("reviewStatus") ReviewStatus reviewStatus,
+            Pageable pageable);
+
+    /**
+     * 统计我创建的任务中的待审核提交数量
+     */
+    @Query("SELECT COUNT(ts) FROM TaskSubmission ts " +
+           "WHERE ts.reviewStatus = :reviewStatus " +
+           "AND ts.isDeleted = false " +
+           "AND ts.taskId IN (" +
+           "  SELECT t.id FROM Tasks t " +
+           "  WHERE t.createdBy = :creatorId " +
+           "  AND t.isDeleted = false " +
+           "  AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)" +
+           ")")
+    long countPendingSubmissionsForMyCreatedTasks(
+            @Param("creatorId") Long creatorId,
+            @Param("reviewStatus") ReviewStatus reviewStatus);
 }

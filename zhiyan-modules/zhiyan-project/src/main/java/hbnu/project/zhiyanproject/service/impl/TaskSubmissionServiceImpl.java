@@ -379,4 +379,18 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     private LocalDateTime instantToLocalDateTime(Instant instant) {
         return instant != null ? LocalDateTime.ofInstant(instant, ZoneId.systemDefault()) : null;
     }
+
+    @Override
+    public Page<TaskSubmissionDTO> getMyCreatedTasksPendingSubmissions(Long userId, Pageable pageable) {
+        log.debug("查询用户[{}]创建的任务中的待审核提交", userId);
+        return submissionRepository
+                .findPendingSubmissionsForMyCreatedTasks(userId, ReviewStatus.PENDING, pageable)
+                .map(this::convertToDTO);
+    }
+
+    @Override
+    public long countMyCreatedTasksPendingSubmissions(Long userId) {
+        log.debug("统计用户[{}]创建的任务中的待审核提交数量", userId);
+        return submissionRepository.countPendingSubmissionsForMyCreatedTasks(userId, ReviewStatus.PENDING);
+    }
 }
