@@ -7,6 +7,7 @@ import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
+import hbnu.project.zhiyanknowledge.model.entity.FileUploadSession;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
 import org.mapstruct.Mapper;
@@ -14,8 +15,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +142,21 @@ public abstract class AchievementConverter {
     @Mapping(target = "uploadAt", ignore = true)
     @Mapping(target = "achievement", ignore = true)
     public abstract AchievementFile uploadDTOToFile(UploadFileDTO dto);
+
+    /**
+     * FileUploadSession 转 UploadSessionDTO
+     */
+    @Mapping(target = "sessionId", source = "id")
+    @Mapping(target = "status", source = "status", qualifiedByName = "getStatusName")
+    @Mapping(target = "uploadedChunks", source = "uploadedChunksJson", qualifiedByName = "parseUploadedChunks")
+    @Mapping(target = "progress", source = ".", qualifiedByName = "calculateProgress")
+    public abstract UploadSessionDTO toUploadSessionDTO(FileUploadSession session);
+
+    /**
+     * FileUploadSession 列表转 UploadSessionDTO 列表
+     */
+    public abstract List<UploadSessionDTO> toUploadSessionDTOList(List<FileUploadSession> sessions);
+
 
 
     // ==================== Page 转换 ====================
@@ -294,4 +310,40 @@ public abstract class AchievementConverter {
     protected Boolean getIsPublicOrDefault(Boolean isPublic) {
         return isPublic != null ? isPublic : false;
     }
+
+    /**
+     * 将 UploadStatus 枚举转换为字符串名称
+     */
+    @Named("getStatusName")
+    protected String getStatusName(FileUploadSession.UploadStatus status) {
+        return status != null ? status.name() : "";
+    }
+
+    /**
+     * 解析上传的分片列表JSON（从uploadedChunksJson字段）
+     */
+    @Named("parseUploadedChunks")
+    protected List<Integer> parseUploadedChunks(String uploadedChunksJson) {
+        if (uploadedChunksJson == null || uploadedChunksJson.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(uploadedChunksJson, new TypeReference<List<Integer>>() {});
+        } catch (JsonProcessingException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 计算上传进度百分比
+     */
+    @Named("calculateProgress")
+    protected double calculateProgress(FileUploadSession session) {
+        if (session.getTotalChunks() == 0) {
+            return 0.0;
+        }
+        List<Integer> uploadedChunks = parseUploadedChunks(session.getUploadedChunksJson());
+        return (double) uploadedChunks.size() / session.getTotalChunks() * 100;
+    }
+
 }

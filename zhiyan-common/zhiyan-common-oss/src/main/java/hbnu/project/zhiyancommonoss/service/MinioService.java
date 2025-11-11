@@ -9,6 +9,7 @@ import hbnu.project.zhiyancommonoss.entity.FileUploadRequest;
 import hbnu.project.zhiyancommonoss.enums.BucketType;
 import hbnu.project.zhiyancommonoss.exception.OssException;
 import hbnu.project.zhiyancommonoss.util.MinioUtils;
+
 import io.minio.*;
 import io.minio.http.Method;
 import io.minio.messages.Bucket;
@@ -19,10 +20,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import hbnu.project.zhiyancommonoss.properties.MinioProperties;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
+import software.amazon.awssdk.services.s3.model.ListPartsResponse;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +51,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author ErgouTree
  * @participate akoiv
+ * @rewrite ErgouTree
  */
 @Slf4j
 @Service
@@ -44,6 +63,30 @@ public class MinioService {
 
     @Autowired
     private final MinioUtils minioUtils;
+
+    @Autowired
+    private final MinioProperties minioProperties;
+
+//    // 注入 S3Client Bean
+//    @Autowired
+//    private final S3Client s3Client;
+
+    /**
+     * 构建兼容 MinIO 的 S3Client（用于分片上传相关API）
+     */
+    private S3Client buildS3Client() {
+        String endpoint = minioProperties.getEndpoint();
+        String accessKey = minioProperties.getAccessKey();
+        String secretKey = minioProperties.getSecretKey();
+
+        return S3Client.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                // MinIO 不强制 Region，但 AWS SDK 需要一个值，使用常见的 us-east-1
+                .region(Region.US_EAST_1)
+                .endpointOverride(URI.create(endpoint))
+                .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())
+                .build();
+    }
 
     /**
      * 检查桶是否存在
@@ -407,6 +450,179 @@ public class MinioService {
         } catch (Exception e) {
             log.error("文件复制失败", e);
             throw new FileException("文件复制失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 初始化分片上传
+     *
+     * @param bucketName 桶名称
+     * @param objectKey 对象键
+     * @return uploadId
+     */
+    public String initiateMultipartUpload(String bucketName, String objectKey) {
+        try{
+            if(!bucketExists(bucketName)){
+                createBucket(bucketName);
+            }
+            // 使用 try-with-resources 自动关闭 S3Client
+            try (S3Client s3 = buildS3Client()) {
+                CreateMultipartUploadResponse resp = s3.createMultipartUpload(
+                        CreateMultipartUploadRequest.builder()
+                                .bucket(bucketName)
+                                .key(objectKey)
+                                .build()
+                );
+                String uploadId = resp.uploadId();
+                log.info("初始化分片上传成功: bucket={}, object={}, uploadId={}", bucketName, objectKey, uploadId);
+                return uploadId;
+            }
+        }catch (FileException e) {
+            log.error("初始化分片上传失败: bucket={}, object={}", bucketName, objectKey, e);
+            throw new OssException("初始化分片上传失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 上传分片
+     *
+     * @param bucketName 桶名称
+     * @param objectKey 对象键
+     * @param uploadId 上传ID
+     * @param partNumber 分片号(从1开始)
+     * @param data 分片数据
+     * @param size 分片大小
+     * @return 分片ETag
+     */
+    public String uploadPart(String bucketName, String objectKey, String uploadId, int partNumber, InputStream data, long size) {
+        try{
+            try (S3Client s3 = buildS3Client()) {
+                UploadPartResponse resp = s3.uploadPart(
+                        UploadPartRequest.builder()
+                                .bucket(bucketName)
+                                .key(objectKey)
+                                .uploadId(uploadId)
+                                .partNumber(partNumber)
+                                .contentLength(size)
+                                .build(),
+                        software.amazon.awssdk.core.sync.RequestBody.fromInputStream(data, size)
+                );
+                String etag = resp.eTag();
+                log.info("上传分片成功: bucket={}, object={}, uploadId={}, partNumber={}, etag={}",
+                        bucketName, objectKey, uploadId, partNumber, etag);
+
+                return etag;
+            }
+        }catch (FileException e) {
+            log.error("上传分片失败: bucket={}, object={}, uploadId={}, partNumber={}",
+                    bucketName, objectKey, uploadId, partNumber, e);
+            throw new OssException("上传分片失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 完成分片上传
+     */
+    public String completeMultipartUpload(String bucketName, String objectKey, String uploadId, io.minio.messages.Part[] parts) {
+        try{
+            try (S3Client s3 = buildS3Client()) {
+                List<CompletedPart> completed = new ArrayList<>();
+                if (parts != null) {
+                    for (io.minio.messages.Part p : parts) {
+                        completed.add(CompletedPart.builder()
+                                .partNumber(p.partNumber())
+                                .eTag(p.etag())
+                                .build());
+                    }
+                } else {
+                    // 若未提供parts，则自动列举已上传分片
+                    ListPartsResponse listResp = s3.listParts(
+                            ListPartsRequest.builder()
+                                    .bucket(bucketName)
+                                    .key(objectKey)
+                                    .uploadId(uploadId)
+                                    .build()
+                    );
+                    listResp.parts().forEach(ap -> completed.add(
+                            CompletedPart.builder().partNumber(ap.partNumber()).eTag(ap.eTag()).build()
+                    ));
+                }
+
+                CompletedMultipartUpload cmp = CompletedMultipartUpload.builder()
+                        .parts(completed)
+                        .build();
+                var resp = s3.completeMultipartUpload(
+                        CompleteMultipartUploadRequest.builder()
+                                .bucket(bucketName)
+                                .key(objectKey)
+                                .uploadId(uploadId)
+                                .multipartUpload(cmp)
+                                .build()
+                );
+                String etag = resp.eTag();
+                log.info("完成分片上传: bucket={}, object={}, uploadId={}, etag={}", bucketName, objectKey, uploadId, etag);
+                return etag;
+            }
+        }catch (FileException e) {
+            log.error("完成分片上传失败: bucket={}, object={}, uploadId={}",
+                    bucketName, objectKey, uploadId, e);
+            throw new OssException("完成分片上传失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 自动列举分片并完成上传（简化上层调用）
+     */
+    public String completeMultipartUploadAuto(String bucketName, String objectKey, String uploadId) {
+        return completeMultipartUpload(bucketName, objectKey, uploadId, null);
+    }
+
+    /**
+     * 取消分片上传
+     *
+     * @param bucketName 桶名称
+     * @param objectKey 对象键
+     * @param uploadId 上传ID
+     */
+    public void abortMultipartUpload(String bucketName, String objectKey, String uploadId) {
+        try {
+            try(S3Client s3 = buildS3Client()) {
+                s3.abortMultipartUpload(
+                        AbortMultipartUploadRequest.builder()
+                                .bucket(bucketName)
+                                .key(objectKey)
+                                .uploadId(uploadId)
+                                .build()
+                );
+
+                log.info("取消分片上传成功: bucket={}, object={}, uploadId={}",
+                        bucketName, objectKey, uploadId);
+            }
+        } catch (Exception e) {
+            log.error("取消分片上传失败: bucket={}, object={}, uploadId={}",
+                    bucketName, objectKey, uploadId, e);
+            throw new OssException("取消分片上传失败: " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * 列出已上传的分片（返回 AWS SDK 的 ListPartsResponse）
+     */
+    public ListPartsResponse listParts(String bucketName, String objectKey, String uploadId) {
+        try {
+            S3Client s3 = buildS3Client();
+            return s3.listParts(
+                    ListPartsRequest.builder()
+                            .bucket(bucketName)
+                            .key(objectKey)
+                            .uploadId(uploadId)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("列出分片失败: bucket={}, object={}, uploadId={}",
+                    bucketName, objectKey, uploadId, e);
+            throw new OssException("列出分片失败: " + e.getMessage(), e);
         }
     }
 }

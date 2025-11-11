@@ -2,6 +2,8 @@ package hbnu.project.zhiyancommonbasic.exception;
 
 import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
 
+import java.io.Serial;
+
 /**
  * 控制器层异常
  * 用于在Controller层标记业务异常
@@ -10,6 +12,7 @@ import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
  */
 public class ControllerException extends BaseException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     // 模块名称

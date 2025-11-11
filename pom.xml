@@ -51,7 +51,7 @@
         <jackson.version>2.15.2</jackson.version>
         <lombok.version>1.18.30</lombok.version>
         <mysql-connector.version>8.2.0</mysql-connector.version>
-        <minio.version>8.5.9</minio.version>
+        <minio.version>8.5.17</minio.version>
         <spring-boot-starter-mail.version>${spring-boot.version}</spring-boot-starter-mail.version>
         <pagehelper.boot.version>2.0.0</pagehelper.boot.version>
         <knife4j.version>4.4.0</knife4j.version>
