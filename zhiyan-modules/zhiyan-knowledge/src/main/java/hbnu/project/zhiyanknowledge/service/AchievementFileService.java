@@ -54,6 +54,16 @@ public interface AchievementFileService {
     String getFileDownloadUrl(Long fileId, Long userId, Integer expirySeconds);
 
     /**
+     * 直接下载文件（流式下载）
+     * 通过后端代理下载，不使用预签名URL
+     *
+     * @param fileId   文件ID
+     * @param userId   当前用户ID
+     * @param response HttpServletResponse对象
+     */
+    void downloadFile(Long fileId, Long userId, jakarta.servlet.http.HttpServletResponse response);
+
+    /**
      * 删除文件
      *
      * @param fileId 文件ID

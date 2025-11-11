@@ -250,15 +250,46 @@ public class MinioService {
         String bucketName = minioUtils.getBucketName(bucketType);
 
         try{
+            // 提取文件名（从objectKey中获取最后一部分）
+            String fileName = objectKey;
+            if (objectKey.contains("/")) {
+                fileName = objectKey.substring(objectKey.lastIndexOf("/") + 1);
+            }
+            
+            // 对文件名进行URL编码，支持中文文件名
+            String encodedFileName;
+            try {
+                encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            } catch (java.io.UnsupportedEncodingException e) {
+                encodedFileName = fileName;
+            }
+            
+            // 构建响应头参数，强制浏览器下载文件而不是显示
+            java.util.Map<String, String> extraQueryParams = new java.util.HashMap<>();
+            // 使用RFC 5987格式，同时支持ASCII和UTF-8编码的文件名
+            extraQueryParams.put("response-content-disposition", 
+                "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName);
+            
             GetPresignedObjectUrlArgs args = GetPresignedObjectUrlArgs.builder()
                     .method(Method.GET)
                     .bucket(bucketName)
                     .object(objectKey)
                     .expiry(expiry, TimeUnit.SECONDS)
+                    .extraQueryParams(extraQueryParams)  // 添加响应头参数
                     .build();
 
             String url = minioClient.getPresignedObjectUrl(args);
-            log.debug("生成预签名URL: bucket={}, object={}, expiry={}", bucketName, objectKey, expiry);
+            
+            // 详细日志：输出生成的URL和参数
+            log.info("✅ [下载URL] 生成成功");
+            log.info("✅ [下载URL] bucket: {}", bucketName);
+            log.info("✅ [下载URL] objectKey: {}", objectKey);
+            log.info("✅ [下载URL] fileName: {}", fileName);
+            log.info("✅ [下载URL] encodedFileName: {}", encodedFileName);
+            log.info("✅ [下载URL] extraQueryParams: {}", extraQueryParams);
+            log.info("✅ [下载URL] 生成的URL: {}", url);
+            log.info("✅ [下载URL] URL是否包含response-content-disposition: {}", url.contains("response-content-disposition"));
+            
             return url;
         }catch (Exception e) {
             log.error("生成预签名URL失败: bucket={}, object={}", bucketName, objectKey, e);

@@ -259,6 +259,65 @@ public class TaskSubmissionFileController {
         }
     }
 
+    /**
+     * 下载文件（代理下载，避免前端CORS问题）
+     * 业务场景：前端点击下载按钮时，通过后端代理下载文件
+     */
+    @GetMapping("/download")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "下载文件", description = "下载任务提交的附件文件（代理下载）")
+    public void downloadFile(
+            @RequestParam @Parameter(description = "文件URL", required = true) String fileUrl,
+            jakarta.servlet.http.HttpServletResponse response) {
+
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            log.warn("下载文件失败: 用户未登录");
+            response.setStatus(401);
+            return;
+        }
+
+        log.info("用户[{}]下载文件: url={}", userId, fileUrl);
+
+        try {
+            // 从URL中提取objectKey
+            String objectKey = extractObjectKeyFromUrl(fileUrl);
+            
+            log.info("下载文件: objectKey={}", objectKey);
+
+            // 从objectKey中提取文件名
+            String fileName = objectKey.substring(objectKey.lastIndexOf('/') + 1);
+            
+            // 下载文件
+            java.io.InputStream inputStream = minioService.downloadFile(
+                    BucketType.TASK_SUBMISSION, 
+                    objectKey
+            );
+
+            // 设置响应头
+            response.setContentType("application/octet-stream");
+            response.setHeader("Content-Disposition", 
+                    "attachment; filename=" + java.net.URLEncoder.encode(fileName, "UTF-8"));
+
+            // 将文件流写入响应
+            java.io.OutputStream outputStream = response.getOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+
+            outputStream.flush();
+            inputStream.close();
+
+            log.info("文件下载成功: userId={}, fileName={}", userId, fileName);
+
+        } catch (Exception e) {
+            log.error("下载文件失败", e);
+            response.setStatus(500);
+        }
+    }
+
     // ==================== 私有辅助方法 ====================
 
     /**
