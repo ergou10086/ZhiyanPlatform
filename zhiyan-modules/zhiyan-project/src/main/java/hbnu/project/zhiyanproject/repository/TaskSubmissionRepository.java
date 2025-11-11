@@ -82,7 +82,6 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
     Integer getNextVersionNumber(@Param("taskId") Long taskId);
 
     /**
-<<<<<<< HEAD
      * 查询我创建的任务中的待审核提交（分页）
      * 只查询我创建的任务，且任务所属项目未删除
      */
@@ -98,7 +97,10 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
            "ORDER BY ts.submissionTime DESC")
     Page<TaskSubmission> findPendingSubmissionsForMyCreatedTasks(
             @Param("creatorId") Long creatorId,
-=======
+            @Param("reviewStatus") ReviewStatus reviewStatus,
+            Pageable pageable);
+
+    /**
      * 查询需要指定用户审核的待审核提交记录（任务创建者是该用户）
      * 
      * @param taskCreatorId 任务创建者ID
@@ -115,12 +117,10 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
            "ORDER BY s.submissionTime DESC")
     Page<TaskSubmission> findPendingSubmissionsForReviewer(
             @Param("taskCreatorId") Long taskCreatorId,
->>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
             @Param("reviewStatus") ReviewStatus reviewStatus,
             Pageable pageable);
 
     /**
-<<<<<<< HEAD
      * 统计我创建的任务中的待审核提交数量
      */
     @Query("SELECT COUNT(ts) FROM TaskSubmission ts " +
@@ -134,7 +134,9 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
            ")")
     long countPendingSubmissionsForMyCreatedTasks(
             @Param("creatorId") Long creatorId,
-=======
+            @Param("reviewStatus") ReviewStatus reviewStatus);
+
+    /**
      * 查询用户相关的待审核提交记录（包括：用户提交的 + 需要用户审核的）
      * 
      * @param userId 用户ID
@@ -223,6 +225,5 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
            "AND t.isDeleted = false")
     long countPendingSubmissionsForReviewer(
             @Param("taskCreatorId") Long taskCreatorId,
->>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
             @Param("reviewStatus") ReviewStatus reviewStatus);
 }
