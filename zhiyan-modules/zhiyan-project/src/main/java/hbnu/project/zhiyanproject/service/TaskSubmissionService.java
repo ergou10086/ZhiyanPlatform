@@ -114,12 +114,22 @@ public interface TaskSubmissionService {
     long countProjectPendingSubmissions(Long projectId);
 
     /**
+<<<<<<< HEAD
+     * 获取我创建的任务中的待审核提交（分页）
+=======
      * 获取我提交的待审核任务（我提交的，等待别人审核）
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
      *
      * @param userId   用户ID
      * @param pageable 分页参数
      * @return 提交记录分页
      */
+<<<<<<< HEAD
+    Page<TaskSubmissionDTO> getMyCreatedTasksPendingSubmissions(Long userId, Pageable pageable);
+
+    /**
+     * 统计我创建的任务中的待审核提交数量
+=======
     Page<TaskSubmissionDTO> getMyPendingSubmissions(Long userId, Pageable pageable);
 
     /**
@@ -133,10 +143,14 @@ public interface TaskSubmissionService {
 
     /**
      * 统计我提交的待审核任务数量
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
      *
      * @param userId 用户ID
      * @return 数量
      */
+<<<<<<< HEAD
+    long countMyCreatedTasksPendingSubmissions(Long userId);
+=======
     long countMyPendingSubmissions(Long userId);
 
     /**
@@ -146,4 +160,5 @@ public interface TaskSubmissionService {
      * @return 数量
      */
     long countPendingSubmissionsForReview(Long userId);
+>>>>>>> 5861726dbe32635b99f7a52c69684df8f9edc1d4
 }

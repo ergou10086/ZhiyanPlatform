@@ -505,8 +505,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Page<TaskDetailDTO> getMyCreatedTasks(Long userId, Pageable pageable) {
-        // 只查询未删除的任务
-        Page<Tasks> tasks = taskRepository.findByCreatedByAndIsDeleted(userId, false, pageable);
+        // 使用新的查询方法，自动过滤已删除的项目和任务
+        Page<Tasks> tasks = taskRepository.findMyCreatedTasksWithActiveProjects(userId, pageable);
         // 使用优化后的批量转换，避免N+1查询
         List<TaskDetailDTO> dtoList = convertListToDetailDTO(tasks.getContent());
         return new PageImpl<>(dtoList, pageable, tasks.getTotalElements());
@@ -997,4 +997,5 @@ public class TaskServiceImpl implements TaskService {
             return Collections.emptyList();
         }
     }
+
 }
