@@ -186,6 +186,12 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/api/*/permissions/check"     // 检查权限
                         ).permitAll()
 
+                        // 文件下载接口 - 使用 permitAll，支持通过查询参数传递token，权限在 Controller 层手动验证
+                        // 这样可以支持浏览器直接下载（无法设置Authorization header）
+                        .requestMatchers(
+                                "/zhiyan/achievement/file/*/download"  // 成果文件下载
+                        ).permitAll()
+
                         // AI 流式接口 - 使用 permitAll，权限在 Controller 层通过 @PreAuthorize 控制
                         // 这样可以避免异步请求时的二次权限检查导致的 AccessDeniedException
                         .requestMatchers("/api/ai/**").permitAll()

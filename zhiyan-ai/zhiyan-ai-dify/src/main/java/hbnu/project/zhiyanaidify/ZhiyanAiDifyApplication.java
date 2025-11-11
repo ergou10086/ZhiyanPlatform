@@ -26,7 +26,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
                 "hbnu.project.zhiyancommonsse",
                 "hbnu.project.zhiyancommonbasic",
                 "hbnu.project.zhiyancommonsecurity.config",  // Security 配置（仅 Feign 拦截器）
-                "hbnu.project.zhiyancommonsecurity.utils"    // Security 工具类
+                "hbnu.project.zhiyancommonsecurity.utils",  // Security 工具类
+                "hbnu.project.common.log"                   // 日志模块
         },
         exclude = {
                 DataSourceAutoConfiguration.class,              // 排除数据源自动配置

@@ -200,4 +200,16 @@ public interface TaskRepository extends JpaRepository<Tasks, Long> {
     Page<Tasks> findMyOverdueTasks(@Param("userId") String userId,
                                     @Param("currentDate") LocalDate currentDate,
                                     Pageable pageable);
+
+    /**
+     * 查询用户创建的任务，并排除已删除的项目
+     *
+     * @param createdBy 创建者ID
+     * @param pageable 分页参数
+     * @return 任务分页列表
+     */
+    @Query("SELECT t FROM Tasks t WHERE t.createdBy = :createdBy AND t.isDeleted = false " +
+           "AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)")
+    Page<Tasks> findMyCreatedTasksWithActiveProjects(@Param("createdBy") Long createdBy, 
+                                                       Pageable pageable);
 }

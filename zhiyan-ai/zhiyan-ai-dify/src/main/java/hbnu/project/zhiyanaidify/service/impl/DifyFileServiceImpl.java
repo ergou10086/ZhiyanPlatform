@@ -133,14 +133,24 @@ public class DifyFileServiceImpl implements DifyFileService {
         for (FileContextDTO fileContextDTO : fileContextDTOS) {
             try {
                 // 如果文件有 URL，下载并上传到 Dify
-                if (fileContextDTO.getFileUrl() != null) {
+                if (fileContextDTO.getFileUrl() != null && !fileContextDTO.getFileUrl().isEmpty()) {
+                    log.info("[Dify 文件上传] 准备从URL上传: fileId={}, fileName={}, fileUrl={}", 
+                            fileContextDTO.getFileId(), fileContextDTO.getFileName(), fileContextDTO.getFileUrl());
                     DifyFileUploadResponse response = uploadFileFromUrl(fileContextDTO.getFileUrl(), fileContextDTO.getFileName(), userId);
                     responses.add(response);
+                    log.info("[Dify 文件上传] 从URL上传成功: fileId={}, difyFileId={}", 
+                            fileContextDTO.getFileId(), response.getFileId());
                 } else {
-                    log.warn("[Dify 文件上传] 文件无 URL: fileId={}", fileContextDTO.getFileId());
+                    log.warn("[Dify 文件上传] 文件URL为空或无效: fileId={}, fileName={}, fileUrl={}", 
+                            fileContextDTO.getFileId(), fileContextDTO.getFileName(), fileContextDTO.getFileUrl());
                 }
             } catch (DifyApiException e) {
-                log.error("[Dify 文件上传] 上传知识库文件失败: fileId={}", fileContextDTO.getFileId(), e);
+                log.error("[Dify 文件上传] 上传知识库文件失败: fileId={}, fileName={}, fileUrl={}, error={}", 
+                        fileContextDTO.getFileId(), fileContextDTO.getFileName(), 
+                        fileContextDTO.getFileUrl(), e.getMessage(), e);
+            } catch (Exception e) {
+                log.error("[Dify 文件上传] 上传知识库文件时发生未知异常: fileId={}, fileName={}, error={}", 
+                        fileContextDTO.getFileId(), fileContextDTO.getFileName(), e.getMessage(), e);
             }
         }
 
@@ -221,14 +231,26 @@ public class DifyFileServiceImpl implements DifyFileService {
      */
     private DifyFileUploadResponse uploadFileFromUrl(String fileUrl, String fileName, Long userId) {
         try {
-            log.info("[Dify 文件上传] 从 URL 下载文件: url={}", fileUrl);
+            log.info("[Dify 文件上传] 从 URL 下载文件: fileName={}, url={}", fileName, fileUrl);
 
             // 下载文件
             URI uri = new URI(fileUrl);
             URL url = uri.toURL();
+            
+            long startTime = System.currentTimeMillis();
             InputStream inputStream = url.openStream();
             byte[] fileBytes = inputStream.readAllBytes();
             inputStream.close();
+            long downloadTime = System.currentTimeMillis() - startTime;
+            
+            log.info("[Dify 文件上传] URL下载完成: fileName={}, size={}bytes, 耗时={}ms", 
+                    fileName, fileBytes.length, downloadTime);
+
+            // 验证文件内容
+            if (fileBytes.length == 0) {
+                log.error("[Dify 文件上传] 下载的文件为空: fileName={}, url={}", fileName, fileUrl);
+                throw new DifyApiException("下载的文件为空");
+            }
 
             // 构建请求
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -249,6 +271,9 @@ public class DifyFileServiceImpl implements DifyFileService {
 
             // 发送请求
             String uploadUrl = difyProperties.getApiUrl() + "/files/upload";
+            log.info("[Dify 文件上传] 开始上传到Dify: fileName={}, size={}bytes, uploadUrl={}", 
+                    fileName, fileBytes.length, uploadUrl);
+            
             ResponseEntity<DifyFileUploadResponse> response = restTemplate.postForEntity(
                     uploadUrl,
                     requestEntity,
@@ -262,14 +287,22 @@ public class DifyFileServiceImpl implements DifyFileService {
                         uploadResponse.getMimeType(), uploadResponse.getFileSize());
                 return uploadResponse;
             } else {
-                throw new DifyApiException("从 URL 上传文件失败：响应为空");
+                log.error("[Dify 文件上传] Dify响应异常: fileName={}, response={}", fileName, uploadResponse);
+                throw new DifyApiException("从 URL 上传文件失败：Dify响应为空或无效");
             }
 
-        } catch (DifyApiException | IOException e) {
-            log.error("[Dify 文件上传] 从 URL 上传失败: url={}", fileUrl, e);
-            throw new DifyApiException("从 URL 上传文件失败: " + e.getMessage());
+        } catch (IOException e) {
+            log.error("[Dify 文件上传] URL下载失败: fileName={}, url={}, error={}", fileName, fileUrl, e.getMessage(), e);
+            throw new DifyApiException("从 URL 下载文件失败: " + e.getMessage() + " (可能是URL已过期或无法访问)");
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            log.error("[Dify 文件上传] URL格式错误: fileName={}, url={}, error={}", fileName, fileUrl, e.getMessage(), e);
+            throw new DifyApiException("URL格式错误: " + e.getMessage());
+        } catch (DifyApiException e) {
+            log.error("[Dify 文件上传] Dify上传失败: fileName={}, error={}", fileName, e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            log.error("[Dify 文件上传] 从 URL 上传时发生未知异常: fileName={}, url={}, error={}", fileName, fileUrl, e.getMessage(), e);
+            throw new DifyApiException("从 URL 上传文件失败: " + e.getMessage());
         }
     }
 }

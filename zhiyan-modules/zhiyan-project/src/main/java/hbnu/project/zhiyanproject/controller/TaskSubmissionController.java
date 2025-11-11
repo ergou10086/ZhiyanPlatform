@@ -80,11 +80,11 @@ public class TaskSubmissionController {
 
     /**
      * 审核任务提交
-     * 业务场景：项目负责人或任务创建者审核任务提交
+     * 业务场景：任务创建者审核任务提交
      */
     @PutMapping("/{submissionId}/review")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "审核任务提交", description = "项目负责人或任务创建者审核任务提交（批准/拒绝）")
+    @Operation(summary = "审核任务提交", description = "任务创建者审核任务提交（批准/拒绝）")
     @OperationLog(module = "任务提交", type = OperationType.UPDATE, description = "审核任务提交", recordParams = true, recordResult = true)
     @Idempotent(type = IdempotentType.SPEL, key = "#submissionId + ':' + #reviewerId", timeout = 2, message = "审核中，请勿重复操作")
     public R<TaskSubmissionDTO> reviewSubmission(
@@ -203,22 +203,81 @@ public class TaskSubmissionController {
     }
 
     /**
-     * 获取待审核的提交列表
+     * 获取待审核的提交列表（已废弃，请使用 /my-pending 和 /pending-for-review）
+     * 返回用户相关的待审核提交：包括用户提交的 + 需要用户审核的（任务创建者是该用户）
      */
+    @Deprecated
     @GetMapping("/pending")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取待审核提交列表", description = "分页获取所有待审核的提交记录")
+    @Operation(summary = "获取待审核提交列表（已废弃）", description = "分页获取当前用户相关的待审核提交记录（包括自己提交的和需要审核的），建议使用 /my-pending 和 /pending-for-review")
     public R<Page<TaskSubmissionDTO>> getPendingSubmissions(
             @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
             @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
 
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("请先登录");
+        }
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submissionTime"));
 
         try {
-            Page<TaskSubmissionDTO> results = submissionService.getPendingSubmissions(pageable);
+            Page<TaskSubmissionDTO> results = submissionService.getPendingSubmissions(userId, pageable);
             return R.ok(results);
         } catch (Exception e) {
             log.error("查询待审核提交失败", e);
+            return R.fail("查询失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取我提交的待审核任务（我提交的，等待别人审核）
+     */
+    @GetMapping("/my-pending")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取我提交的待审核任务", description = "分页获取当前用户提交的待审核任务（等待别人审核）")
+    public R<Page<TaskSubmissionDTO>> getMyPendingSubmissions(
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
+
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("请先登录");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submissionTime"));
+
+        try {
+            Page<TaskSubmissionDTO> results = submissionService.getMyPendingSubmissions(userId, pageable);
+            return R.ok(results);
+        } catch (Exception e) {
+            log.error("查询我提交的待审核任务失败", e);
+            return R.fail("查询失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取待我审核的提交（别人提交的，需要我审核的，因为我是任务创建者）
+     */
+    @GetMapping("/pending-for-review")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取待我审核的提交", description = "分页获取需要当前用户审核的提交记录（任务创建者是当前用户）")
+    public R<Page<TaskSubmissionDTO>> getPendingSubmissionsForReview(
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
+
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("请先登录");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submissionTime"));
+
+        try {
+            Page<TaskSubmissionDTO> results = submissionService.getPendingSubmissionsForReview(userId, pageable);
+            return R.ok(results);
+        } catch (Exception e) {
+            log.error("查询待我审核的提交失败", e);
             return R.fail("查询失败: " + e.getMessage());
         }
     }
@@ -274,17 +333,66 @@ public class TaskSubmissionController {
     // ==================== 统计接口 ====================
 
     /**
-     * 统计待审核的提交数量
+     * 统计待审核的提交数量（已废弃，请使用 /count/my-pending 和 /count/pending-for-review）
+     * 统计用户相关的待审核提交：包括用户提交的 + 需要用户审核的（任务创建者是该用户）
      */
+    @Deprecated
     @GetMapping("/count/pending")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "统计待审核提交数量", description = "统计所有待审核的提交记录数量")
+    @Operation(summary = "统计待审核提交数量（已废弃）", description = "统计当前用户相关的待审核提交记录数量（包括自己提交的和需要审核的），建议使用 /count/my-pending 和 /count/pending-for-review")
     public R<Long> countPendingSubmissions() {
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("请先登录");
+        }
+
         try {
-            long count = submissionService.countPendingSubmissions();
+            long count = submissionService.countPendingSubmissions(userId);
             return R.ok(count);
         } catch (Exception e) {
             log.error("统计待审核提交失败", e);
+            return R.fail("统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计我提交的待审核任务数量
+     */
+    @GetMapping("/count/my-pending")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "统计我提交的待审核任务数量", description = "统计当前用户提交的待审核任务数量（等待别人审核）")
+    public R<Long> countMyPendingSubmissions() {
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("请先登录");
+        }
+
+        try {
+            long count = submissionService.countMyPendingSubmissions(userId);
+            return R.ok(count);
+        } catch (Exception e) {
+            log.error("统计我提交的待审核任务失败", e);
+            return R.fail("统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计待我审核的提交数量（任务创建者是我）
+     */
+    @GetMapping("/count/pending-for-review")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "统计待我审核的提交数量", description = "统计需要当前用户审核的提交记录数量（任务创建者是当前用户）")
+    public R<Long> countPendingSubmissionsForReview() {
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("请先登录");
+        }
+
+        try {
+            long count = submissionService.countPendingSubmissionsForReview(userId);
+            return R.ok(count);
+        } catch (Exception e) {
+            log.error("统计待我审核的提交失败", e);
             return R.fail("统计失败: " + e.getMessage());
         }
     }
@@ -302,6 +410,56 @@ public class TaskSubmissionController {
             return R.ok(count);
         } catch (Exception e) {
             log.error("统计项目待审核提交失败", e);
+            return R.fail("统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询我创建的任务中的待审核提交
+     * 业务场景：查看我创建的任务的待审核提交，过滤已删除的项目
+     */
+    @GetMapping("/my-created-tasks/pending")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "查询我创建的任务的待审核提交", description = "分页查询我创建的任务中的待审核提交记录")
+    public R<Page<TaskSubmissionDTO>> getMyCreatedTasksPendingSubmissions(
+            @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
+            @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
+
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            log.warn("查询失败: 用户未登录");
+            return R.fail("请先登录");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "submissionTime"));
+
+        try {
+            Page<TaskSubmissionDTO> results = submissionService.getMyCreatedTasksPendingSubmissions(userId, pageable);
+            return R.ok(results);
+        } catch (Exception e) {
+            log.error("查询我创建的任务的待审核提交失败", e);
+            return R.fail("查询失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 统计我创建的任务中的待审核提交数量
+     */
+    @GetMapping("/count/my-created-tasks/pending")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "统计我创建的任务的待审核数量", description = "统计我创建的任务中的待审核提交记录数量")
+    public R<Long> countMyCreatedTasksPendingSubmissions() {
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            log.warn("统计失败: 用户未登录");
+            return R.fail("请先登录");
+        }
+
+        try {
+            long count = submissionService.countMyCreatedTasksPendingSubmissions(userId);
+            return R.ok(count);
+        } catch (Exception e) {
+            log.error("统计我创建的任务的待审核数量失败", e);
             return R.fail("统计失败: " + e.getMessage());
         }
     }
