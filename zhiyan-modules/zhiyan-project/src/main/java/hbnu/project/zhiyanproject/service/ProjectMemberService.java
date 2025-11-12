@@ -2,7 +2,6 @@ package hbnu.project.zhiyanproject.service;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDTO;
-import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
 import hbnu.project.zhiyanproject.model.dto.RoleInfoDTO;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
@@ -25,12 +24,12 @@ public interface ProjectMemberService {
     // ==================== 成员管理相关 ====================
 
     /**
-     * 邀请用户加入项目（项目负责人直接添加成员，无需对方同意）
-     * 业务流程：负责人通过用户ID搜索并直接将用户添加为项目成员
+     * 邀请用户加入项目（项目管理员直接添加成员，无需对方同意）
+     * 业务流程：管理员通过用户ID搜索并直接将用户添加为项目成员
      *
      * @param projectId 项目ID
      * @param request   邀请信息（包含用户ID和角色）
-     * @param inviterId 邀请人ID（当前登录用户，必须是项目负责人）
+     * @param inviterId 邀请人ID（当前登录用户，必须是项目管理员：OWNER或ADMIN）
      * @return 项目成员记录
      */
     ProjectMember inviteMember(Long projectId, InviteMemberRequest request, Long inviterId);
@@ -68,11 +67,11 @@ public interface ProjectMemberService {
 
     /**
      * 移除项目成员（原有方法）
-     * 业务流程：项目负责人移除成员
+     * 业务流程：项目管理员移除成员
      *
      * @param projectId  项目ID
      * @param userId     用户ID
-     * @param operatorId 操作人ID（当前登录用户）
+     * @param operatorId 操作人ID（当前登录用户，必须是项目管理员：OWNER或ADMIN）
      */
     void removeMember(Long projectId, Long userId, Long operatorId);
 
@@ -88,12 +87,12 @@ public interface ProjectMemberService {
 
     /**
      * 更新成员角色（原有方法）
-     * 业务流程：项目负责人修改成员在项目中的角色
+     * 业务流程：项目管理员修改成员在项目中的角色，可以将普通成员提升为管理员
      *
      * @param projectId  项目ID
      * @param userId     用户ID
      * @param newRole    新角色
-     * @param operatorId 操作人ID（当前登录用户）
+     * @param operatorId 操作人ID（当前登录用户，必须是项目管理员：OWNER或ADMIN）
      * @return 更新后的成员记录
      */
     ProjectMember updateMemberRole(Long projectId, Long userId, ProjectMemberRole newRole, Long operatorId);
@@ -152,6 +151,15 @@ public interface ProjectMemberService {
      * @return 是否为项目负责人
      */
     boolean isOwner(Long projectId, Long userId);
+
+    /**
+     * 检查用户是否为项目管理员（包括OWNER和ADMIN）
+     *
+     * @param projectId 项目ID
+     * @param userId    用户ID
+     * @return 是否为项目管理员
+     */
+    boolean isAdmin(Long projectId, Long userId);
 
     /**
      * 获取用户在项目中的角色

@@ -458,7 +458,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      * @return 文件上下文信息
      */
     @Override
-    public hbnu.project.zhiyanknowledge.model.dto.FileContextDTO getFileContext(Long fileId) {
+    public FileContextDTO getFileContext(Long fileId) {
         log.info("[文件上下文] 获取文件信息: fileId={}", fileId);
 
         AchievementFile file = achievementFileRepository.findById(fileId)
@@ -508,17 +508,17 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      * @return 文件上下文列表
      */
     @Override
-    public List<hbnu.project.zhiyanknowledge.model.dto.FileContextDTO> getFileContexts(List<Long> fileIds) {
+    public List<FileContextDTO> getFileContexts(List<Long> fileIds) {
         log.info("[文件上下文批量] 获取文件信息: fileIds={}, count={}", fileIds, fileIds.size());
 
         if (fileIds == null || fileIds.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<hbnu.project.zhiyanknowledge.model.dto.FileContextDTO> contexts = new ArrayList<>();
+        List<FileContextDTO> contexts = new ArrayList<>();
 
         for (Long fileId : fileIds) {
-            hbnu.project.zhiyanknowledge.model.dto.FileContextDTO context = getFileContext(fileId);
+            FileContextDTO context = getFileContext(fileId);
             if (context != null) {
                 contexts.add(context);
             }

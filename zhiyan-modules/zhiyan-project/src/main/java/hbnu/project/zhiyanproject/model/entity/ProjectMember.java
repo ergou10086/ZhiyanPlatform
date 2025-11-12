@@ -68,7 +68,7 @@ public class ProjectMember {
      * 项目内角色
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "project_role", nullable = false, columnDefinition = "ENUM('OWNER','MEMBER') COMMENT '项目内角色（创建者/普通成员）'")
+    @Column(name = "project_role", nullable = false, columnDefinition = "ENUM('OWNER','ADMIN','MEMBER') COMMENT '项目内角色（拥有者/管理员/普通成员）'")
     private ProjectMemberRole projectRole;
 
 
