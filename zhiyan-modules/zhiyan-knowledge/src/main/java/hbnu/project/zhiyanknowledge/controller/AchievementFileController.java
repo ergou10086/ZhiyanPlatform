@@ -45,6 +45,9 @@ public class AchievementFileController {
 
     @Autowired
     private AchievementFileService achievementFileService;
+    
+    @Autowired
+    private hbnu.project.zhiyancommonbasic.utils.JwtUtils jwtUtils;
 
     @Autowired
     private hbnu.project.zhiyancommonbasic.utils.JwtUtils jwtUtils;
@@ -463,6 +466,89 @@ public class AchievementFileController {
         }
     }
 
+    /**
+     * 从JWT token中提取用户ID
+     * @param token JWT token字符串
+     * @return 用户ID
+     */
+    private Long extractUserIdFromToken(String token) {
+        try {
+            // 使用项目统一的JWT工具类解析token
+            String userId = jwtUtils.parseToken(token);
+            if (userId == null || userId.isEmpty()) {
+                throw new RuntimeException("无法从token中提取用户ID");
+            }
+            return Long.parseLong(userId);
+        } catch (NumberFormatException e) {
+            log.error("用户ID格式错误: {}", e.getMessage());
+            throw new RuntimeException("用户ID格式无效", e);
+        } catch (Exception e) {
+            log.error("解析JWT token失败: {}", e.getMessage());
+            throw new RuntimeException("Token无效或已过期", e);
+        }
+    }
+
+    /**
+     * 直接下载文件（流式下载）
+     * 不使用预签名URL，直接通过后端代理下载
+     * 支持通过查询参数传递access_token
+     */
+    @GetMapping("/{fileId}/download")
+    @Operation(summary = "直接下载文件", description = "直接下载文件，不返回URL")
+    @OperationLog(module = "成果文件管理", type = OperationType.DOWNLOAD, description = "直接下载文件", recordParams = true, recordResult = false)
+    public void downloadFile(
+            @Parameter(description = "文件ID") @PathVariable Long fileId,
+            @Parameter(description = "访问令牌（可选，也可通过Header传递）") @RequestParam(value = "access_token", required = false) String accessToken,
+            jakarta.servlet.http.HttpServletResponse response
+    ) {
+        Long userId = null;
+        
+        try {
+            // 1. 尝试从安全上下文获取用户ID（通过Authorization header）
+            try {
+                userId = SecurityUtils.getUserId();
+                log.info("从安全上下文获取到用户ID: {}", userId);
+            } catch (Exception e) {
+                log.debug("从安全上下文获取用户ID失败，尝试从查询参数获取token");
+            }
+            
+            // 2. 如果安全上下文中没有用户信息，且提供了access_token查询参数，则手动验证token
+            if (userId == null && accessToken != null && !accessToken.isEmpty()) {
+                log.info("使用查询参数中的access_token进行认证");
+                try {
+                    // 使用JWT工具类验证token并提取用户ID
+                    userId = extractUserIdFromToken(accessToken);
+                    log.info("从access_token中提取到用户ID: {}", userId);
+                } catch (Exception e) {
+                    log.error("验证access_token失败: {}", e.getMessage());
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Token验证失败或已过期，请重新登录");
+                    return;
+                }
+            }
+            
+            // 3. 如果仍然没有获取到用户ID，返回401未授权
+            if (userId == null) {
+                log.warn("无法获取用户身份信息: fileId={}", fileId);
+                response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("未授权访问，请先登录");
+                return;
+            }
+            
+            log.info("直接下载文件: fileId={}, userId={}", fileId, userId);
+            achievementFileService.downloadFile(fileId, userId, response);
+            
+        } catch (Exception e) {
+            log.error("文件下载失败: fileId={}, userId={}, error={}", fileId, userId, e.getMessage(), e);
+            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            try {
+                response.getWriter().write("文件下载失败: " + e.getMessage());
+            } catch (java.io.IOException ioException) {
+                log.error("写入错误响应失败", ioException);
+            }
+        }
+    }
+    
     /**
      * 从JWT token中提取用户ID
      * @param token JWT token字符串

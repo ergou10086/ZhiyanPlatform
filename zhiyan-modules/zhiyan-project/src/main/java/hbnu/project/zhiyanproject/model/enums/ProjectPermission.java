@@ -46,7 +46,7 @@ public enum ProjectPermission {
     TASK_CREATE("task:create", "创建项目任务"),
 
     /**
-     * 成员管理权限 - 项目拥有者拥有
+     * 成员管理权限 - 项目拥有者和项目管理员拥有
      */
     MEMBER_MANAGE("member:manage", "管理项目成员"),
 

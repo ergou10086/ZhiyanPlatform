@@ -326,6 +326,70 @@ public class AchievementFileServiceImpl implements AchievementFileService {
     }
 
     /**
+     * 直接下载文件（流式下载）
+     * 通过后端代理下载，不使用预签名URL
+     *
+     * @param fileId   文件ID
+     * @param userId   当前用户ID
+     * @param response HttpServletResponse对象
+     */
+    @Override
+    public void downloadFile(Long fileId, Long userId, jakarta.servlet.http.HttpServletResponse response) {
+        log.info("开始直接下载文件: fileId={}, userId={}", fileId, userId);
+
+        // 1. 查询文件是否存在
+        AchievementFile file = achievementFileRepository.findById(fileId)
+                .orElseThrow(() -> new ServiceException("文件不存在"));
+        
+        log.info("文件信息: fileName={}, objectKey={}, fileSize={}", 
+                file.getFileName(), file.getObjectKey(), file.getFileSize());
+
+        // 2. 验证权限
+        if (!hasFilePermission(fileId, userId)) {
+            log.warn("用户无权限访问文件: fileId={}, userId={}", fileId, userId);
+            throw new ServiceException("无权限访问该文件");
+        }
+
+        // 3. 从MinIO获取文件流
+        try (InputStream inputStream = minioService.downloadFile(BucketType.ACHIEVEMENT_FILES, file.getObjectKey())) {
+            
+            // 4. 设置响应头，强制下载
+            String fileName = file.getFileName();
+            String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            
+            response.setContentType("application/octet-stream");
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader("Content-Disposition", 
+                "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encodedFileName);
+            
+            if (file.getFileSize() != null) {
+                response.setContentLengthLong(file.getFileSize());
+            }
+            
+            // 5. 将文件流写入响应
+            java.io.OutputStream outputStream = response.getOutputStream();
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            long totalBytes = 0;
+            
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
+            }
+            
+            outputStream.flush();
+            log.info("文件下载成功: fileId={}, fileName={}, totalBytes={}", fileId, fileName, totalBytes);
+            
+        } catch (java.io.IOException e) {
+            log.error("文件下载失败(IO错误): fileId={}, error={}", fileId, e.getMessage(), e);
+            throw new ServiceException("文件下载失败: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("文件下载失败: fileId={}, error={}", fileId, e.getMessage(), e);
+            throw new ServiceException("文件下载失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 删除文件
      *
      * @param fileId 文件ID
@@ -458,7 +522,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      * @return 文件上下文信息
      */
     @Override
-    public hbnu.project.zhiyanknowledge.model.dto.FileContextDTO getFileContext(Long fileId) {
+    public FileContextDTO getFileContext(Long fileId) {
         log.info("[文件上下文] 获取文件信息: fileId={}", fileId);
 
         AchievementFile file = achievementFileRepository.findById(fileId)
@@ -508,17 +572,17 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      * @return 文件上下文列表
      */
     @Override
-    public List<hbnu.project.zhiyanknowledge.model.dto.FileContextDTO> getFileContexts(List<Long> fileIds) {
+    public List<FileContextDTO> getFileContexts(List<Long> fileIds) {
         log.info("[文件上下文批量] 获取文件信息: fileIds={}, count={}", fileIds, fileIds.size());
 
         if (fileIds == null || fileIds.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<hbnu.project.zhiyanknowledge.model.dto.FileContextDTO> contexts = new ArrayList<>();
+        List<FileContextDTO> contexts = new ArrayList<>();
 
         for (Long fileId : fileIds) {
-            hbnu.project.zhiyanknowledge.model.dto.FileContextDTO context = getFileContext(fileId);
+            FileContextDTO context = getFileContext(fileId);
             if (context != null) {
                 contexts.add(context);
             }

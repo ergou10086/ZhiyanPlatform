@@ -29,6 +29,24 @@ public enum ProjectMemberRole {
     )),
 
     /**
+     * 项目管理员 - 拥有成员管理和项目管理的权限
+     * 可以邀请成员、踢出成员、指定其他成员为管理员
+     * 但不能删除项目（只有OWNER可以）
+     */
+    ADMIN("项目管理员", "项目管理员，拥有成员管理和项目管理的权限", Arrays.asList(
+            ProjectPermission.PROJECT_MANAGE,
+            ProjectPermission.KNOWLEDGE_MANAGE,
+            ProjectPermission.TASK_MANAGE,
+            ProjectPermission.TASK_CREATE,
+            ProjectPermission.MEMBER_MANAGE,
+            ProjectPermission.WIKI_VIEW,
+            ProjectPermission.WIKI_EDIT,
+            ProjectPermission.WIKI_CREATE,
+            ProjectPermission.WIKI_DELETE,
+            ProjectPermission.WIKI_MANAGE
+    )),
+
+    /**
      * 项目成员 - 基础参与权限
      */
     MEMBER("项目成员", "项目普通成员，基础参与权限", Arrays.asList(

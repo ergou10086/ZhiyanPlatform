@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" monitorInterval="30">
+<Configuration status="WARN" monitorInterval="0">
     <Properties>
         <!-- 日志输出目录 -->
         <Property name="LOG_HOME">logs</Property>
@@ -16,7 +16,7 @@
         <RollingFile name="File" 
                      fileName="${LOG_HOME}/zhiyan-project.log"
                      filePattern="${LOG_HOME}/$${date:yyyy-MM}/zhiyan-project-%d{yyyy-MM-dd}-%i.log.gz">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <PatternLayout pattern="${LOG_PATTERN}"/>      
             <Policies>
                 <!-- 每天滚动 -->
                 <TimeBasedTriggeringPolicy />
