@@ -83,6 +83,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "/error",
                         "/favicon.ico",
                         "/actuator/**",
+                        "/health",                    // 健康检查端点（兼容性）
                         "/swagger-ui/**",
                         "/swagger-resources/**",
                         "/v3/api-docs/**",
@@ -125,6 +126,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/error",
                                 "/favicon.ico",
                                 "/actuator/**",
+                                "/health",                    // 健康检查端点（兼容性）
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/doc.html",
