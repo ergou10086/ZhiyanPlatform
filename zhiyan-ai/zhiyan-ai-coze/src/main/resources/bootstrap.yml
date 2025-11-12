@@ -4,5 +4,5 @@ spring:
   application:
     name: zhiyan-ai-coze
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:prod}
+    active: ${SPRING_PROFILES_ACTIVE:cloud}
 

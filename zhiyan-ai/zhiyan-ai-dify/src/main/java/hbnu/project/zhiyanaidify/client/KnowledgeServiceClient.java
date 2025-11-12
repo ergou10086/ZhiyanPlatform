@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author ErgouTree
  */
-@FeignClient(name = "zhiyan-knowledge", configuration = hbnu.project.zhiyanaidify.config.FeignConfig.class)
+@FeignClient(name = "zhiyan-knowledge", configuration = hbnu.project.zhiyanaidify.config.DifyFeignConfig.class)
 public interface KnowledgeServiceClient {
 
     /**

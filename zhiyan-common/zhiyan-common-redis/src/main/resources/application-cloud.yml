@@ -1,0 +1,80 @@
+# 云服务环境（服务器环境）
+
+server:
+  port: 8099
+
+spring:
+  application:
+    name: zhiyan-common-redis
+
+  # Redis配置（生产环境）
+  data:
+    redis:
+      # Redis 服务器地址（生产环境）
+      host: 152.136.245.180
+      # Redis 服务器连接端口
+      port: 6379
+      # Redis 服务器连接密码
+      password: zjm10086
+      # 连接超时时间（毫秒）- 增加到30秒
+      timeout: 30000
+      # 命令超时时间
+      connect-timeout: 10000
+      lettuce:
+        pool:
+          # 连接池最大连接数
+          max-active: 16
+          # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: 10000
+          # 连接池中的最大空闲连接
+          max-idle: 8
+          # 连接池中的最小空闲连接
+          min-idle: 2
+        # 关闭超时时间
+        shutdown-timeout: 100ms
+        # 集群配置
+        cluster:
+          refresh:
+            # 开启自适应刷新
+            adaptive: true
+            # 刷新周期
+            period: 60s
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    hbnu.project: INFO
+    org.springframework.data.redis: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-common-redis.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+
+# Actuator监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    tags:
+      application: zhiyan-common-redis
+
+
+
+
+
+
+
+
+

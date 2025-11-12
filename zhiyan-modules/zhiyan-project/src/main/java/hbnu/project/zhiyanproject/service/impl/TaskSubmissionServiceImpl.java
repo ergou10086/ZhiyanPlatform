@@ -349,13 +349,13 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
         // 获取用户信息
         UserDTO submitter = null;
         UserDTO reviewer = null;
-        
+
         try {
             R<UserDTO> submitterResult = userCacheService.getUserById(submission.getSubmitterId());
             if (R.isSuccess(submitterResult)) {
                 submitter = submitterResult.getData();
             }
-            
+
             if (submission.getReviewerId() != null) {
                 R<UserDTO> reviewerResult = userCacheService.getUserById(submission.getReviewerId());
                 if (R.isSuccess(reviewerResult)) {
@@ -377,7 +377,6 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             }
         } catch (Exception e) {
             log.warn("获取项目名称失败，projectId: {}", submission.getProjectId(), e);
-            projectName = null;
         }
 
         return TaskSubmissionDTO.builder()
@@ -404,7 +403,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
                 .createdAt(instantToLocalDateTime(submission.getCreatedAt()))
                 .updatedAt(instantToLocalDateTime(submission.getUpdatedAt()))
                 .build();
-        }
+    }
 
     /**
      * 转换实体为DTO（不带任务信息）

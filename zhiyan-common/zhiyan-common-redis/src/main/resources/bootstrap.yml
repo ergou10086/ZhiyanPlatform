@@ -5,4 +5,4 @@ spring:
     name: zhiyan-common-redis
   profiles:
     # 默认使用prod环境，服务器启动时通过参数指定
-    active: prod
+    active: cloud
