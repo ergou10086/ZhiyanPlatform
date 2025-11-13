@@ -46,18 +46,60 @@ spring:
           # 使用小写服务名，默认是大写
           lower-case-service-id: true
 
+      # 全局过滤器配置
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+
       # 路由配置
       routes:
         # ==================== 认证服务路由 ====================
         - id: zhiyan-auth
           uri: lb://zhiyan-auth  # 负载均衡方式调用
           predicates:
-            - Path=/auth/**
+            - Path=/zhiyan/auth/**
           filters:
-            - StripPrefix=0  # 不剥离前缀，保持 /auth 路径
+            - StripPrefix=0  # 不剥离前缀，保持完整路径转发
+
         # ==================== 项目管理服务路由 ====================
         - id: zhiyan-project
-          uri:
+          uri: lb://zhiyan-project
+          predicates:
+            - Path=/zhiyan/projects/**
+          filters:
+            - StripPrefix=0
+
+        # ==================== 知识库服务路由 ====================
+        - id: zhiyan-knowledge
+          uri: lb://zhiyan-knowledge
+          predicates:
+            - Path=/zhiyan/achievement/**
+          filters:
+            - StripPrefix=0
+
+        # ==================== Wiki服务路由 ====================
+        - id: zhiyan-wiki
+          uri: lb://zhiyan-wiki
+          predicates:
+            - Path=/zhiyan/wiki/**
+          filters:
+            - StripPrefix=0
+
+        # ==================== AI Coze服务路由 ====================
+        - id: zhiyan-ai-coze
+          uri: lb://zhiyan-ai-coze
+          predicates:
+            - Path=/zhiyan/ai/coze/**
+          filters:
+            - StripPrefix=0
+
+        # ==================== AI Dify服务路由 ====================
+        - id: zhiyan-ai-dify
+          uri: lb://zhiyan-ai-dify
+          predicates:
+            - Path=/zhiyan/ai/dify/**
+          filters:
+            - StripPrefix=0
+
 # 日志配置
 logging:
   level:
