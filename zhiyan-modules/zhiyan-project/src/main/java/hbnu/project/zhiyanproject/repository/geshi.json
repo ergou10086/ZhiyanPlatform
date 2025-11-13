@@ -1,0 +1,42 @@
+{
+    "collection_name": "document_vectors",
+    "description": "文档向量存储集合",
+    "fields": [
+      {
+        "name": "id",
+        "description": "主键ID",
+        "primary_key": true,
+        "auto_id": true,
+        "dtype": "Int64"
+      },
+      {
+        "name": "vector",
+        "description": "文本向量",
+        "dtype": "FloatVector",
+        "dim": 768
+      },
+      {
+        "name": "title",
+        "description": "文档标题",
+        "dtype": "VarChar",
+        "max_length": 512
+      },
+      {
+        "name": "content",
+        "description": "文档内容",
+        "dtype": "VarChar", 
+        "max_length": 4000
+      },
+      {
+        "name": "category",
+        "description": "文档分类",
+        "dtype": "VarChar",
+        "max_length": 100
+      },
+      {
+        "name": "create_time",
+        "description": "创建时间戳",
+        "dtype": "Int64"
+      }
+    ]
+  }
