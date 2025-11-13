@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/zhiyan/achievement")
+@RequestMapping("/zhiyan/achievement")    // 未修改
 @Tag(name = "成果管理", description = "成果创建、详情编辑，成果查询等管理成果的接口")
 @AccessLog("成果管理")
 public class AchievementManageController {

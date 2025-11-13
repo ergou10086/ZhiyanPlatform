@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author ErgouTree
  */
 @RestController
-@RequestMapping("/zhiyan/users/avatar")
+@RequestMapping("/zhiyan/auth/user-avatar")    // 原 /zhiyan/users/avatar
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "用户头像管理", description = "用户头像上传、更新、删除相关接口")

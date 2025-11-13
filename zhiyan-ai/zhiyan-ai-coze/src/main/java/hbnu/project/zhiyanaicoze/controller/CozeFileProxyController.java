@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/coze/files/proxy")
+@RequestMapping("/zhiyan/ai/coze/files/proxy")    // 原 /api/coze/files/proxy
 @RequiredArgsConstructor
 public class CozeFileProxyController {
 

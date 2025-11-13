@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/zhiyan/ai/dify")    // 原 /api/ai
 @RequiredArgsConstructor
 @Tag(name = "AI 对话", description = "AI 智能对话接口，支持文件上传和流式响应（基于 Dify Chatflow）")
 @AccessLog("Dify AI 对话")

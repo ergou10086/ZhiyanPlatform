@@ -27,7 +27,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/wiki/content")
+@RequestMapping("/zhiyan/wiki/content")     // 原 /api/wiki/content
 @RequiredArgsConstructor
 @Tag(name = "Wiki内容管理", description = "Wiki内容版本管理相关接口")
 public class WikiContentController {

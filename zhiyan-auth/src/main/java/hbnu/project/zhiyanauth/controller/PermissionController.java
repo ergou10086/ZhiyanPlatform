@@ -43,7 +43,7 @@ import java.util.Set;
  * @rewrite Tokito
  */
 @RestController
-@RequestMapping("/auth/permissions")
+@RequestMapping("/zhiyan/auth/permissions")   // 原/auth/permissions
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "权限管理", description = "系统权限管理相关接口")

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/zhiyan/achievement/file")
+@RequestMapping("/zhiyan/achievement/file")    // 未修改
 @Tag(name = "成果的文件管理", description = "成果文件上传等管理")
 @AccessLog("成果文件管理")
 public class AchievementFileController {

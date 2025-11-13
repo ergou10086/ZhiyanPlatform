@@ -40,7 +40,7 @@ import java.util.Map;
  * @rewrite Tokito
  */
 @RestController
-@RequestMapping("/zhiyan/users")
+@RequestMapping("/zhiyan/auth/users")     // 原/zhiyan/users
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "用户管理", description = "用户信息管理相关接口")

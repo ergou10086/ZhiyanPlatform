@@ -26,7 +26,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/wiki/search")
+@RequestMapping("/zhiyan/wiki/search")     // 原 /api/wiki/search
 @RequiredArgsConstructor
 @Tag(name = "Wiki搜索", description = "Wiki全文搜索相关接口")
 public class WikiSearchController {

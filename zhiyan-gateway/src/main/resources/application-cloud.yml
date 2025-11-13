@@ -46,6 +46,18 @@ spring:
           # 使用小写服务名，默认是大写
           lower-case-service-id: true
 
+      # 路由配置
+      routes:
+        # ==================== 认证服务路由 ====================
+        - id: zhiyan-auth
+          uri: lb://zhiyan-auth  # 负载均衡方式调用
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=0  # 不剥离前缀，保持 /auth 路径
+        # ==================== 项目管理服务路由 ====================
+        - id: zhiyan-project
+          uri:
 # 日志配置
 logging:
   level:

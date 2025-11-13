@@ -33,7 +33,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/wiki")
+@RequestMapping("/zhiyan/wiki")     // 原 /api/wiki
 @RequiredArgsConstructor
 @Tag(name = "Wiki导入导出", description = "Wiki页面导入导出相关接口")
 public class WikiImportExportController {

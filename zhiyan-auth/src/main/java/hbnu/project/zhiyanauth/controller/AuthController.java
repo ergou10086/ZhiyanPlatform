@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @author yxy
  */
 @RestController
-@RequestMapping("/zhiyan/auth")
+@RequestMapping("/zhiyan/auth")    // 未修改，保持
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "用户认证", description = "用户注册、登录、验证等认证相关接口")

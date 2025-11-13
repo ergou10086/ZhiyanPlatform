@@ -30,7 +30,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/wiki")
+@RequestMapping("/zhiyan/wiki")     // 原 /api/wiki
 @RequiredArgsConstructor
 @Tag(name = "Wiki管理", description = "Wiki页面管理相关接口")
 public class WikiPageController {

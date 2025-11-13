@@ -37,11 +37,11 @@ import java.util.stream.Collectors;
  * - 不允许创建/修改/删除角色定义，角色在枚举中预定义
  * - 成员管理功能（更新角色、移除成员、获取成员列表）已移至 ProjectMemberController
  *
- * @author AI Assistant
+ * @author Tokoio
  */
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/zhiyan/projects")     // 原 api
 @RequiredArgsConstructor
 @Tag(name = "项目角色管理", description = "项目角色查询和分配接口（不允许修改角色定义）")
 @SecurityRequirement(name = "Bearer Authentication")
@@ -125,7 +125,7 @@ public class ProjectRoleController {
     /**
      * 为用户分配项目角色（需项目管理权限）
      */
-    @PostMapping("/projects/{projectId}/assign")
+    @PostMapping("/{projectId}/assign")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "分配用户角色", description = "将用户添加为项目成员并分配角色（需要成员管理权限）")
     @OperationLog(module = "项目角色管理", type = OperationType.GRANT, description = "分配用户角色", recordParams = true, recordResult = false)
@@ -161,7 +161,7 @@ public class ProjectRoleController {
     /**
      * 获取当前用户在项目中的角色
      */
-    @GetMapping("/projects/{projectId}/my-role")
+    @GetMapping("/{projectId}/my-role")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取我的项目角色", description = "查询当前用户在指定项目中的角色信息")
     public R<RoleInfoDTO> getMyRole(
@@ -176,7 +176,7 @@ public class ProjectRoleController {
     /**
      * 获取当前用户在项目中的权限集合
      */
-    @GetMapping("/projects/{projectId}/my-permissions")
+    @GetMapping("/{projectId}/my-permissions")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取我的项目权限", description = "查询当前用户在指定项目中的所有权限")
     public R<Set<String>> getMyPermissions(
@@ -191,7 +191,7 @@ public class ProjectRoleController {
     /**
      * 检查当前用户在项目中是否拥有指定权限
      */
-    @GetMapping("/projects/{projectId}/has-permission")
+    @GetMapping("/{projectId}/has-permission")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "校验我的权限", description = "检查当前用户是否拥有指定的项目权限")
     public R<Boolean> hasPermission(
@@ -209,7 +209,7 @@ public class ProjectRoleController {
     /**
      * 获取指定用户在项目中的角色（项目成员可见）
      */
-    @GetMapping("/projects/{projectId}/members/{userId}/role")
+    @GetMapping("/{projectId}/members/{userId}/role")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "查询用户角色", description = "查询指定用户在项目中的角色")
     public R<RoleInfoDTO> getUserRole(

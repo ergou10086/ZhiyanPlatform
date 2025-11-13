@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/zhiyan/achievement/token")
+@RequestMapping("/zhiyan/achievement/token")    //未修改
 @Tag(name = "Token验证", description = "Token验证相关接口")
 @AccessLog("Token验证")
 public class TokenValidateController {

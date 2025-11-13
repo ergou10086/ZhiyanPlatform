@@ -40,7 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/zhiyan/projects")      // 原 /api/projects
 @RequiredArgsConstructor
 @Tag(name = "项目管理", description = "项目管理相关接口")
 @AccessLog("项目管理")
