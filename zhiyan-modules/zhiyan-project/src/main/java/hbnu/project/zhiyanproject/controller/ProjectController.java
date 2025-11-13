@@ -285,10 +285,10 @@ public class ProjectController {
     }
 
     /**
-     * 获取当前用户参与的所有项目
+     * 分页获取当前用户参与的所有项目
      * 权限要求：已登录用户
      */
-    @GetMapping("/my-projects")
+    @GetMapping("/page-my-projects")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取我参与的项目", description = "获取当前用户参与的所有项目")
     public R<Page<Project>> getMyProjects(

@@ -13,6 +13,7 @@
         <module>zhiyan-project</module>
         <module>zhiyan-knowledge</module>
         <module>zhiyan-wiki</module>
+        <module>zhiyan-activelog</module>
     </modules>
 
     <artifactId>zhiyan-modules</artifactId>
