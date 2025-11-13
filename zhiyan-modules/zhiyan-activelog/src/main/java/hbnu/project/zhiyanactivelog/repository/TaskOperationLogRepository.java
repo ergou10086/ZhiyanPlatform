@@ -1,17 +1,16 @@
 package hbnu.project.zhiyanactivelog.repository;
 
 import hbnu.project.zhiyanactivelog.model.entity.TaskOperationLog;
-import hbnu.project.zhiyanactivelog.model.enums.OperationResult;
 import hbnu.project.zhiyanactivelog.model.enums.TaskOperationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * 任务操作日志数据访问层
@@ -19,7 +18,7 @@ import java.util.List;
  * @author ErgouTree
  */
 @Repository
-public interface TaskOperationLogRepository extends JpaRepository<TaskOperationLog, Long> {
+public interface TaskOperationLogRepository extends JpaRepository<TaskOperationLog, Long> , JpaSpecificationExecutor<TaskOperationLog> {
 
     /**
      * 根据项目ID查询操作日志（分页）

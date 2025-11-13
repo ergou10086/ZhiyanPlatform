@@ -55,6 +55,12 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-excel</artifactId>
         </dependency>
+
+        <!--高速类路径扫描-->
+        <dependency>
+            <groupId>io.github.lukehutch</groupId>
+            <artifactId>fast-classpath-scanner</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

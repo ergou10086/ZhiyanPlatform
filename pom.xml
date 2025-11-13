@@ -73,6 +73,7 @@
 <!--    <mongodb-data.version>5.0.0-M6</mongodb-data.version>-->
         <commons-text.version>1.11.0</commons-text.version>
         <jgit.version>7.4.0.202509020913-r</jgit.version>
+        <fast-classpath-scanner.version>3.1.15</fast-classpath-scanner.version>
         <thumbnailator.version>0.4.19</thumbnailator.version>
         <tika-core.version>2.9.1</tika-core.version>
         <spring-cloud-bus.version>4.1.0</spring-cloud-bus.version>
@@ -459,6 +460,13 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
                 <version>${commons-text.version}</version>
+            </dependency>
+
+            <!--高速类路径扫描-->
+            <dependency>
+                <groupId>io.github.lukehutch</groupId>
+                <artifactId>fast-classpath-scanner</artifactId>
+                <version>${fast-classpath-scanner.version}</version>
             </dependency>
 
             <!-- JGit Git 操作库 -->

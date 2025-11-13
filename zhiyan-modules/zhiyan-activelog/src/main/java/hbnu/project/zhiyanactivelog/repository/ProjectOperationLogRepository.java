@@ -5,6 +5,7 @@ import hbnu.project.zhiyanactivelog.model.enums.ProjectOperationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
  * @author ErgouTree
  */
 @Repository
-public interface ProjectOperationLogRepository extends JpaRepository<ProjectOperationLog, Long> {
+public interface ProjectOperationLogRepository extends JpaRepository<ProjectOperationLog, Long>, JpaSpecificationExecutor<ProjectOperationLog> {
 
     /**
      * 根据项目ID查询操作日志（分页）
