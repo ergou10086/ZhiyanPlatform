@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanactivelog.mapper;
 
+import hbnu.project.zhiyanactivelog.model.dto.ProjectLogExportDTO;
+import hbnu.project.zhiyanactivelog.model.dto.UnifiedLogExportDTO;
 import hbnu.project.zhiyanactivelog.model.entity.*;
 import hbnu.project.zhiyanactivelog.model.vo.UnifiedOperationLogVO;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +57,37 @@ public class OperationLogConverter {
             }
             return null;
         }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
+     * 将项目操作日志转换为导出DTO
+     */
+    public ProjectLogExportDTO toProjectExportDTO(ProjectOperationLog log) {
+        return operationLogMapper.toProjectExportDTO(log);
+    }
+
+    /**
+     * 将统一日志VO转换为导出DTO
+     */
+    public UnifiedLogExportDTO toUnifiedExportDTO(UnifiedOperationLogVO vo) {
+        return operationLogMapper.toUnifiedExportDTO(vo);
+    }
+
+    /**
+     * 批量将项目操作日志转换为导出DTO列表
+     */
+    public List<ProjectLogExportDTO> toProjectExportDTOList(List<ProjectOperationLog> logs) {
+        return logs.stream()
+                .map(this::toProjectExportDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 批量将统一日志VO转换为导出DTO列表
+     */
+    public List<UnifiedLogExportDTO> toUnifiedExportDTOList(List<UnifiedOperationLogVO> vos) {
+        return vos.stream()
+                .map(this::toUnifiedExportDTO)
+                .collect(Collectors.toList());
     }
 }
