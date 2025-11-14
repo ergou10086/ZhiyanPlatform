@@ -6,9 +6,9 @@ spring:
 
   profiles:
     # 默认使用dev环境，可通过环境变量覆盖
-    active: prod
+    active: cloud
 
-  # ⭐⭐⭐ WebFlux 流式响应优化配置
+  # WebFlux 流式响应优化配置
   codec:
     max-in-memory-size: 524288  # 512 KB（足够处理SSE消息，同时不会过度缓冲）
   

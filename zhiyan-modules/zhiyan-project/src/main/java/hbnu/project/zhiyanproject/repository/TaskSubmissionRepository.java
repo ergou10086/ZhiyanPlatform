@@ -86,15 +86,15 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
      * 只查询我创建的任务，且任务所属项目未删除
      */
     @Query("SELECT ts FROM TaskSubmission ts " +
-           "WHERE ts.reviewStatus = :reviewStatus " +
-           "AND ts.isDeleted = false " +
-           "AND ts.taskId IN (" +
-           "  SELECT t.id FROM Tasks t " +
-           "  WHERE t.createdBy = :creatorId " +
-           "  AND t.isDeleted = false " +
-           "  AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)" +
-           ") " +
-           "ORDER BY ts.submissionTime DESC")
+            "WHERE ts.reviewStatus = :reviewStatus " +
+            "AND ts.isDeleted = false " +
+            "AND ts.taskId IN (" +
+            "  SELECT t.id FROM Tasks t " +
+            "  WHERE t.createdBy = :creatorId " +
+            "  AND t.isDeleted = false " +
+            "  AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)" +
+            ") " +
+            "ORDER BY ts.submissionTime DESC")
     Page<TaskSubmission> findPendingSubmissionsForMyCreatedTasks(
             @Param("creatorId") Long creatorId,
             @Param("reviewStatus") ReviewStatus reviewStatus,
@@ -102,19 +102,19 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
 
     /**
      * 查询需要指定用户审核的待审核提交记录（任务创建者是该用户）
-     * 
+     *
      * @param taskCreatorId 任务创建者ID
      * @param reviewStatus 审核状态
      * @param pageable 分页参数
      * @return 提交记录分页
      */
     @Query("SELECT s FROM TaskSubmission s " +
-           "JOIN Tasks t ON s.taskId = t.id " +
-           "WHERE t.createdBy = :taskCreatorId " +
-           "AND s.reviewStatus = :reviewStatus " +
-           "AND s.isDeleted = false " +
-           "AND t.isDeleted = false " +
-           "ORDER BY s.submissionTime DESC")
+            "JOIN Tasks t ON s.taskId = t.id " +
+            "WHERE t.createdBy = :taskCreatorId " +
+            "AND s.reviewStatus = :reviewStatus " +
+            "AND s.isDeleted = false " +
+            "AND t.isDeleted = false " +
+            "ORDER BY s.submissionTime DESC")
     Page<TaskSubmission> findPendingSubmissionsForReviewer(
             @Param("taskCreatorId") Long taskCreatorId,
             @Param("reviewStatus") ReviewStatus reviewStatus,
@@ -124,33 +124,33 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
      * 统计我创建的任务中的待审核提交数量
      */
     @Query("SELECT COUNT(ts) FROM TaskSubmission ts " +
-           "WHERE ts.reviewStatus = :reviewStatus " +
-           "AND ts.isDeleted = false " +
-           "AND ts.taskId IN (" +
-           "  SELECT t.id FROM Tasks t " +
-           "  WHERE t.createdBy = :creatorId " +
-           "  AND t.isDeleted = false " +
-           "  AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)" +
-           ")")
+            "WHERE ts.reviewStatus = :reviewStatus " +
+            "AND ts.isDeleted = false " +
+            "AND ts.taskId IN (" +
+            "  SELECT t.id FROM Tasks t " +
+            "  WHERE t.createdBy = :creatorId " +
+            "  AND t.isDeleted = false " +
+            "  AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)" +
+            ")")
     long countPendingSubmissionsForMyCreatedTasks(
             @Param("creatorId") Long creatorId,
             @Param("reviewStatus") ReviewStatus reviewStatus);
 
     /**
      * 查询用户相关的待审核提交记录（包括：用户提交的 + 需要用户审核的）
-     * 
+     *
      * @param userId 用户ID
      * @param reviewStatus 审核状态
      * @param pageable 分页参数
      * @return 提交记录分页
      */
     @Query("SELECT s FROM TaskSubmission s " +
-           "LEFT JOIN Tasks t ON s.taskId = t.id " +
-           "WHERE s.reviewStatus = :reviewStatus " +
-           "AND s.isDeleted = false " +
-           "AND (s.submitterId = :userId OR t.createdBy = :userId) " +
-           "AND (t.isDeleted = false OR t.id IS NULL) " +
-           "ORDER BY s.submissionTime DESC")
+            "LEFT JOIN Tasks t ON s.taskId = t.id " +
+            "WHERE s.reviewStatus = :reviewStatus " +
+            "AND s.isDeleted = false " +
+            "AND (s.submitterId = :userId OR t.createdBy = :userId) " +
+            "AND (t.isDeleted = false OR t.id IS NULL) " +
+            "ORDER BY s.submissionTime DESC")
     Page<TaskSubmission> findPendingSubmissionsForUser(
             @Param("userId") Long userId,
             @Param("reviewStatus") ReviewStatus reviewStatus,
@@ -158,36 +158,36 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
 
     /**
      * 统计用户相关的待审核提交数量（包括：用户提交的 + 需要用户审核的）
-     * 
+     *
      * @param userId 用户ID
      * @param reviewStatus 审核状态
      * @return 数量
      */
     @Query("SELECT COUNT(s) FROM TaskSubmission s " +
-           "LEFT JOIN Tasks t ON s.taskId = t.id " +
-           "WHERE s.reviewStatus = :reviewStatus " +
-           "AND s.isDeleted = false " +
-           "AND (s.submitterId = :userId OR t.createdBy = :userId) " +
-           "AND (t.isDeleted = false OR t.id IS NULL)")
+            "LEFT JOIN Tasks t ON s.taskId = t.id " +
+            "WHERE s.reviewStatus = :reviewStatus " +
+            "AND s.isDeleted = false " +
+            "AND (s.submitterId = :userId OR t.createdBy = :userId) " +
+            "AND (t.isDeleted = false OR t.id IS NULL)")
     long countPendingSubmissionsForUser(
             @Param("userId") Long userId,
             @Param("reviewStatus") ReviewStatus reviewStatus);
 
     /**
      * 查询我提交的待审核任务（我提交的，等待别人审核）
-     * 
+     *
      * @param submitterId 提交人ID
      * @param reviewStatus 审核状态
      * @param pageable 分页参数
      * @return 提交记录分页
      */
     @Query("SELECT s FROM TaskSubmission s " +
-           "JOIN Tasks t ON s.taskId = t.id " +
-           "WHERE s.submitterId = :submitterId " +
-           "AND s.reviewStatus = :reviewStatus " +
-           "AND s.isDeleted = false " +
-           "AND t.isDeleted = false " +
-           "ORDER BY s.submissionTime DESC")
+            "JOIN Tasks t ON s.taskId = t.id " +
+            "WHERE s.submitterId = :submitterId " +
+            "AND s.reviewStatus = :reviewStatus " +
+            "AND s.isDeleted = false " +
+            "AND t.isDeleted = false " +
+            "ORDER BY s.submissionTime DESC")
     Page<TaskSubmission> findMyPendingSubmissions(
             @Param("submitterId") Long submitterId,
             @Param("reviewStatus") ReviewStatus reviewStatus,
@@ -195,34 +195,34 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
 
     /**
      * 统计我提交的待审核任务数量
-     * 
+     *
      * @param submitterId 提交人ID
      * @param reviewStatus 审核状态
      * @return 数量
      */
     @Query("SELECT COUNT(s) FROM TaskSubmission s " +
-           "JOIN Tasks t ON s.taskId = t.id " +
-           "WHERE s.submitterId = :submitterId " +
-           "AND s.reviewStatus = :reviewStatus " +
-           "AND s.isDeleted = false " +
-           "AND t.isDeleted = false")
+            "JOIN Tasks t ON s.taskId = t.id " +
+            "WHERE s.submitterId = :submitterId " +
+            "AND s.reviewStatus = :reviewStatus " +
+            "AND s.isDeleted = false " +
+            "AND t.isDeleted = false")
     long countMyPendingSubmissions(
             @Param("submitterId") Long submitterId,
             @Param("reviewStatus") ReviewStatus reviewStatus);
 
     /**
      * 统计待我审核的提交数量（任务创建者是我）
-     * 
+     *
      * @param taskCreatorId 任务创建者ID
      * @param reviewStatus 审核状态
      * @return 数量
      */
     @Query("SELECT COUNT(s) FROM TaskSubmission s " +
-           "JOIN Tasks t ON s.taskId = t.id " +
-           "WHERE t.createdBy = :taskCreatorId " +
-           "AND s.reviewStatus = :reviewStatus " +
-           "AND s.isDeleted = false " +
-           "AND t.isDeleted = false")
+            "JOIN Tasks t ON s.taskId = t.id " +
+            "WHERE t.createdBy = :taskCreatorId " +
+            "AND s.reviewStatus = :reviewStatus " +
+            "AND s.isDeleted = false " +
+            "AND t.isDeleted = false")
     long countPendingSubmissionsForReviewer(
             @Param("taskCreatorId") Long taskCreatorId,
             @Param("reviewStatus") ReviewStatus reviewStatus);

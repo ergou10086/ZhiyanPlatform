@@ -25,7 +25,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/zhiyan/achievement/statistics")
+@RequestMapping("/zhiyan/achievement/statistics")     // 未修改
 @Tag(name = "成果统计分析", description = "成果数量统计、类型分布、状态统计等")
 public class AchievementStatisticsController {
 

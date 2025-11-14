@@ -40,7 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/zhiyan/projects")      // 原 /api/projects
 @RequiredArgsConstructor
 @Tag(name = "项目管理", description = "项目管理相关接口")
 @AccessLog("项目管理")
@@ -285,10 +285,10 @@ public class ProjectController {
     }
 
     /**
-     * 获取当前用户参与的所有项目
+     * 分页获取当前用户参与的所有项目
      * 权限要求：已登录用户
      */
-    @GetMapping("/my-projects")
+    @GetMapping("/page-my-projects")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取我参与的项目", description = "获取当前用户参与的所有项目")
     public R<Page<Project>> getMyProjects(

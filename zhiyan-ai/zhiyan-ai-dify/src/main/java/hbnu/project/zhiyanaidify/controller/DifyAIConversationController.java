@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/ai/conversations")
+@RequestMapping("/zhiyan/ai/dify/conversations")   // 原 /api/ai/conversations
 @RequiredArgsConstructor
 @Tag(name = "AI 对话历史", description = "AI 对话历史管理接口，用于获取和管理对话记录")
 public class DifyAIConversationController {

@@ -29,7 +29,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/zhiyan/achievement/detail")
+@RequestMapping("/zhiyan/achievement/detail")   // 未修改
 @Tag(name = "成果详情管理", description = "成果详情编辑、模板管理、数据验证等")
 @AccessLog("成果详情管理")
 public class AchievementDetailController {

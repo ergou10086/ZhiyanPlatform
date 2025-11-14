@@ -40,7 +40,7 @@ import java.util.Set;
  * @rewrite Tokito
  */
 @RestController
-@RequestMapping("/auth/roles")
+@RequestMapping("/zhiyan/auth/roles")   // 原 /auth/roles
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "角色管理", description = "系统角色管理相关接口")

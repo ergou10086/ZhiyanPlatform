@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/zhiyan/achievement/search")
+@RequestMapping("/zhiyan/achievement/search")   //未修改
 @Tag(name = "成果查询搜索", description = "成果的多条件查询、搜索、列表获取等")
 @AccessLog("成果搜索")
 public class AchievementSearchController {

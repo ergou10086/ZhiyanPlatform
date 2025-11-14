@@ -42,7 +42,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects/tasks")
+@RequestMapping("/zhiyan/projects/tasks")    // 原 /api/projects/tasks
 @RequiredArgsConstructor
 @Tag(name = "任务管理", description = "任务管理相关接口，包括任务创建、分配、状态更新、看板视图等")
 @SecurityRequirement(name = "Bearer Authentication")

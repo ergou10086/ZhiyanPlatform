@@ -40,7 +40,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/zhiyan/projects")      // 原 /api
 @RequiredArgsConstructor
 @Tag(name = "项目成员管理", description = "项目成员管理相关接口，包括成员邀请、角色管理等")
 @SecurityRequirement(name = "Bearer Authentication")
@@ -54,11 +54,11 @@ public class ProjectMemberController {
 
     /**
      * 邀请成员加入项目（直接添加，无需对方同意）
-     * 业务场景：项目负责人通过用户ID直接将成员添加到项目中
+     * 业务场景：项目管理员（OWNER或ADMIN）通过用户ID直接将成员添加到项目中
      */
-    @PostMapping("/projects/{projectId}/invite")
+    @PostMapping("/{projectId}/invite")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "邀请成员", description = "项目负责人直接将用户添加到项目中（无需对方同意）")
+    @Operation(summary = "邀请成员", description = "项目管理员直接将用户添加到项目中（无需对方同意）")
     @OperationLog(module = "项目成员管理", type = OperationType.INSERT, description = "邀请成员加入项目", recordParams = true, recordResult = true)
     @SentinelResource(
         value = "inviteMember",
@@ -85,11 +85,11 @@ public class ProjectMemberController {
 
     /**
      * 移除项目成员
-     * 业务场景：项目负责人移除不合适的成员
+     * 业务场景：项目管理员移除不合适的成员
      */
-    @DeleteMapping("/projects/{projectId}/members/{userId}")
+    @DeleteMapping("/{projectId}/members/{userId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "移除成员", description = "项目负责人移除项目成员")
+    @Operation(summary = "移除成员", description = "项目管理员移除项目成员")
     @OperationLog(module = "项目成员管理", type = OperationType.DELETE, description = "移除项目成员", recordParams = true, recordResult = false)
     public R<Void> removeMember(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
@@ -109,11 +109,11 @@ public class ProjectMemberController {
 
     /**
      * 更新成员角色
-     * 业务场景：项目负责人修改成员在项目中的角色
+     * 业务场景：项目管理员修改成员在项目中的角色，可以将普通成员提升为管理员
      */
-    @PutMapping("/projects/{projectId}/members/{userId}/role")
+    @PutMapping("/{projectId}/members/{userId}/role")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "更新成员角色", description = "项目负责人修改成员的项目角色")
+    @Operation(summary = "更新成员角色", description = "项目管理员修改成员的项目角色，可以将普通成员提升为管理员")
     @OperationLog(module = "项目成员管理", type = OperationType.GRANT, description = "更新成员角色", recordParams = true, recordResult = true)
     public R<ProjectMember> updateMemberRole(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
@@ -136,7 +136,7 @@ public class ProjectMemberController {
      * 退出项目
      * 业务场景：成员主动退出项目
      */
-    @DeleteMapping("/projects/{projectId}/leave")
+    @DeleteMapping("/{projectId}/leave")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "退出项目", description = "成员主动退出项目")
     @OperationLog(module = "项目成员管理", type = OperationType.OTHER, description = "退出项目", recordParams = true, recordResult = false)
@@ -159,7 +159,7 @@ public class ProjectMemberController {
      * 获取项目成员列表（含详细信息）
      * 业务场景：在项目详情页的"成员"标签页展示成员列表
      */
-    @GetMapping("/projects/{projectId}/members")
+    @GetMapping("/{projectId}/members")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取项目成员", description = "获取项目的所有成员详细信息")
     public R<Page<ProjectMemberDTO>> getProjectMembers(
@@ -241,7 +241,7 @@ public class ProjectMemberController {
      * 获取项目中指定角色的成员
      * 业务场景：筛选项目中的负责人或特定角色成员
      */
-    @GetMapping("/projects/{projectId}/role/{role}")
+    @GetMapping("/{projectId}/role/{role}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "按角色获取成员", description = "获取项目中指定角色的所有成员")
     public R<List<ProjectMember>> getMembersByRole(
@@ -262,7 +262,7 @@ public class ProjectMemberController {
     /**
      * 检查用户是否为项目成员
      */
-    @GetMapping("/projects/{projectId}/check-membership")
+    @GetMapping("/{projectId}/check-membership")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "检查成员身份", description = "检查当前用户是否为项目成员")
     public R<Boolean> checkMembership(@PathVariable @Parameter(description = "项目ID") Long projectId) {
@@ -274,19 +274,35 @@ public class ProjectMemberController {
     /**
      * 检查用户是否为项目负责人
      */
-    @GetMapping("/projects/{projectId}/check-owner")
+    @GetMapping("/{projectId}/check-owner")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "检查负责人身份", description = "检查当前用户是否为项目负责人")
     public R<Boolean> checkOwner(@PathVariable @Parameter(description = "项目ID") Long projectId) {
         Long currentUserId = SecurityUtils.getUserId();
+        log.info("用户[{}]检查项目[{}]的拥有者身份", currentUserId, projectId);
         boolean isOwner = projectMemberService.isOwner(projectId, currentUserId);
+        log.info("用户[{}]在项目[{}]中的拥有者身份检查结果: {}", currentUserId, projectId, isOwner);
         return R.ok(isOwner);
+    }
+
+    /**
+     * 检查用户是否为项目管理员（包括OWNER和ADMIN）
+     */
+    @GetMapping("/{projectId}/check-admin")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "检查管理员身份", description = "检查当前用户是否为项目管理员（包括项目负责人和管理员）")
+    public R<Boolean> checkAdmin(@PathVariable @Parameter(description = "项目ID") Long projectId) {
+        Long currentUserId = SecurityUtils.getUserId();
+        log.info("用户[{}]检查项目[{}]的管理员身份", currentUserId, projectId);
+        boolean isAdmin = projectMemberService.isAdmin(projectId, currentUserId);
+        log.info("用户[{}]在项目[{}]中的管理员身份检查结果: {}", currentUserId, projectId, isAdmin);
+        return R.ok(isAdmin);
     }
 
     /**
      * 获取项目成员数量
      */
-    @GetMapping("/projects/{projectId}/count")
+    @GetMapping("/{projectId}/count")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "获取成员数量", description = "获取项目的成员总数")
     public R<Long> getMemberCount(@PathVariable @Parameter(description = "项目ID") Long projectId) {
@@ -316,6 +332,17 @@ public class ProjectMemberController {
             @PathVariable Long projectId,
             @RequestParam Long userId) {
         return projectMemberService.isOwner(projectId, userId);
+    }
+
+    /**
+     * 检查用户是否为项目管理员（用于其他微服务调用）
+     */
+    @GetMapping("/{projectId}/admin/check")
+    @Operation(summary = "检查管理员", description = "检查用户是否为项目管理员（包括OWNER和ADMIN）")
+    public Boolean isProjectAdmin(
+            @PathVariable Long projectId,
+            @RequestParam Long userId) {
+        return projectMemberService.isAdmin(projectId, userId);
     }
 
 

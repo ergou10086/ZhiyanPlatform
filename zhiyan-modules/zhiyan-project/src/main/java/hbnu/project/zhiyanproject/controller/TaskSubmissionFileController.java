@@ -32,7 +32,7 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects/tasks/submissions/files")
+@RequestMapping("/zhiyan/projects/tasks/submissions/files")    // 原 /api/projects/tasks/submissions/files
 @RequiredArgsConstructor
 @Tag(name = "任务提交文件管理", description = "任务提交附件上传、删除等接口")
 @SecurityRequirement(name = "Bearer Authentication")

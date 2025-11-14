@@ -35,7 +35,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/projects/tasks/submissions")
+@RequestMapping("/zhiyan/projects/tasks/submissions")    // 原 /api/projects/tasks/submissions
 @RequiredArgsConstructor
 @Tag(name = "任务提交管理", description = "任务提交、审核、撤回等接口")
 @SecurityRequirement(name = "Bearer Authentication")

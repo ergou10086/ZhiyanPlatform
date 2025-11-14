@@ -120,3 +120,28 @@ CREATE TABLE `wiki_page` (
                              INDEX `idx_created_at` (`created_at`),
                              INDEX `idx_updated_at` (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Wiki页面表（存储元数据和关系）';
+
+
+-- 分片上传记录表
+CREATE TABLE `achievement_file_upload_session` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `upload_id` VARCHAR(255) NOT NULL COMMENT 'MinIO的uploadId',
+    `achievement_id` BIGINT NOT NULL COMMENT '成果ID',
+    `file_name` VARCHAR(255) NOT NULL COMMENT '文件名',
+    `file_size` BIGINT NOT NULL COMMENT '文件总大小(字节)',
+    `chunk_size` INT NOT NULL DEFAULT 5242880 COMMENT '分片大小(字节),默认5MB',
+    `total_chunks` INT NOT NULL COMMENT '总分片数',
+    `uploaded_chunks` TEXT COMMENT '已上传分片号列表,JSON格式',
+    `object_key` VARCHAR(500) NOT NULL COMMENT 'MinIO对象键',
+    `bucket_name` VARCHAR(100) NOT NULL COMMENT '桶名称',
+    `upload_by` BIGINT NOT NULL COMMENT '上传用户ID',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS' COMMENT '状态:IN_PROGRESS,COMPLETED,FAILED,CANCELLED',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `expired_at` DATETIME COMMENT '过期时间(7天后自动清理)',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_upload_id` (`upload_id`),
+    KEY `idx_achievement_id` (`achievement_id`),
+    KEY `idx_status` (`status`),
+    KEY `idx_upload_by` (`upload_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='成果文件分片上传会话表';

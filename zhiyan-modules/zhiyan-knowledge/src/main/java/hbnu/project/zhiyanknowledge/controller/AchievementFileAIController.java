@@ -23,7 +23,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/knowledge/files")
+@RequestMapping("/zhiyan/achievement/files")   // 原 /api/knowledge/files
 @RequiredArgsConstructor
 @Tag(name = "文件 AI 接口", description = "供 AI 模块调用的文件查询接口")
 public class AchievementFileAIController {

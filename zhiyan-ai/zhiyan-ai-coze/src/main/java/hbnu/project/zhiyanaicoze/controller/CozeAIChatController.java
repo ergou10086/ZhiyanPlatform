@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/coze")
+@RequestMapping("/zhiyan/ai/coze")     // 原  /api/coze
 @RequiredArgsConstructor
 @Tag(name = "Coze AI 对话", description = "Coze AI 智能对话接口，支持流式响应")
 @CrossOrigin(origins = {"http://localhost:8001", "http://127.0.0.1:8001"}, allowCredentials = "true")

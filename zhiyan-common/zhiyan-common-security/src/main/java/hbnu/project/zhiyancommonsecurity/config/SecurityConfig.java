@@ -83,6 +83,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "/error",
                         "/favicon.ico",
                         "/actuator/**",
+                        "/health",                    // 健康检查端点（兼容性）
                         "/swagger-ui/**",
                         "/swagger-resources/**",
                         "/v3/api-docs/**",
@@ -125,6 +126,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/error",
                                 "/favicon.ico",
                                 "/actuator/**",
+                                "/health",                    // 健康检查端点（兼容性）
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/doc.html",
@@ -184,6 +186,12 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/api/*/members/check",        // 检查成员关系
                                 "/api/*/owner/check",          // 检查拥有者
                                 "/api/*/permissions/check"     // 检查权限
+                        ).permitAll()
+
+                        // 文件下载接口 - 使用 permitAll，支持通过查询参数传递token，权限在 Controller 层手动验证
+                        // 这样可以支持浏览器直接下载（无法设置Authorization header）
+                        .requestMatchers(
+                                "/zhiyan/achievement/file/*/download"  // 成果文件下载
                         ).permitAll()
 
                         // AI 流式接口 - 使用 permitAll，权限在 Controller 层通过 @PreAuthorize 控制

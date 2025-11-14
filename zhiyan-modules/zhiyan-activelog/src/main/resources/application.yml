@@ -1,0 +1,70 @@
+# 主配置文件 - 通用配置
+
+spring:
+  profiles:
+    # 默认使用dev环境，可通过环境变量覆盖
+    active: ${SPRING_PROFILES_ACTIVE:cloud}
+
+  autoconfigure:
+    exclude:
+      # 排除Redis Repositories自动配置，避免无效扫描（项目只使用JPA Repository）
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# 通用配置
+app:
+  name: 智研平台操作日志模块
+  version: 0.0.1-SNAPSHOT
+
+# 通用日志配置
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+# Swagger 配置
+swagger:
+  enabled: true
+  title: 智研平台操作日志模块 API 文档
+  description: 操作日志查询、导出等功能接口
+  version: 1.0.0
+  terms-of-service-url: ""
+  contact:
+    name: 智研平台开发团队
+    email: zjm88822201@126.com
+    url: https://github.com/ergou10086/ZhiyanPlatform
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  auth-enabled: true
+  auth-header-name: Authorization
+  auth-scheme-name: Bearer Authentication
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    persist-authorization: true
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  packages-to-scan: hbnu.project.zhiyanactivelog
+  paths-to-match: /api/**
+
+# Knife4j 增强配置
+knife4j:
+  enable: true
+  production: false
+  basic:
+    enable: false
+  setting:
+    language: zh_CN
+    enable-request-cache: true
+    enable-filter-multipart-api-method-type: POST
+    enable-host: false
+    enable-host-text: ""

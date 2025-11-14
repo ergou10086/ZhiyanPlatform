@@ -4,7 +4,6 @@ import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.service.UserCacheService;
 import hbnu.project.zhiyanproject.model.dto.ProjectMemberDTO;
-import hbnu.project.zhiyanproject.model.dto.ProjectMemberDetailDTO;
 import hbnu.project.zhiyanproject.model.dto.RoleInfoDTO;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
@@ -51,9 +50,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("项目不存在"));
 
-        // 2. 检查邀请人是否为项目负责人
-        if (!isOwner(projectId, inviterId)) {
-            throw new IllegalArgumentException("只有项目负责人可以邀请成员");
+        // 2. 检查邀请人是否为项目管理员（OWNER或ADMIN）
+        if (!isAdmin(projectId, inviterId)) {
+            throw new IllegalArgumentException("只有项目管理员可以邀请成员");
         }
 
         // 3. 检查被邀请用户是否存在
@@ -70,6 +69,13 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
         // 5. 添加成员
         ProjectMemberRole role = request.getRole() != null ? request.getRole() : ProjectMemberRole.MEMBER;
+        
+        // 6. ADMIN不能将新成员设置为OWNER，只有OWNER可以
+        ProjectMemberRole inviterRole = getUserRole(projectId, inviterId);
+        if (inviterRole == ProjectMemberRole.ADMIN && role == ProjectMemberRole.OWNER) {
+            throw new IllegalArgumentException("管理员不能将新成员设置为项目负责人");
+        }
+        
         ProjectMember member = ProjectMember.builder()
                 .projectId(projectId)
                 .userId(userId)
@@ -88,7 +94,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             throw e;
         }
         
-        log.info("项目[{}]负责人[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
+        log.info("项目[{}]管理员[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
 
         // TODO: 发送通知给被添加的用户（通过消息队列），告知已被添加到项目
 
@@ -98,12 +104,12 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     @Transactional
     public void removeMember(Long projectId, Long userId, Long operatorId) {
-        // 1. 检查操作人是否为项目负责人
-        if (!isOwner(projectId, operatorId)) {
-            throw new IllegalArgumentException("只有项目负责人可以移除成员");
+        // 1. 检查操作人是否为项目管理员（OWNER或ADMIN）
+        if (!isAdmin(projectId, operatorId)) {
+            throw new IllegalArgumentException("只有项目管理员可以移除成员");
         }
 
-        // 2. 不能移除负责人自己
+        // 2. 不能移除自己
         if (userId.equals(operatorId)) {
             throw new IllegalArgumentException("不能移除自己，如需退出项目请使用退出功能");
         }
@@ -112,14 +118,20 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("该用户不是项目成员"));
 
-        // 4. 不能移除项目负责人
+        // 4. 不能移除项目负责人（OWNER），只有OWNER自己可以转让项目
         if (member.getProjectRole() == ProjectMemberRole.OWNER) {
             throw new IllegalArgumentException("不能移除项目负责人");
         }
 
-        // 5. 移除成员
+        // 5. ADMIN不能移除其他ADMIN，只有OWNER可以
+        ProjectMemberRole operatorRole = getUserRole(projectId, operatorId);
+        if (operatorRole == ProjectMemberRole.ADMIN && member.getProjectRole() == ProjectMemberRole.ADMIN) {
+            throw new IllegalArgumentException("管理员不能移除其他管理员，只有项目负责人可以");
+        }
+
+        // 6. 移除成员
         projectMemberRepository.delete(member);
-        log.info("项目[{}]负责人[{}]移除成员[{}]", projectId, operatorId, userId);
+        log.info("项目[{}]管理员[{}]移除成员[{}]", projectId, operatorId, userId);
 
         // TODO: 发送通知给被移除用户（通过消息队列）
     }
@@ -127,9 +139,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     @Transactional
     public ProjectMember updateMemberRole(Long projectId, Long userId, ProjectMemberRole newRole, Long operatorId) {
-        // 1. 检查操作人是否为项目负责人
-        if (!isOwner(projectId, operatorId)) {
-            throw new IllegalArgumentException("只有项目负责人可以修改成员角色");
+        // 1. 检查操作人是否为项目管理员（OWNER或ADMIN）
+        if (!isAdmin(projectId, operatorId)) {
+            throw new IllegalArgumentException("只有项目管理员可以修改成员角色");
         }
 
         // 2. 查询成员
@@ -141,11 +153,22 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             throw new IllegalArgumentException("不能修改项目负责人的角色");
         }
 
-        // 4. 更新角色
+        // 4. ADMIN不能修改其他ADMIN的角色，只有OWNER可以
+        ProjectMemberRole operatorRole = getUserRole(projectId, operatorId);
+        if (operatorRole == ProjectMemberRole.ADMIN && member.getProjectRole() == ProjectMemberRole.ADMIN) {
+            throw new IllegalArgumentException("管理员不能修改其他管理员的角色，只有项目负责人可以");
+        }
+
+        // 5. ADMIN可以将MEMBER提升为ADMIN，但不能设置为OWNER
+        if (operatorRole == ProjectMemberRole.ADMIN && newRole == ProjectMemberRole.OWNER) {
+            throw new IllegalArgumentException("管理员不能将成员设置为项目负责人");
+        }
+
+        // 6. 更新角色
         member.setProjectRole(newRole);
         ProjectMember saved = projectMemberRepository.save(member);
 
-        log.info("项目[{}]负责人[{}]将成员[{}]角色修改为: {}", projectId, operatorId, userId, newRole);
+        log.info("项目[{}]管理员[{}]将成员[{}]角色修改为: {}", projectId, operatorId, userId, newRole);
 
         // TODO: 发送通知给该成员（通过消息队列）
 
@@ -190,9 +213,45 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public boolean isOwner(Long projectId, Long userId) {
-        return projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
-                .map(member -> member.getProjectRole() == ProjectMemberRole.OWNER)
-                .orElse(false);
+        log.info("检查用户[{}]是否为项目[{}]的拥有者", userId, projectId);
+        Optional<ProjectMember> memberOpt = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
+        if (memberOpt.isPresent()) {
+            ProjectMember member = memberOpt.get();
+            boolean isOwner = member.getProjectRole() == ProjectMemberRole.OWNER;
+            log.info("用户[{}]在项目[{}]中的角色: {}, 是否为拥有者: {}", userId, projectId, member.getProjectRole(), isOwner);
+            return isOwner;
+        } else {
+            log.warn("用户[{}]不是项目[{}]的成员，尝试查询所有成员", userId, projectId);
+            // 尝试查询项目中的所有成员，看看是否有问题
+            List<ProjectMember> allMembers = projectMemberRepository.findByProjectId(projectId);
+            log.info("项目[{}]的所有成员 (总数: {}): {}", projectId, allMembers.size(), allMembers.stream()
+                    .map(m -> "userId=" + m.getUserId() + " (类型: " + m.getUserId().getClass().getSimpleName() + "), role=" + m.getProjectRole())
+                    .collect(Collectors.joining(", ")));
+            log.info("当前查询的用户ID: {} (类型: {})", userId, userId != null ? userId.getClass().getSimpleName() : "null");
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isAdmin(Long projectId, Long userId) {
+        log.info("检查用户[{}]是否为项目[{}]的管理员", userId, projectId);
+        Optional<ProjectMember> memberOpt = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
+        if (memberOpt.isPresent()) {
+            ProjectMember member = memberOpt.get();
+            ProjectMemberRole role = member.getProjectRole();
+            boolean isAdmin = role == ProjectMemberRole.OWNER || role == ProjectMemberRole.ADMIN;
+            log.info("用户[{}]在项目[{}]中的角色: {}, 是否为管理员: {}", userId, projectId, role, isAdmin);
+            return isAdmin;
+        } else {
+            log.warn("用户[{}]不是项目[{}]的成员，尝试查询所有成员", userId, projectId);
+            // 尝试查询项目中的所有成员，看看是否有问题
+            List<ProjectMember> allMembers = projectMemberRepository.findByProjectId(projectId);
+            log.info("项目[{}]的所有成员 (总数: {}): {}", projectId, allMembers.size(), allMembers.stream()
+                    .map(m -> "userId=" + m.getUserId() + " (类型: " + m.getUserId().getClass().getSimpleName() + "), role=" + m.getProjectRole())
+                    .collect(Collectors.joining(", ")));
+            log.info("当前查询的用户ID: {} (类型: {})", userId, userId != null ? userId.getClass().getSimpleName() : "null");
+            return false;
+        }
     }
 
     @Override

@@ -1,12 +1,14 @@
 package hbnu.project.zhiyancommonbasic.exception;
 
 import hbnu.project.zhiyancommonbasic.exception.base.BaseException;
+import lombok.Getter;
 
 /**
  * 业务异常
  *
  * @author ErgouTree
  */
+@Getter
 public class ServiceException extends BaseException {
     private static final long serialVersionUID = 1L;
 
@@ -45,17 +47,9 @@ public class ServiceException extends BaseException {
         this.errorCode = errorCode;
     }
 
-    public String getDetailMessage() {
-        return detailMessage;
-    }
-
     public ServiceException setDetailMessage(String detailMessage) {
         this.detailMessage = detailMessage;
         return this;
-    }
-
-    public Integer getErrorCode() {
-        return errorCode;
     }
 
     public ServiceException setErrorCode(Integer errorCode) {

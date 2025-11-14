@@ -1,9 +1,10 @@
 package hbnu.project.zhiyancommonbasic.utils;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import org.springframework.util.AntPathMatcher;
 import hbnu.project.zhiyancommonbasic.constants.GeneralConstants;
@@ -298,6 +299,17 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         }
 
         return str.substring(start, end);
+    }
+
+    /**
+     * 切分字符串
+     *
+     * @param str       被切分的字符串
+     * @param separator 分隔符
+     * @return 分割后的数据列表
+     */
+    public static List<String> splitList(String str, String separator) {
+        return splitTo(str, separator, Convert::toStr);
     }
 
     /**
@@ -631,5 +643,25 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * 切分字符串自定义转换
+     *
+     * @param str       被切分的字符串
+     * @param separator 分隔符
+     * @param mapper    自定义转换
+     * @return 分割后的数据列表
+     */
+    public static <T> List<T> splitTo(String str, String separator, Function<? super Object, T> mapper) {
+        if (isBlank(str)) {
+            return new ArrayList<>(0);
+        }
+        return StrUtil.split(str, separator)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(mapper)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }
