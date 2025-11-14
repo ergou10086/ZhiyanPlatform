@@ -18,9 +18,11 @@ import java.util.List;
 
 /**
  * 操作日志服务
+ * 被优化
  *
  * @author ErgouTree
  */
+@Deprecated
 @Slf4j
 @Service
 @RequiredArgsConstructor
