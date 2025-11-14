@@ -4,7 +4,6 @@ import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanproject.model.dto.PageResult;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Auth服务Feign客户端
@@ -20,7 +18,7 @@ import java.util.Map;
  *
  * @author Tokito
  */
-@FeignClient(name = "zhiyan-auth-service", url = "http://localhost:8091", path = "/zhiyan/users")
+@FeignClient(name = "zhiyan-auth-service", url = "http://localhost:8091", path = "/zhiyan/auth/users")
 public interface AuthServiceClient {
 
     /**

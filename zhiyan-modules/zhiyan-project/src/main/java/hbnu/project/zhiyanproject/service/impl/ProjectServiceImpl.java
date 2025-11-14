@@ -49,6 +49,10 @@ public class ProjectServiceImpl implements ProjectService {
                 return R.fail("项目名称已存在: " + name);
             }
 
+            if (creatorId == null) {
+                return R.fail("未登录或令牌无效，无法创建项目");
+            }
+
             // 创建项目
             Project project = Project.builder()
                     .name(name)
@@ -61,10 +65,10 @@ public class ProjectServiceImpl implements ProjectService {
                     .creatorId(creatorId)
                     .isDeleted(false)
                     .build();
-
-            if (creatorId == null) {
-                return R.fail("未登录或令牌无效，无法创建项目");
-            }
+            
+            // 显式设置 BaseAuditEntity 的 createdBy 字段，避免数据库约束错误
+            project.setCreatedBy(creatorId);
+            
             project = projectRepository.save(project);
 
             // 自动将创建者添加为项目拥有者（使用内部方法，不验证用户）
