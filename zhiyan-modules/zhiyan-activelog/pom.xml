@@ -61,6 +61,11 @@
             <groupId>io.github.lukehutch</groupId>
             <artifactId>fast-classpath-scanner</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-security</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
