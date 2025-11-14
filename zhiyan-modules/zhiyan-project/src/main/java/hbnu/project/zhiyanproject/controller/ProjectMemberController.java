@@ -214,25 +214,25 @@ public class ProjectMemberController {
     }
 
     /**
-     * 获取我参与的所有项目
-     * 业务场景：在"我的项目"页面展示用户参与的所有项目
+     * 获取我参与的所有项目成员关系
+     * 业务场景：在"我的项目"页面展示用户参与的所有项目的成员关系信息
      */
-    @GetMapping("/my-projects")
+    @GetMapping("/my-memberships")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取我的项目", description = "获取当前用户参与的所有项目")
-    public R<Page<ProjectMember>> getMyProjects(
+    @Operation(summary = "获取我的项目成员关系", description = "获取当前用户参与的所有项目的成员关系信息")
+    public R<Page<ProjectMember>> getMyMemberships(
             @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
             @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
 
         Long currentUserId = SecurityUtils.getUserId();
-        log.info("用户[{}]查看自己参与的项目", currentUserId);
+        log.info("用户[{}]查看自己参与的项目成员关系", currentUserId);
 
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("joinedAt").descending());
             Page<ProjectMember> projects = projectMemberService.getMyProjects(currentUserId, pageable);
             return R.ok(projects, "获取成功");
         } catch (Exception e) {
-            log.error("获取我的项目失败", e);
+            log.error("获取我的项目成员关系失败", e);
             return R.fail("获取失败: " + e.getMessage());
         }
     }
