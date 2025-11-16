@@ -2,6 +2,7 @@ package hbnu.project.zhiyancommonoauth.client;
 
 import hbnu.project.zhiyancommonoauth.model.dto.AuthorizationResult;
 import hbnu.project.zhiyancommonoauth.model.dto.OAuth2UserInfo;
+import org.springframework.stereotype.Component;
 
 /**
  * OAuth2客户端接口
@@ -9,6 +10,7 @@ import hbnu.project.zhiyancommonoauth.model.dto.OAuth2UserInfo;
  *
  * @author ErgouTree
  */
+@Component
 public interface OAuth2Client {
 
     /**

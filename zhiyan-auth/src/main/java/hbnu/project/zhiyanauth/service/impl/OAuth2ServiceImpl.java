@@ -4,6 +4,9 @@ import hbnu.project.zhiyanauth.model.dto.TokenDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
 import hbnu.project.zhiyanauth.model.enums.UserStatus;
+import hbnu.project.zhiyanauth.model.form.OAuth2BindAccountBody;
+import hbnu.project.zhiyanauth.model.form.OAuth2SupplementInfoBody;
+import hbnu.project.zhiyanauth.model.response.OAuth2LoginResponse;
 import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.repository.UserRepository;
 import hbnu.project.zhiyanauth.service.AuthService;
@@ -24,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +38,7 @@ import java.util.Optional;
  * OAuth2第三方登录服务实现类
  *
  * @author ErgouTree
+ * @rewrite yui
  */
 @Slf4j
 @Service
@@ -47,11 +52,13 @@ public class OAuth2ServiceImpl implements OAuth2Service {
     private final OperationLogplusService operationLogService;
 
     /**
-     * 处理OAuth2登录/注册
+     * 处理OAuth2登录
+     * 策略：
+     * 1. 如果邮箱匹配到已有账号，直接登录
+     * 2. 如果邮箱未匹配，返回需要绑定或补充信息的状态
      */
     @Override
-    @Transactional
-    public R<UserLoginResponse> handleOAuth2Login(OAuth2UserInfo oauth2UserInfo) {
+    public R<OAuth2LoginResponse> handleOAuth2Login(OAuth2UserInfo oauth2UserInfo) {
         log.info("处理OAuth2登录 - 提供商: {}, 用户ID: {}, 邮箱: {}", 
                 oauth2UserInfo.getProvider(), oauth2UserInfo.getProviderUserId(), oauth2UserInfo.getEmail());
 
@@ -59,60 +66,38 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             // 1. 验证OAuth2用户信息
             validateOAuth2UserInfo(oauth2UserInfo);
 
-            // 2. 查找或创建用户
-            User user = findOrCreateUser(oauth2UserInfo);
+            // 2. 检查邮箱是否匹配到已有账号
+            if (StringUtils.isNotEmpty(oauth2UserInfo.getEmail())) {
+                Optional<User> userOpt = userRepository.findByEmail(oauth2UserInfo.getEmail());
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    
+                    // 检查用户状态
+                    if (user.getIsLocked()) {
+                        recordLoginLog(user.getId(), user.getEmail(), LoginStatus.FAILED, "账户已被锁定");
+                        return R.fail("账户已被锁定，请联系管理员");
+                    }
 
-            // 3. 检查用户状态
-            if (user.getIsLocked()) {
-                recordLoginLog(user.getId(), user.getEmail(), LoginStatus.FAILED, "账户已被锁定");
-                return R.fail("账户已被锁定，请联系管理员");
+                    if (user.getIsDeleted()) {
+                        recordLoginLog(user.getId(), user.getEmail(), LoginStatus.FAILED, "账户已被删除");
+                        return R.fail("账户不存在");
+                    }
+
+                    // 邮箱匹配到账号，直接登录
+                    log.info("邮箱匹配到已有账号，直接登录 - 用户ID: {}, 邮箱: {}", user.getId(), user.getEmail());
+                    return doLogin(user, oauth2UserInfo);
+                } else {
+                    // 邮箱未匹配到账号，引导用户绑定已有账号或创建新账号
+                    // 前端可以根据情况让用户选择，绑定已有账号（输入邮箱+密码）或创建新账号（补充信息）
+                    log.info("邮箱未匹配到账号，需要绑定或创建 - 邮箱: {}", oauth2UserInfo.getEmail());
+                    return R.ok(OAuth2LoginResponse.needBind(oauth2UserInfo, oauth2UserInfo.getEmail()));
+                }
+            } else {
+                // OAuth2未提供邮箱，必须补充信息
+                log.info("OAuth2未提供邮箱，需要补充信息 - 提供商: {}, 用户ID: {}", 
+                        oauth2UserInfo.getProvider(), oauth2UserInfo.getProviderUserId());
+                return R.ok(OAuth2LoginResponse.needSupplement(oauth2UserInfo));
             }
-
-            if (user.getIsDeleted()) {
-                recordLoginLog(user.getId(), user.getEmail(), LoginStatus.FAILED, "账户已被删除");
-                return R.fail("账户不存在");
-            }
-
-            // 4. 生成JWT Token（不记住我，OAuth2登录默认不记住）
-            boolean rememberMe = false;
-            TokenDTO tokenDTO = authService.generateTokens(user.getId(), rememberMe);
-
-            // 5. 获取用户角色信息
-            var rolesResult = roleService.getUserRoles(user.getId());
-            var roleNames = rolesResult.getData() != null 
-                    ? new ArrayList<>(rolesResult.getData()) 
-                    : new ArrayList<String>();
-
-            // 6. 构建用户DTO
-            UserDTO userDTO = UserDTO.builder()
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .name(user.getName())
-                    .avatarUrl(user.getAvatarUrl())
-                    .title(user.getTitle())
-                    .institution(user.getInstitution())
-                    .roles(roleNames)
-                    .permissions(new ArrayList<>()) // 权限需要单独查询，这里先留空
-                    .build();
-
-            // 7. 构建登录响应
-            UserLoginResponse response = UserLoginResponse.builder()
-                    .user(userDTO)
-                    .accessToken(tokenDTO.getAccessToken())
-                    .refreshToken(tokenDTO.getRefreshToken())
-                    .expiresIn(tokenDTO.getExpiresIn())
-                    .tokenType(tokenDTO.getTokenType())
-                    .rememberMe(rememberMe)
-                    .rememberMeToken(null) // OAuth2登录不使用RememberMe
-                    .build();
-
-            log.info("OAuth2登录成功 - 用户ID: {}, 邮箱: {}, 提供商: {}", 
-                    user.getId(), user.getEmail(), oauth2UserInfo.getProvider());
-
-            // 8. 记录登录日志
-            recordLoginLog(user.getId(), user.getEmail(), LoginStatus.SUCCESS, null);
-
-            return R.ok(response, "登录成功");
 
         } catch (OAuth2Exception e) {
             log.error("OAuth2登录失败: {}", e.getMessage());
@@ -121,6 +106,56 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             log.error("OAuth2登录异常", e);
             return R.fail("登录失败，请稍后重试");
         }
+    }
+
+    /**
+     * 执行登录逻辑（生成Token等）
+     */
+    private R<OAuth2LoginResponse> doLogin(User user, OAuth2UserInfo oauth2UserInfo) {
+        // 更新用户信息（头像等可能变化）
+        updateUserFromOAuth2(user, oauth2UserInfo);
+        userRepository.save(user);
+
+        // 生成JWT Token
+        boolean rememberMe = false;
+        TokenDTO tokenDTO = authService.generateTokens(user.getId(), rememberMe);
+
+        // 获取用户角色信息
+        var rolesResult = roleService.getUserRoles(user.getId());
+        var roleNames = rolesResult.getData() != null 
+                ? new ArrayList<>(rolesResult.getData()) 
+                : new ArrayList<String>();
+
+        // 构建用户DTO
+        UserDTO userDTO = UserDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .avatarUrl(user.getAvatarUrl())
+                .title(user.getTitle())
+                .institution(user.getInstitution())
+                .roles(roleNames)
+                .permissions(new ArrayList<>())
+                .build();
+
+        // 构建登录响应
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
+                .user(userDTO)
+                .accessToken(tokenDTO.getAccessToken())
+                .refreshToken(tokenDTO.getRefreshToken())
+                .expiresIn(tokenDTO.getExpiresIn())
+                .tokenType(tokenDTO.getTokenType())
+                .rememberMe(rememberMe)
+                .rememberMeToken(null)
+                .build();
+
+        log.info("OAuth2登录成功 - 用户ID: {}, 邮箱: {}, 提供商: {}", 
+                user.getId(), user.getEmail(), oauth2UserInfo.getProvider());
+
+        // 记录登录日志
+        recordLoginLog(user.getId(), user.getEmail(), LoginStatus.SUCCESS, null);
+
+        return R.ok(OAuth2LoginResponse.success(loginResponse));
     }
 
     /**
@@ -147,87 +182,154 @@ public class OAuth2ServiceImpl implements OAuth2Service {
     }
 
     /**
-     * 查找或创建用户
-     * 优先通过邮箱匹配，如果邮箱为空则通过用户名匹配
+     * 绑定已有账号
+     * 验证邮箱和密码后，将OAuth2账号绑定到已有账号
+     * 注意：绑定的邮箱必须与OAuth2提供的邮箱一致（安全考虑）
      */
-    private User findOrCreateUser(OAuth2UserInfo oauth2UserInfo) {
-        // 1. 优先通过邮箱查找用户
-        if (StringUtils.isNotEmpty(oauth2UserInfo.getEmail())) {
-            Optional<User> userOpt = userRepository.findByEmail(oauth2UserInfo.getEmail());
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                log.info("找到已存在用户（通过邮箱匹配） - 用户ID: {}, 邮箱: {}", user.getId(), user.getEmail());
-                
-                // 更新用户信息（头像、昵称等可能变化）
-                updateUserFromOAuth2(user, oauth2UserInfo);
-                return userRepository.save(user);
+    @Override
+    @Transactional
+    public R<OAuth2LoginResponse> bindAccount(OAuth2BindAccountBody bindBody) {
+        log.info("绑定OAuth2账号到已有账号 - 提供商: {}, 邮箱: {}", 
+                bindBody.getProvider(), bindBody.getEmail());
+
+        try {
+            // 1. 验证OAuth2信息
+            OAuth2UserInfo oauth2UserInfo = bindBody.getOauth2UserInfo();
+            if (oauth2UserInfo == null) {
+                return R.fail("OAuth2用户信息不能为空");
             }
-        }
 
-        // 2. 如果邮箱为空或未找到，尝试通过用户名查找（GitHub的login字段）
-        if (StringUtils.isNotEmpty(oauth2UserInfo.getUsername())) {
-            Optional<User> userOpt = userRepository.findByNameAndIsDeletedFalse(oauth2UserInfo.getUsername());
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                log.info("找到已存在用户（通过用户名匹配） - 用户ID: {}, 用户名: {}", user.getId(), user.getName());
-                
-                // 如果用户没有邮箱，更新邮箱
-                if (StringUtils.isEmpty(user.getEmail()) && StringUtils.isNotEmpty(oauth2UserInfo.getEmail())) {
-                    user.setEmail(oauth2UserInfo.getEmail());
-                }
-                
-                updateUserFromOAuth2(user, oauth2UserInfo);
-                return userRepository.save(user);
+            // 2. 验证邮箱是否与OAuth2邮箱一致（安全考虑：只能绑定OAuth2提供的邮箱对应的账号）
+            if (StringUtils.isNotEmpty(oauth2UserInfo.getEmail()) 
+                    && !oauth2UserInfo.getEmail().equals(bindBody.getEmail())) {
+                return R.fail("绑定的邮箱必须与OAuth2账号的邮箱一致");
             }
+
+            // 3. 查找用户
+            Optional<User> userOpt = userRepository.findByEmail(bindBody.getEmail());
+            if (userOpt.isEmpty()) {
+                return R.fail("邮箱未注册，无法绑定。请使用补充信息功能创建新账号");
+            }
+
+            User user = userOpt.get();
+
+            // 4. 检查用户状态
+            if (user.getIsLocked()) {
+                return R.fail("账户已被锁定，请联系管理员");
+            }
+
+            if (user.getIsDeleted()) {
+                return R.fail("账户不存在");
+            }
+
+            // 5. 验证密码
+            if (!passwordEncoder.matches(bindBody.getPassword(), user.getPasswordHash())) {
+                recordLoginLog(user.getId(), user.getEmail(), LoginStatus.FAILED, "密码错误");
+                return R.fail("密码错误，绑定失败");
+            }
+
+            // 6. 验证OAuth2用户ID是否匹配（确保是同一个OAuth2账号）
+            if (!bindBody.getProviderUserId().equals(oauth2UserInfo.getProviderUserId())) {
+                return R.fail("OAuth2用户信息不匹配");
+            }
+
+            // 7. 更新用户信息（头像等）
+            updateUserFromOAuth2(user, oauth2UserInfo);
+            userRepository.save(user);
+
+            // 8. 执行登录
+            log.info("OAuth2账号绑定成功 - 用户ID: {}, 邮箱: {}, 提供商: {}", 
+                    user.getId(), user.getEmail(), bindBody.getProvider());
+
+            return doLogin(user, oauth2UserInfo);
+
+        } catch (Exception e) {
+            log.error("绑定OAuth2账号失败", e);
+            return R.fail("绑定失败，请稍后重试");
         }
-
-        // 3. 用户不存在，创建新用户
-        log.info("用户不存在，创建新用户 - 提供商: {}, 邮箱: {}", 
-                oauth2UserInfo.getProvider(), oauth2UserInfo.getEmail());
-
-        User newUser = createUserFromOAuth2(oauth2UserInfo);
-        User savedUser = userRepository.save(newUser);
-
-        // 4. 为新用户分配默认角色
-        assignDefaultRoleToUser(savedUser.getId());
-
-        log.info("新用户创建成功 - 用户ID: {}, 邮箱: {}", savedUser.getId(), savedUser.getEmail());
-        return savedUser;
     }
 
     /**
-     * 从OAuth2用户信息创建新用户
+     * 补充信息创建账号
+     * 用户补充邮箱和密码后创建新账号
      */
-    private User createUserFromOAuth2(OAuth2UserInfo oauth2UserInfo) {
-        // 确定邮箱：优先使用OAuth2邮箱，如果为空则使用用户名+@placeholder.com
-        String email = oauth2UserInfo.getEmail();
-        if (StringUtils.isEmpty(email)) {
-            email = oauth2UserInfo.getUsername() + "@oauth2.placeholder.com";
-            log.warn("OAuth2用户邮箱为空，使用占位符邮箱: {}", email);
+    @Override
+    @Transactional
+    public R<OAuth2LoginResponse> supplementInfoAndCreateAccount(OAuth2SupplementInfoBody supplementBody) {
+        log.info("补充信息创建账号 - 提供商: {}, 邮箱: {}", 
+                supplementBody.getProvider(), supplementBody.getEmail());
+
+        try {
+            // 1. 验证密码一致性
+            if (!supplementBody.getPassword().equals(supplementBody.getConfirmPassword())) {
+                return R.fail("两次输入的密码不一致");
+            }
+
+            // 2. 验证密码强度
+            if (!PasswordUtils.isValidPassword(supplementBody.getPassword())) {
+                return R.fail("密码必须为6-16位字母和数字组合");
+            }
+
+            // 3. 验证OAuth2信息
+            OAuth2UserInfo oauth2UserInfo = supplementBody.getOauth2UserInfo();
+            if (oauth2UserInfo == null) {
+                return R.fail("OAuth2用户信息不能为空");
+            }
+
+            // 4. 验证OAuth2用户ID是否匹配
+            if (!supplementBody.getProviderUserId().equals(oauth2UserInfo.getProviderUserId())) {
+                return R.fail("OAuth2用户信息不匹配");
+            }
+
+            // 5. 检查邮箱是否已注册
+            if (userRepository.existsByEmail(supplementBody.getEmail())) {
+                return R.fail("该邮箱已被注册，请使用绑定账号功能");
+            }
+
+            // 6. 创建新用户
+            // 确定用户名：优先使用OAuth2昵称，其次使用用户名，最后使用邮箱前缀
+            String name;
+            if (StringUtils.isNotEmpty(oauth2UserInfo.getNickname())) {
+                name = oauth2UserInfo.getNickname();
+            } else if (StringUtils.isNotEmpty(oauth2UserInfo.getUsername())) {
+                name = oauth2UserInfo.getUsername();
+            } else {
+                String emailPrefix = supplementBody.getEmail().split("@")[0];
+                name = StringUtils.isNotEmpty(emailPrefix) ? emailPrefix : "用户";
+            }
+
+            // 确定头像：使用OAuth2提供的头像
+            String avatarUrl = oauth2UserInfo.getAvatarUrl();
+
+            User newUser = User.builder()
+                    .email(supplementBody.getEmail())
+                    .passwordHash(passwordEncoder.encode(supplementBody.getPassword()))
+                    .name(name)
+                    .avatarUrl(avatarUrl)
+                    .title(null)
+                    .institution(null)
+                    .status(UserStatus.ACTIVE)
+                    .isDeleted(false)
+                    .isLocked(false)
+                    .build();
+
+            User savedUser = userRepository.save(newUser);
+
+            // 7. 分配默认角色
+            assignDefaultRoleToUser(savedUser.getId());
+
+            log.info("新用户创建成功 - 用户ID: {}, 邮箱: {}", savedUser.getId(), savedUser.getEmail());
+
+            // 8. 更新OAuth2用户信息的邮箱（确保一致性）
+            oauth2UserInfo.setEmail(supplementBody.getEmail());
+
+            // 9. 执行登录
+            return doLogin(savedUser, oauth2UserInfo);
+
+        } catch (Exception e) {
+            log.error("补充信息创建账号失败", e);
+            return R.fail("创建账号失败，请稍后重试");
         }
-
-        // 确定用户名：优先使用昵称，其次使用用户名
-        String name = StringUtils.isNotEmpty(oauth2UserInfo.getNickname()) 
-                ? oauth2UserInfo.getNickname() 
-                : oauth2UserInfo.getUsername();
-
-        // 生成随机密码（OAuth2用户不需要密码，但数据库字段要求非空）
-        // 使用UUID生成随机密码，确保安全性
-        String randomPassword = java.util.UUID.randomUUID().toString().replace("-", "") + 
-                                java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 4);
-        String passwordHash = passwordEncoder.encode(randomPassword);
-
-        return User.builder()
-                .email(email)
-                .passwordHash(passwordHash)
-                .name(name)
-                .avatarUrl(oauth2UserInfo.getAvatarUrl())
-                .title(null) // OAuth2不提供职称信息
-                .institution(null) // OAuth2不提供机构信息
-                .status(UserStatus.ACTIVE)
-                .isDeleted(false)
-                .isLocked(false)
-                .build();
     }
 
     /**
