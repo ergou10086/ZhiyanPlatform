@@ -4,6 +4,8 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
+import hbnu.project.zhiyanactivelog.annotation.BizOperationLog;
+import hbnu.project.zhiyanactivelog.model.enums.BizOperationModule;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
@@ -61,6 +63,14 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建任务", description = "在项目中创建新任务，可指定执行者、优先级、截止日期等")
     @OperationLog(module = "任务管理",type = OperationType.INSERT, description = "创建任务",recordParams = true,recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.TASK,
+            type = "CREATE",
+            description = "创建任务",
+            projectId = "#request.projectId",
+            bizId = "#result?.data?.id",
+            bizTitle = "#result?.data?.title"
+    )
     @SentinelResource(
         value = "createTask",
         blockHandlerClass = ProjectSentinelHandler.class,
@@ -97,6 +107,14 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新任务", description = "更新任务的标题、描述、状态、优先级等信息")
     @OperationLog(module = "任务管理", type = OperationType.UPDATE, description = "更新任务的标题、描述、状态、优先级等信息")
+    @BizOperationLog(
+            module = BizOperationModule.TASK,
+            type = "UPDATE",
+            description = "更新任务",
+            bizId = "#taskId",
+            bizTitle = "#result?.data?.title",
+            projectId = "#result?.data?.projectId"
+    )
     @SentinelResource(
         value = "updateTask",
         blockHandlerClass = ProjectSentinelHandler.class,
@@ -126,6 +144,12 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除任务", description = "软删除任务，仅任务创建者或项目负责人可操作")
     @OperationLog(module = "任务管理", type = OperationType.DELETE, description = "删除任务", recordParams = true, recordResult = false)
+    @BizOperationLog(
+            module = BizOperationModule.TASK,
+            type = "DELETE",
+            description = "删除任务",
+            bizId = "#taskId"
+    )
     @SentinelResource(
         value = "deleteTask",
         blockHandlerClass = ProjectSentinelHandler.class,
@@ -153,6 +177,14 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新任务状态", description = "更新任务的状态（TODO/IN_PROGRESS/BLOCKED/DONE）")
     @OperationLog(module = "任务管理", type = OperationType.UPDATE, description = "更新任务状态", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.TASK,
+            type = "STATUS_CHANGE",
+            description = "更新任务状态",
+            bizId = "#taskId",
+            bizTitle = "#result?.data?.title",
+            projectId = "#result?.data?.projectId"
+    )
     @Idempotent(type = IdempotentType.SPEL, key = "#taskId + ':' + #request.status", timeout = 1, message = "状态更新中，请稍候")
     public R<Tasks> updateTaskStatus(
             @PathVariable @Parameter(description = "任务ID") Long taskId,
@@ -178,6 +210,14 @@ public class TaskController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "分配任务", description = "将任务分配给项目成员")
     @OperationLog(module = "任务管理", type = OperationType.GRANT, description = "分配任务", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.TASK,
+            type = "ASSIGN",
+            description = "分配任务",
+            bizId = "#taskId",
+            bizTitle = "#result?.data?.title",
+            projectId = "#result?.data?.projectId"
+    )
     @Idempotent(type = IdempotentType.SPEL, key = "#taskId", timeout = 1, message = "任务分配中，请勿重复操作")
     public R<Tasks> assignTask(
             @PathVariable @Parameter(description = "任务ID") Long taskId,

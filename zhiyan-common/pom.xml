@@ -16,6 +16,7 @@
         <module>zhiyan-common-security</module>
         <module>zhiyan-common-elasticsearch</module>
         <module>zhiyan-common-encrypt</module>
+        <module>zhiyan-common-oauth</module>
         <module>zhiyan-common-oss</module>
         <module>zhiyan-common-idempotent</module>
         <module>zhiyan-common-loadbalancer</module>

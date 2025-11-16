@@ -25,8 +25,15 @@ import hbnu.project.zhiyancommonbasic.utils.JwtUtils;
 import hbnu.project.zhiyancommonbasic.utils.JsonUtils;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonredis.service.RedisService;
+import hbnu.project.zhiyanactivelog.model.entity.LoginLog;
+import hbnu.project.zhiyanactivelog.model.enums.LoginStatus;
+import hbnu.project.zhiyanactivelog.model.enums.LoginType;
+import hbnu.project.zhiyanactivelog.service.OperationLogplusService;
+import hbnu.project.zhiyancommonbasic.utils.ServletUtils;
+import hbnu.project.zhiyancommonbasic.utils.ip.IpUtils;
 import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +74,7 @@ public class AuthServiceImpl implements AuthService {
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final AuthUserDetailsService authUserDetailsService;
+    private final OperationLogplusService operationLogService;
 
 
     /**
@@ -211,30 +219,39 @@ public class AuthServiceImpl implements AuthService {
 
             log.info("用户登录成功 - 用户ID: {}, 邮箱: {}, 记住我: {}", 
                     loginUser.getUserId(), loginUser.getEmail(), rememberMe);
+            
+            // 记录登录成功日志
+            recordLoginLog(loginUser.getUserId(), loginUser.getEmail(), LoginStatus.SUCCESS, null);
+            
             return R.ok(response, "登录成功");
 
         } catch (BadCredentialsException e) {
             // 用户名或密码错误
             log.warn("登录失败: 邮箱或密码错误 - 邮箱: {}", loginBody.getEmail());
+            recordLoginLog(null, loginBody.getEmail(), LoginStatus.FAILED, "邮箱或密码错误");
             return R.fail("邮箱或密码错误");
             
         } catch (LockedException e) {
             // 账户被锁定
             log.warn("登录失败: 账户已被锁定 - 邮箱: {}", loginBody.getEmail());
+            recordLoginLog(null, loginBody.getEmail(), LoginStatus.FAILED, "账户已被锁定");
             return R.fail("账户已被锁定，请联系管理员");
             
         } catch (DisabledException e) {
             // 账户被禁用
             log.warn("登录失败: 账户已被禁用 - 邮箱: {}", loginBody.getEmail());
+            recordLoginLog(null, loginBody.getEmail(), LoginStatus.FAILED, "账户已被禁用");
             return R.fail("账户已被禁用");
             
         } catch (AuthenticationException e) {
             // 其他认证异常
             log.error("登录失败: 认证异常 - 邮箱: {}, 错误: {}", loginBody.getEmail(), e.getMessage());
+            recordLoginLog(null, loginBody.getEmail(), LoginStatus.FAILED, e.getMessage());
             return R.fail("登录失败：" + e.getMessage());
             
         } catch (Exception e) {
             log.error("登录异常 - 邮箱: {}, 错误: {}", loginBody.getEmail(), e.getMessage(), e);
+            recordLoginLog(null, loginBody.getEmail(), LoginStatus.FAILED, "登录异常：" + e.getMessage());
             return R.fail("登录失败，请稍后重试");
         }
     }
@@ -807,6 +824,47 @@ public class AuthServiceImpl implements AuthService {
             log.error("userId={}, 异常类型={}, 错误信息={}", userId, e.getClass().getName(), e.getMessage());
             log.error("堆栈跟踪:", e);
             log.error("========================================");
+        }
+    }
+
+    /**
+     * 记录登录日志
+     * 
+     * @param userId 用户ID（登录失败时可能为null）
+     * @param email 邮箱
+     * @param status 登录状态
+     * @param failureReason 失败原因（成功时为null）
+     */
+    private void recordLoginLog(Long userId, String email, LoginStatus status, String failureReason) {
+        try {
+            HttpServletRequest request = ServletUtils.getRequest();
+            String ipAddress = request != null ? IpUtils.getIpAddr(request) : null;
+            String userAgent = request != null ? ServletUtils.getHeader(request, "User-Agent") : null;
+            
+            // 如果登录失败，尝试从邮箱查找用户ID
+            if (userId == null && email != null) {
+                Optional<User> userOptional = userRepository.findByEmail(email);
+                if (userOptional.isPresent()) {
+                    userId = userOptional.get().getId();
+                }
+            }
+            
+            LoginLog loginLog = LoginLog.builder()
+                    .userId(userId != null ? userId : 0L) // 如果用户不存在，使用0作为占位符
+                    .username(email)
+                    .loginType(LoginType.PASSWORD)
+                    .loginIp(ipAddress)
+                    .userAgent(userAgent)
+                    .loginStatus(status)
+                    .failureReason(failureReason)
+                    .loginTime(java.time.LocalDateTime.now())
+                    .build();
+            
+            operationLogService.saveLoginLog(loginLog);
+            log.debug("登录日志记录成功 - 用户ID: {}, 状态: {}", userId, status);
+        } catch (Exception e) {
+            // 登录日志记录失败不应该影响登录流程
+            log.error("记录登录日志失败 - 邮箱: {}, 状态: {}, 错误: {}", email, status, e.getMessage(), e);
         }
     }
 

@@ -156,6 +156,11 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-activelog</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

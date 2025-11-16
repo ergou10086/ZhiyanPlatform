@@ -4,6 +4,8 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
+·import hbnu.project.zhiyanactivelog.annotation.BizOperationLog;
+import hbnu.project.zhiyanactivelog.model.enums.BizOperationModule;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
@@ -107,6 +109,13 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建项目", description = "创建新项目，创建者自动成为项目拥有者")
     @OperationLog(module = "项目管理", type = OperationType.INSERT, description = "创建新项目，创建者自动成为项目拥有者")
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "CREATE",
+            description = "创建新项目",
+            projectId = "#result?.data?.id",
+            bizTitle = "#result?.data?.name"
+    )
     @SentinelResource(
         value = "createProject",
         blockHandlerClass = ProjectSentinelHandler.class,
@@ -143,6 +152,13 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目", description = "更新项目信息，只有项目创建人可以编辑")
     @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "更新项目信息，只有项目创建人可以编辑")
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "UPDATE",
+            description = "更新项目信息",
+            projectId = "#projectId",
+            bizTitle = "#result?.data?.name"
+    )
     @Idempotent(type = IdempotentType.PARAM, timeout = 1, message = "项目更新中，请勿重复提交")
     public R<Project> updateProject(
             @Parameter(description = "项目ID") @PathVariable Long projectId,
@@ -167,6 +183,12 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除项目", description = "软删除项目，只有项目拥有者可以删除")
     @OperationLog(module = "项目管理", type = OperationType.DELETE, description = "软删除项目，只有项目拥有者可以删除")
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "DELETE",
+            description = "删除项目",
+            projectId = "#projectId"
+    )
     @SentinelResource(
         value = "deleteProject",
         blockHandlerClass = ProjectSentinelHandler.class,
@@ -339,6 +361,13 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新项目状态", description = "更新项目的状态")
     @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "更新项目状态", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "STATUS_CHANGE",
+            description = "更新项目状态",
+            projectId = "#projectId",
+            bizTitle = "#result?.data?.name"
+    )
     public R<Project> updateProjectStatus(
             @PathVariable Long projectId,
             @RequestBody @jakarta.validation.Valid hbnu.project.zhiyanproject.model.form.UpdateProjectStatusRequest request) {
@@ -360,6 +389,12 @@ public class ProjectController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "归档项目", description = "将项目归档")
     @OperationLog(module = "项目管理", type = OperationType.UPDATE, description = "归档项目", recordParams = true, recordResult = false)
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "STATUS_CHANGE",
+            description = "归档项目",
+            projectId = "#projectId"
+    )
     public R<Void> archiveProject(@PathVariable Long projectId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]归档项目[{}]", userId, projectId);

@@ -1,0 +1,10 @@
+# 配置示例
+zhiyan:
+  oauth2:
+    enabled: true
+    callback-base-url: http://localhost:8080
+    github:
+      enabled: true
+      client-id: ${GITHUB_CLIENT_ID:your-github-client-id}
+      client-secret: ${GITHUB_CLIENT_SECRET:your-github-client-secret}
+      scope: read:user,user:emailspring.application.name=zhiyan-common-oauth

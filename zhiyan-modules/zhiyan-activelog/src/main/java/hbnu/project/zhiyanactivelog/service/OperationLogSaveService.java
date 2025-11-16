@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class OperationLogSaveService {
 
-    private final OperationLogService operationLogService;
+    private final OperationLogplusService operationLogService;
 
     /**
      * 保存项目操作日志

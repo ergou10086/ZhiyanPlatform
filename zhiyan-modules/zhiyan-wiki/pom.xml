@@ -153,6 +153,11 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-activelog</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

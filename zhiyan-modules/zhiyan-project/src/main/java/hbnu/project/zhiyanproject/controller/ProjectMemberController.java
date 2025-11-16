@@ -3,6 +3,8 @@ package hbnu.project.zhiyanproject.controller;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
+import hbnu.project.zhiyanactivelog.annotation.BizOperationLog;
+import hbnu.project.zhiyanactivelog.model.enums.BizOperationModule;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
@@ -60,6 +62,12 @@ public class ProjectMemberController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "邀请成员", description = "项目管理员直接将用户添加到项目中（无需对方同意）")
     @OperationLog(module = "项目成员管理", type = OperationType.INSERT, description = "邀请成员加入项目", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "MEMBER_ADD",
+            description = "邀请成员加入项目",
+            projectId = "#projectId"
+    )
     @SentinelResource(
         value = "inviteMember",
         blockHandlerClass = ProjectSentinelHandler.class,
@@ -91,6 +99,12 @@ public class ProjectMemberController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "移除成员", description = "项目管理员移除项目成员")
     @OperationLog(module = "项目成员管理", type = OperationType.DELETE, description = "移除项目成员", recordParams = true, recordResult = false)
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "MEMBER_REMOVE",
+            description = "移除项目成员",
+            projectId = "#projectId"
+    )
     public R<Void> removeMember(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @PathVariable @Parameter(description = "用户ID") Long userId) {
@@ -115,6 +129,12 @@ public class ProjectMemberController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新成员角色", description = "项目管理员修改成员的项目角色，可以将普通成员提升为管理员")
     @OperationLog(module = "项目成员管理", type = OperationType.GRANT, description = "更新成员角色", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.PROJECT,
+            type = "ROLE_CHANGE",
+            description = "更新成员角色",
+            projectId = "#projectId"
+    )
     public R<ProjectMember> updateMemberRole(
             @PathVariable @Parameter(description = "项目ID") Long projectId,
             @PathVariable @Parameter(description = "用户ID") Long userId,

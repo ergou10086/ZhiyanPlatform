@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JSON 工具类
@@ -166,5 +167,43 @@ public class JsonUtils {
         }
     }
 
+
+
+    /**
+     * 将JSON格式的字符串转换为指定类型对象的列表
+     * 兼容原有parseArray方法，命名为parseList以匹配业务场景习惯
+     *
+     * @param text  JSON格式的字符串
+     * @param clazz 要转换的目标对象类型
+     * @param <T>   目标对象的泛型类型
+     * @return 转换后的对象列表，若字符串为空则返回空列表
+     * @throws RuntimeException 如果转换过程中发生IO异常，则抛出运行时异常
+     */
+    public static <T> List<T> parseList(String text, Class<T> clazz) {
+        return parseArray(text, clazz);
+    }
+
+
+
+    /**
+     * 将JSON字符串转换为 List<Map<String, Object>>
+     * 专门用于解析键为String、值为Object的Map列表
+     */
+    public static List<Map<String, Object>> parseMapList(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return new ArrayList<>();
+        }
+        try {
+            // 明确指定泛型类型：List<Map<String, Object>>
+            return OBJECT_MAPPER.readValue(text,
+                    OBJECT_MAPPER.getTypeFactory().constructCollectionType(
+                            List.class,
+                            OBJECT_MAPPER.getTypeFactory().constructMapType(Map.class, String.class, Object.class)
+                    )
+            );
+        } catch (IOException e) {
+            throw new RuntimeException("解析Map列表失败", e);
+        }
+    }
 }
 
