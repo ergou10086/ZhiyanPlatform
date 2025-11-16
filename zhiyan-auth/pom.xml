@@ -161,6 +161,12 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-activelog</artifactId>
         </dependency>
+
+        <!-- zhiyan-common-oauth OAuth2第三方登录模块 -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-oauth</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

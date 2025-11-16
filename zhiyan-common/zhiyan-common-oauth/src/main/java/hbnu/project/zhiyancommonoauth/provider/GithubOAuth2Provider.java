@@ -76,6 +76,8 @@ public class GithubOAuth2Provider extends AbstractOAuth2Provider {
 
     /**
      * 解析GitHub用户信息
+     * 注意：此方法在getUserInfo中被调用，此时accessToken还未设置到userInfo中
+     * 邮箱获取逻辑在getUserInfo方法中处理
      */
     @Override
     protected OAuth2UserInfo parseUserInfo(String responseBody) {
@@ -91,11 +93,7 @@ public class GithubOAuth2Provider extends AbstractOAuth2Provider {
                     .email((String) userMap.get("email"))
                     .build();
 
-            // GitHub的email可能为null（如果用户设置了隐私），需要单独获取
-            if (StringUtils.isEmpty(userInfo.getEmail())) {
-                userInfo.setEmail(getUserEmail(userInfo.getAccessToken()));
-            }
-
+            // 注意：邮箱获取逻辑在getUserInfo方法中处理，因为此时还没有accessToken
             return userInfo;
         } catch (Exception e) {
             log.error("解析GitHub用户信息失败", e);
@@ -160,6 +158,12 @@ public class GithubOAuth2Provider extends AbstractOAuth2Provider {
         OAuth2UserInfo userInfo = super.getUserInfo(accessToken);
         // 设置accessToken以便后续获取邮箱
         userInfo.setAccessToken(accessToken);
+        
+        // GitHub的email可能为null（如果用户设置了隐私），需要单独获取
+        if (StringUtils.isEmpty(userInfo.getEmail())) {
+            userInfo.setEmail(getUserEmail(accessToken));
+        }
+        
         return userInfo;
     }
 }

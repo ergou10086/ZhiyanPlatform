@@ -9,7 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * 反射工具类. 提供调用getter/setter方法, 访问私有变量, 调用私有方法, 获取泛型类型Class, 被AOP过的真实类等工具函数.
@@ -401,5 +404,35 @@ public class ReflectUtils {
             return new RuntimeException(msg, ((InvocationTargetException) e).getTargetException());
         }
         return new RuntimeException(msg, e);
+    }
+
+
+    /**
+     * 获取类的所有字段（包括父类），并支持过滤
+     *
+     * @param clazz 目标类
+     * @param filter 字段过滤器
+     * @return 过滤后的字段数组
+     */
+    public static Field[] getFields(Class<?> clazz, Predicate<Field> filter) {
+        if (clazz == null){
+            return new Field[0];
+        }
+
+        List<Field> fieldList = new ArrayList<>();
+
+        // 循环向上获取所有父类的字段
+        for (Class<?> superClass = clazz; superClass != Object.class; superClass = superClass.getSuperclass()) {
+            Field[] declaredFields = superClass.getDeclaredFields();
+            for (Field field : declaredFields) {
+                // 应用过滤器
+                if (filter == null || filter.test(field)) {
+                    makeAccessible(field);
+                    fieldList.add(field);
+                }
+            }
+        }
+
+        return fieldList.toArray(new Field[0]);
     }
 }
