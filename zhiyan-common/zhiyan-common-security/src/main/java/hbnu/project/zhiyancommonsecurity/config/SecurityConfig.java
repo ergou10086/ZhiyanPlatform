@@ -171,21 +171,21 @@ public class SecurityConfig implements WebMvcConfigurer {
 
                         // 项目服务公开接口 - 无需登录（供项目广场等公开展示使用）
                         .requestMatchers(
-                                "/api/projects/public",
-                                "/api/projects/public/**",
-                                "/api/projects/search/public"
+                                "/zhiyan/projects/public",
+                                "/zhiyan/projects/public/**",
+                                "/zhiyan/projects/search/public"
                         ).permitAll()
 
                         // 项目成员公开接口 - 无需登录（查看项目成员信息）
                         .requestMatchers(
-                                "/api/project-members/*/public"      // 查看项目公开成员列表
+                                "/zhiyan/project-members/*/public"      // 查看项目公开成员列表
                         ).permitAll()
 
                         // 项目服务内部接口 - 无需登录（供微服务间调用）
                         .requestMatchers(
-                                "/api/*/members/check",        // 检查成员关系
-                                "/api/*/owner/check",          // 检查拥有者
-                                "/api/*/permissions/check"     // 检查权限
+                                "/zhiyan/projects/*/members/check",        // 检查成员关系
+                                "/zhiyan/projects/*/owner/check",          // 检查拥有者
+                                "/zhiyan/projects/*/permissions/check"     // 检查权限
                         ).permitAll()
 
                         // 文件下载接口 - 使用 permitAll，支持通过查询参数传递token，权限在 Controller 层手动验证
