@@ -384,14 +384,9 @@ zhiyan:
     # 是否启用OAuth2功能
     enabled: true
     # 回调地址基础路径（不包含具体路径）
+    # 开发环境：本地运行，使用localhost
     # 生产环境：需要改为实际域名，如 https://yourdomain.com
-    callback-base-url: https://auth.zhiyan-platform.com
-    # 前端页面重定向地址配置
-    frontend:
-      success-url: https://app.zhiyan-platform.com/
-      bind-url: https://app.zhiyan-platform.com/oauth2/bind
-      supplement-url: https://app.zhiyan-platform.com/oauth2/supplement
-      error-url: https://app.zhiyan-platform.com/oauth2/error
+    callback-base-url: http://localhost:8091
     github:
       # 是否启用GitHub登录
       enabled: true
