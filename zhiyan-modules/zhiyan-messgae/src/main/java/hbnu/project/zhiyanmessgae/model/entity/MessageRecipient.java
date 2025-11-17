@@ -8,7 +8,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-;
 
 /**
  * 消息收件人实体 - 收件人维度的消息记录

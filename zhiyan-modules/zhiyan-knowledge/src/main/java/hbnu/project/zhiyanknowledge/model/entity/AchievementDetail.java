@@ -3,6 +3,7 @@ package hbnu.project.zhiyanknowledge.model.entity;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 
+import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,7 +32,6 @@ public class AchievementDetail extends BaseAuditEntity{
      * 详情唯一标识
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @LongToString
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '详情唯一标识'")
     private Long id;
@@ -79,4 +79,15 @@ public class AchievementDetail extends BaseAuditEntity{
     @JoinColumn(name = "achievement_id", insertable = false, updatable = false,
             foreignKey = @ForeignKey(name = "achievement_detail_ibfk_1"))
     private Achievement achievement;
+
+
+    /**
+     * 在持久化之前生成雪花ID
+     */
+    @PrePersist
+    public void generateId() {
+        if (this.id == null) {
+            this.id = SnowflakeIdUtil.nextId();
+        }
+    }
 }
