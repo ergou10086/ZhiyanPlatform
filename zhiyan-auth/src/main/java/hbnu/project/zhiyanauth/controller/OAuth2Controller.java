@@ -11,6 +11,7 @@ import hbnu.project.zhiyancommonoauth.model.dto.OAuth2UserInfo;
 import hbnu.project.zhiyanauth.model.form.OAuth2BindAccountBody;
 import hbnu.project.zhiyanauth.model.form.OAuth2SupplementInfoBody;
 import hbnu.project.zhiyanauth.model.response.OAuth2LoginResponse;
+import hbnu.project.zhiyanauth.model.response.UserLoginResponse;
 import hbnu.project.zhiyanauth.service.OAuth2Service;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.utils.StringUtils;
@@ -20,7 +21,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * OAuth2第三方登录控制器
@@ -90,7 +95,7 @@ public class OAuth2Controller {
             recordResult = false   // 不记录token等敏感结果
     )
     @SentinelResource(value = "oauth2:callback", blockHandler = "callbackBlockHandler")
-    public R<OAuth2LoginResponse> callback(
+    public ResponseEntity<?> callback(
             @Parameter(description = "OAuth2提供商名称", example = "github", required = true)
             @PathVariable String provider,
             @Parameter(description = "授权码", required = true)
@@ -111,22 +116,33 @@ public class OAuth2Controller {
             // 3. 处理登录（可能返回登录成功、需要绑定、需要补充信息等状态）
             R<OAuth2LoginResponse> loginResult = oAuth2Service.handleOAuth2Login(userInfo);
 
-            if (R.isSuccess(loginResult)) {
-                OAuth2LoginResponse response = loginResult.getData();
-                if (response.getStatus() == OAuth2LoginResponse.OAuth2LoginStatus.SUCCESS) {
-                    log.info("OAuth2登录成功 - 提供商: {}, 用户ID: {}", provider, userInfo.getProviderUserId());
-                } else {
-                    log.info("OAuth2需要用户操作 - 提供商: {}, 状态: {}", provider, response.getStatus());
-                }
-                return loginResult;
-            } else {
+            if (!R.isSuccess(loginResult) || loginResult.getData() == null) {
                 log.warn("OAuth2登录失败 - 提供商: {}, 错误: {}", provider, loginResult.getMsg());
-                return loginResult;
+                return redirectToErrorPage(loginResult.getMsg());
             }
 
+            OAuth2LoginResponse loginResponse = loginResult.getData();
+            return switch (loginResponse.getStatus()) {
+                case SUCCESS -> {
+                    log.info("OAuth2登录成功 - 提供商: {}, 用户ID: {}", provider, userInfo.getProviderUserId());
+                    yield redirectToHomePage(loginResponse);
+                }
+                case NEED_BIND -> {
+                    log.info("OAuth2需要绑定账号 - 提供商: {}", provider);
+                    yield redirectToBindPage(loginResponse);
+                }
+                case NEED_SUPPLEMENT -> {
+                    log.info("OAuth2需要补充信息 - 提供商: {}", provider);
+                    yield redirectToSupplementPage(loginResponse);
+                }
+            };
+
+        } catch (IllegalStateException configException) {
+            log.error("OAuth2回调配置错误 - 提供商: {}, 错误: {}", provider, configException.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(configException.getMessage());
         } catch (Exception e) {
             log.error("OAuth2回调处理失败 - 提供商: {}, 错误: {}", provider, e.getMessage(), e);
-            return R.fail("登录失败: " + e.getMessage());
+            return redirectToErrorPage("登录失败: " + e.getMessage());
         }
     }
 
@@ -193,6 +209,111 @@ public class OAuth2Controller {
     }
 
     /**
+     * 登录成功后重定向到前端主页
+     */
+    private ResponseEntity<Void> redirectToHomePage(OAuth2LoginResponse response) {
+        UserLoginResponse loginResponse = response.getLoginResponse();
+        if (loginResponse == null) {
+            throw new IllegalStateException("登录响应为空，无法完成跳转");
+        }
+
+        String target = requireFrontendUrl(
+                oAuth2Properties.getFrontend().getSuccessUrl(),
+                "frontend.success-url");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(target)
+                .queryParam("accessToken", loginResponse.getAccessToken())
+                .queryParam("refreshToken", loginResponse.getRefreshToken())
+                .queryParam("expiresIn", loginResponse.getExpiresIn())
+                .queryParam("tokenType", loginResponse.getTokenType());
+
+        if (Boolean.TRUE.equals(loginResponse.getRememberMe()) && StringUtils.isNotEmpty(loginResponse.getRememberMeToken())) {
+            builder.queryParam("rememberMeToken", loginResponse.getRememberMeToken());
+        }
+
+        return buildRedirectResponse(builder.build(true).toUriString());
+    }
+
+    /**
+     * 需要绑定账号时的重定向
+     */
+    private ResponseEntity<Void> redirectToBindPage(OAuth2LoginResponse response) {
+        String target = requireFrontendUrl(
+                oAuth2Properties.getFrontend().getBindUrl(),
+                "frontend.bind-url");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(target);
+        OAuth2UserInfo userInfo = response.getOauth2UserInfo();
+        if (userInfo != null) {
+            if (StringUtils.isNotEmpty(userInfo.getProvider())) {
+                builder.queryParam("provider", userInfo.getProvider());
+            }
+            if (StringUtils.isNotEmpty(userInfo.getProviderUserId())) {
+                builder.queryParam("providerUserId", userInfo.getProviderUserId());
+            }
+            if (StringUtils.isNotEmpty(userInfo.getEmail())) {
+                builder.queryParam("email", userInfo.getEmail());
+            }
+        }
+
+        return buildRedirectResponse(builder.build(true).toUriString());
+    }
+
+    /**
+     * 需要补充信息时的重定向
+     */
+    private ResponseEntity<Void> redirectToSupplementPage(OAuth2LoginResponse response) {
+        String target = requireFrontendUrl(
+                oAuth2Properties.getFrontend().getSupplementUrl(),
+                "frontend.supplement-url");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(target);
+        OAuth2UserInfo userInfo = response.getOauth2UserInfo();
+        if (userInfo != null) {
+            if (StringUtils.isNotEmpty(userInfo.getProvider())) {
+                builder.queryParam("provider", userInfo.getProvider());
+            }
+            if (StringUtils.isNotEmpty(userInfo.getProviderUserId())) {
+                builder.queryParam("providerUserId", userInfo.getProviderUserId());
+            }
+            if (StringUtils.isNotEmpty(userInfo.getEmail())) {
+                builder.queryParam("email", userInfo.getEmail());
+            }
+        }
+
+        return buildRedirectResponse(builder.build(true).toUriString());
+    }
+
+    /**
+     * 错误场景跳转
+     */
+    private ResponseEntity<Void> redirectToErrorPage(String message) {
+        String target = requireFrontendUrl(
+                oAuth2Properties.getFrontend().getErrorUrl(),
+                "frontend.error-url");
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(target);
+        if (StringUtils.isNotEmpty(message)) {
+            builder.queryParam("message", message);
+        }
+        return buildRedirectResponse(builder.build(true).toUriString());
+    }
+
+    private ResponseEntity<Void> buildRedirectResponse(String url) {
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, url)
+                .build();
+    }
+
+    private String requireFrontendUrl(String value, String propertyName) {
+        if (StringUtils.isEmpty(value)) {
+            throw new IllegalStateException(
+                    "未配置 zhiyan.oauth2." + propertyName + "，无法完成OAuth2重定向");
+        }
+        return value;
+    }
+
+    /**
      * 构建回调URL
      * 根据配置的回调基础路径和提供商名称构建完整的回调URL
      */
@@ -223,9 +344,9 @@ public class OAuth2Controller {
     /**
      * Sentinel限流处理 - 回调
      */
-    public R<OAuth2LoginResponse> callbackBlockHandler(String provider, String code, String state, com.alibaba.csp.sentinel.slots.block.BlockException ex) {
+    public ResponseEntity<?> callbackBlockHandler(String provider, String code, String state, com.alibaba.csp.sentinel.slots.block.BlockException ex) {
         log.warn("OAuth2回调被限流 - 提供商: {}", provider);
-        return R.fail(429, "请求过于频繁，请稍后再试");
+        return redirectToErrorPage("请求过于频繁，请稍后再试");
     }
 
     /**

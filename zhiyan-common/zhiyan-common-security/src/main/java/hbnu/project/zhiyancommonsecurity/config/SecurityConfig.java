@@ -118,7 +118,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                                 "/zhiyan/auth/reset-password",
                                 "/zhiyan/auth/auto-login-check",
                                 "/zhiyan/auth/clear-remember-me",
-                                "/zhiyan/auth/check-email"
+                                "/zhiyan/auth/check-email",
+                                "zhiyan/auth/oauth2/**"
                         ).permitAll()
 
                         // 系统基础接口 - 无需登录
@@ -135,8 +136,7 @@ public class SecurityConfig implements WebMvcConfigurer {
 
                         // 用户服务内部接口 - 无需登录（供服务间调用）
                         .requestMatchers(
-
-                        "/zhiyan/users/email",              // 根据邮箱查询用户
+                                "/zhiyan/users/email",              // 根据邮箱查询用户
                                 "/zhiyan/users/name",               // 根据姓名查询用户
                                 "/zhiyan/users/internal/**",        // 内部接口（按ID查询用户）
                                 "/zhiyan/users/batch-query",        // 批量查询用户
