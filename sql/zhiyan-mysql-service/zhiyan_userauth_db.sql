@@ -52,6 +52,11 @@ CREATE TABLE role_permissions (
     FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 ) COMMENT '角色与权限的多对多关联表（角色继承权限，关联关系随角色/权限删除而自动删除）';
 
+-- 用户与三方绑定表
+# CREATE TABLE user_social_binding(
+#     id
+# ) COMMENT '用户与第三方登录的绑定信息表';
+
 -- RememberMe Token表
 CREATE TABLE remember_me_tokens (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Token唯一标识',

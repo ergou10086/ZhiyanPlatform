@@ -18,7 +18,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyancommonbasic",
         "hbnu.project.zhiyancommonoss",
         "hbnu.project.zhiyancommonsecurity",
-        "hbnu.project.common.log",  // 日志模块
+       // 日志模块
 }, exclude = {
         org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
         org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration.class,

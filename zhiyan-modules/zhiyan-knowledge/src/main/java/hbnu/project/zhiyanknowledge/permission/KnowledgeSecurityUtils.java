@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanknowledge.permission;
 
+import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.exception.ServiceException;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanknowledge.client.ProjectServiceClient;
@@ -66,13 +67,14 @@ public class KnowledgeSecurityUtils {
      */
     public boolean isProjectMemberByProjectId(Long projectId, Long userId) {
         try {
-            return projectServiceClient.isProjectMember(projectId, userId);
+            R<Boolean> result = projectServiceClient.isProjectMember(projectId, userId);
+            // 使用静态方法判断请求是否成功，并且数据是否为true
+            return result != null && R.isSuccess(result) && Boolean.TRUE.equals(result.getData());
         } catch (Exception e) {
             log.error("检查项目成员关系失败: projectId={}, userId={}", projectId, userId, e);
             return false;
         }
     }
-
 
     /**
      * 检查当前用户是否有权限访问成果

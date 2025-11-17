@@ -211,6 +211,25 @@ public class ProjectController {
     }
 
     /**
+     * 分页获取当前用户参与的所有项目
+     * 权限要求：已登录用户
+     * 注意：此端点必须放在 /{projectId} 之前，避免路径冲突
+     */
+    @GetMapping("/my-projects")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取我参与的项目", description = "获取当前用户参与的所有项目")
+    @OperationLog(module = "项目管理", type = OperationType.QUERY, description = "获取当前用户参与的所有项目", recordResult = false)
+    public R<Page<Project>> getMyProjects(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Long userId = SecurityUtils.getUserId();
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return projectService.getUserProjects(userId, pageable);
+    }
+
+    /**
      * 根据ID获取项目
      * 权限要求：已登录用户
      */
@@ -306,22 +325,6 @@ public class ProjectController {
         return projectService.getProjectsByStatus(status, pageable);
     }
 
-    /**
-     * 分页获取当前用户参与的所有项目
-     * 权限要求：已登录用户
-     */
-    @GetMapping("/page-my-projects")
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "获取我参与的项目", description = "获取当前用户参与的所有项目")
-    public R<Page<Project>> getMyProjects(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Long userId = SecurityUtils.getUserId();
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-
-        return projectService.getUserProjects(userId, pageable);
-    }
 
     /**
      * 搜索项目

@@ -334,14 +334,19 @@ public class ProjectMemberController {
     /**
      * 检查用户是否为项目成员（用于其他微服务调用）
      */
+    /**
+     * 检查用户是否为项目成员（用于其他微服务调用）
+     */
     @GetMapping("/{projectId}/members/check")
     @Operation(summary = "检查成员关系", description = "检查用户是否为项目成员")
-    public Boolean isProjectMember(
+    public R<Boolean> isProjectMember(
             @PathVariable Long projectId,
             @RequestParam Long userId) {
-        return projectMemberService.isMember(projectId, userId);
+        boolean isMember = projectMemberService.isMember(projectId, userId);
+        log.debug("检查项目成员关系: projectId={}, userId={}, result={}",
+                projectId, userId, isMember);
+        return R.ok(isMember);
     }
-
 
     /**
      * 检查用户是否为项目拥有者（用于其他微服务调用）
