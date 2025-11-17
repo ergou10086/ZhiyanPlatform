@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Slf4j
 @Aspect
-@Component
+@Component("activelogOperationLogAspect")
 @Order(2)
 @RequiredArgsConstructor
 public class OperationLogAspect {

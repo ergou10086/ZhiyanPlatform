@@ -1,7 +1,6 @@
 package hbnu.project.zhiyanactivelog.controller;
 
-import hbnu.project.zhiyanactivelog.service.OperationLogExportService;
-import hbnu.project.zhiyanactivelog.service.OperationLogService;
+import hbnu.project.zhiyanactivelog.service.OperationLogExportplusService;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,7 +28,7 @@ import java.time.LocalDateTime;
 @Tag(name = "日志导出管理", description = "提供对操作日志导出的相关接口")
 public class OperationLogExportController {
 
-    private final OperationLogExportService exportService;
+    private final OperationLogExportplusService exportService;
 
 
     /**

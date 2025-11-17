@@ -99,6 +99,8 @@
         <zhiyan-common-sentinel.version>0.0.1-SNAPSHOT</zhiyan-common-sentinel.version>
         <zhiyan-common-idempotent.version>0.0.1-SNAPSHOT</zhiyan-common-idempotent.version>
         <zhiyan-common-excel.version>0.0.1-SNAPSHOT</zhiyan-common-excel.version>
+        <zhiyan-activelog.version>0.0.1-SNAPSHOT</zhiyan-activelog.version>
+        <zhiyan-common-oauth.version>0.0.1-SNAPSHOT</zhiyan-common-oauth.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -640,6 +642,18 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-common-excel</artifactId>
                 <version>${zhiyan-common-excel.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-activelog</artifactId>
+                <version>${zhiyan-activelog.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-common-oauth</artifactId>
+                <version>${zhiyan-common-oauth.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

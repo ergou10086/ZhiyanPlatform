@@ -23,7 +23,7 @@ CREATE TABLE achievement (
 CREATE TABLE achievement_detail (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,     -- 成果类型模板id
     achievement_id BIGINT NOT NULL UNIQUE,    -- 关联的成果id
-    temple_name VARCHAR(50) NOT NULL COMMENT '自定义成果类型模板标题',
+    temple_name VARCHAR(50) COMMENT '自定义成果类型模板标题',
 
     -- 使用JSON存储类型特定字段
     -- 用户可以对某个成果设置为某种类型，并且加入一些字段用于描述

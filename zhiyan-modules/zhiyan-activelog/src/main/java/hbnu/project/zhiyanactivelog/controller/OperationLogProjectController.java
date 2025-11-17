@@ -2,17 +2,13 @@ package hbnu.project.zhiyanactivelog.controller;
 
 import hbnu.project.zhiyanactivelog.model.entity.*;
 import hbnu.project.zhiyanactivelog.model.vo.UnifiedOperationLogVO;
-import hbnu.project.zhiyanactivelog.service.OperationLogExportService;
-import hbnu.project.zhiyanactivelog.service.OperationLogMyselfActionService;
-import hbnu.project.zhiyanactivelog.service.OperationLogService;
+import hbnu.project.zhiyanactivelog.service.OperationLogplusService;
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,7 +35,7 @@ import java.time.LocalDateTime;
 @Tag(name = "项目内操作日志管理", description = "项目内部的操作日志查询、导出等相关接口")
 public class OperationLogProjectController {
 
-    private final OperationLogService operationLogService;
+    private final OperationLogplusService operationLogService;
 
     /**
      * 查询项目内所有类型的操作日志（聚合查询）
@@ -52,12 +48,9 @@ public class OperationLogProjectController {
             @RequestParam(defaultValue = "0") @Parameter(description = "页码") int page,
             @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "operationTime"));
-        Page<Object> result = operationLogService.getProjectAllLogs(projectId, pageable);
-
-        // 转换为VO
-        Page<UnifiedOperationLogVO> voPage = result.map(obj -> (UnifiedOperationLogVO) obj);
-        return R.ok(voPage);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "time"));
+        Page<UnifiedOperationLogVO> result = operationLogService.getProjectAllLogs(projectId, pageable);
+        return R.ok(result);
     }
 
 

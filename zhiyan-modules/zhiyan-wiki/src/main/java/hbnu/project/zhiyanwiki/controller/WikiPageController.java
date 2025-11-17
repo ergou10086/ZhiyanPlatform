@@ -1,5 +1,7 @@
 package hbnu.project.zhiyanwiki.controller;
 
+import hbnu.project.zhiyanactivelog.annotation.BizOperationLog;
+import hbnu.project.zhiyanactivelog.model.enums.BizOperationModule;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanwiki.model.dto.*;
@@ -51,6 +53,14 @@ public class WikiPageController {
     @PostMapping("/pages")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "创建Wiki页面", description = "创建新的Wiki页面（目录或文档）")
+    @BizOperationLog(
+            module = BizOperationModule.WIKI,
+            type = "CREATE",
+            description = "创建Wiki页面",
+            projectId = "#dto.projectId",
+            bizId = "#result?.data?.id",
+            bizTitle = "#result?.data?.title"
+    )
     public R<WikiPage> createPage(@RequestBody @Valid CreateWikiPageDTO dto) {
         Long userId = SecurityUtils.getUserId();
         if (userId == null) {
@@ -75,6 +85,14 @@ public class WikiPageController {
     @PutMapping("/pages/{pageId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "更新Wiki页面", description = "更新Wiki页面的标题和内容")
+    @BizOperationLog(
+            module = BizOperationModule.WIKI,
+            type = "UPDATE",
+            description = "更新Wiki页面",
+            bizId = "#pageId",
+            bizTitle = "#result?.data?.title",
+            projectId = "#result?.data?.projectId"
+    )
     public R<WikiPage> updatePage(
             @Parameter(description = "页面ID") @PathVariable Long pageId,
             @RequestBody @Valid UpdateWikiPageDTO dto) {
@@ -104,6 +122,12 @@ public class WikiPageController {
     @DeleteMapping("/pages/{pageId}")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "删除Wiki页面", description = "删除指定Wiki页面")
+    @BizOperationLog(
+            module = BizOperationModule.WIKI,
+            type = "DELETE",
+            description = "删除Wiki页面",
+            bizId = "#pageId"
+    )
     public R<Void> deletePage(@PathVariable Long pageId) {
         Long userId = SecurityUtils.getUserId();
         log.info("用户[{}]删除Wiki页面[{}]", userId, pageId);
@@ -227,6 +251,12 @@ public class WikiPageController {
     @PatchMapping("/pages/{pageId}/move")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "移动Wiki页面", description = "移动Wiki页面到新的父页面下")
+    @BizOperationLog(
+            module = BizOperationModule.WIKI,
+            type = "MOVE",
+            description = "移动Wiki页面",
+            bizId = "#pageId"
+    )
     public R<Void> movePage(
             @PathVariable Long pageId,
             @RequestBody @Valid MoveWikiPageDTO dto) {
@@ -291,6 +321,14 @@ public class WikiPageController {
     @PostMapping("/pages/{pageId}/copy")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "复制Wiki页面", description = "复制Wiki页面到指定位置")
+    @BizOperationLog(
+            module = BizOperationModule.WIKI,
+            type = "COPY",
+            description = "复制Wiki页面",
+            bizId = "#pageId",
+            bizTitle = "#result?.data?.title",
+            projectId = "#result?.data?.projectId"
+    )
     public R<WikiPage> copyPage(
             @PathVariable Long pageId,
             @RequestParam(required = false) Long targetParentId,

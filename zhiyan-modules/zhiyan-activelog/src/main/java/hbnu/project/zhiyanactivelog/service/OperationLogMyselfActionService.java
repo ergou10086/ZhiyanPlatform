@@ -21,9 +21,11 @@ import java.util.List;
 /**
  * 为我的活动部分提供查询的日志
  * 查询用户在所有项目的操作日志
+ * 性能存在问题需要优化
  *
  * @author ErgouTree
  */
+@Deprecated
 @Slf4j
 @Service
 @RequiredArgsConstructor

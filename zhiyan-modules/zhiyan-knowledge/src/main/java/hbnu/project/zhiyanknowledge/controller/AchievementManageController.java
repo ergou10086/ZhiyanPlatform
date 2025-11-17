@@ -3,6 +3,8 @@ package hbnu.project.zhiyanknowledge.controller;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
+import hbnu.project.zhiyanactivelog.annotation.BizOperationLog;
+import hbnu.project.zhiyanactivelog.model.enums.BizOperationModule;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.exception.ControllerException;
 import hbnu.project.zhiyancommonbasic.exception.ServiceException;
@@ -67,6 +69,14 @@ public class AchievementManageController {
     @PostMapping("/create")
     @Operation(summary = "创建成果", description = "为指定项目创建新的成果记录")
     @OperationLog(module = "成果管理", type = OperationType.INSERT, description = "创建成果", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.ACHIEVEMENT,
+            type = "CREATE",
+            description = "创建成果",
+            projectId = "#createDTO.projectId",
+            bizId = "#result?.data?.id",
+            bizTitle = "#result?.data?.title"
+    )
     @Idempotent(type = IdempotentType.PARAM, timeout = 5, timeUnit = TimeUnit.SECONDS, message = "成果创建请求重复，请勿频繁提交", deleteOnError = true)   // 幂等注解 - 使用参数防重，5秒内相同参数不允许重复提交，失败时允许重试
     public R<AchievementDTO> createAchievement(
             @Valid @RequestBody CreateAchievementDTO createDTO
@@ -97,6 +107,12 @@ public class AchievementManageController {
     @PatchMapping("/{achievementId}/status")
     @Operation(summary = "更新成果状态", description = "修改成果的发布状态")
     @OperationLog(module = "成果管理", type = OperationType.UPDATE, description = "更新成果状态", recordParams = true, recordResult = false)
+    @BizOperationLog(
+            module = BizOperationModule.ACHIEVEMENT,
+            type = "PUBLISH",
+            description = "更新成果状态",
+            bizId = "#achievementId"
+    )
     @Idempotent(type = IdempotentType.SPEL, key = "#achievementId + ':' + #status", timeout = 2, message = "状态更新中，请稍候")
     public R<Void> updateAchievementStatus(
             @Parameter(description = "成果ID") @PathVariable Long achievementId,
@@ -144,6 +160,12 @@ public class AchievementManageController {
     @DeleteMapping("/{achievementId}")
     @Operation(summary = "删除成果", description = "删除指定成果及其关联数据")
     @OperationLog(module = "成果管理", type = OperationType.DELETE, description = "删除成果", recordParams = true, recordResult = false)
+    @BizOperationLog(
+            module = BizOperationModule.ACHIEVEMENT,
+            type = "DELETE",
+            description = "删除成果",
+            bizId = "#achievementId"
+    )
     @Transactional(rollbackFor = Exception.class)
     @Idempotent(type = IdempotentType.SPEL, key = "#achievementId", timeout = 3, message = "删除操作正在处理中")
     public R<Void> deleteAchievement(

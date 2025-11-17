@@ -2,7 +2,7 @@ package hbnu.project.zhiyanactivelog.controller;
 
 import hbnu.project.zhiyanactivelog.model.entity.*;
 import hbnu.project.zhiyanactivelog.model.vo.UnifiedOperationLogVO;
-import hbnu.project.zhiyanactivelog.service.OperationLogMyselfActionService;
+import hbnu.project.zhiyanactivelog.service.OperationLogMyselfActionplusService;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 
@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,7 +36,7 @@ import java.time.LocalDateTime;
 @Tag(name = "我的活动的操作日志管理", description = "提供对我的操作日志查询、导出等相关接口")
 public class OperationLogMyActiveController {
 
-    private final OperationLogMyselfActionService myselfActionService;
+    private final OperationLogMyselfActionplusService myselfActionService;
 
     /**
      * 查询用户在所有项目的所有操作日志（我的活动展示用）
@@ -50,12 +49,9 @@ public class OperationLogMyActiveController {
             @RequestParam(defaultValue = "20") @Parameter(description = "每页大小") int size) {
 
         Long userId = SecurityUtils.getUserId();
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Object> result = myselfActionService.getProjectAllLogsByMyself(userId, pageable);
-
-        // 转换为VO
-        Page<UnifiedOperationLogVO> voPage = result.map(obj -> (UnifiedOperationLogVO) obj);
-        return R.ok(voPage);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "time"));
+        Page<UnifiedOperationLogVO> result = myselfActionService.getProjectAllLogsByMyself(userId, pageable);
+        return R.ok(result);
     }
 
 

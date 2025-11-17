@@ -15,7 +15,7 @@ public class BaseException extends RuntimeException {
     /**
      * 所属模块
      */
-    private String module;
+    public String module;
 
     /**
      * 错误码

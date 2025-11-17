@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  *
  * @author ErgouTree
  */
+@Deprecated
 @Slf4j
 @Service
 @RequiredArgsConstructor

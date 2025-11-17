@@ -218,6 +218,33 @@ minio:
 
 
 zhiyan:
+  # OAuth2第三方登录配置
+  oauth2:
+    # 是否启用OAuth2功能
+    enabled: true
+    # 回调地址基础路径（不包含具体路径）
+    # 开发环境：本地运行，使用localhost
+    # 生产环境：需要改为实际域名，如 https://yourdomain.com
+    callback-base-url: http://localhost:8091
+    github:
+      # 是否启用GitHub登录
+      enabled: true
+      # GitHub应用的Client ID（从GitHub开发者平台获取）
+      # 建议使用环境变量：${GITHUB_CLIENT_ID:your-github-client-id}
+      client-id: ${GITHUB_CLIENT_ID:your-github-client-id}
+      # GitHub应用的Client Secret（从GitHub开发者平台获取）
+      # 建议使用环境变量：${GITHUB_CLIENT_SECRET:your-github-client-secret}
+      client-secret: ${GITHUB_CLIENT_SECRET:your-github-client-secret}
+      # 授权范围（scope）
+      # read:user - 读取用户基本信息
+      # user:email - 读取用户邮箱（需要此权限才能获取邮箱）
+      scope: read:user,user:email
+      # 以下URL为GitHub固定值，一般不需要修改
+      authorization-uri: https://github.com/login/oauth/authorize
+      token-uri: https://github.com/login/oauth/access_token
+      user-info-uri: https://api.github.com/user
+      user-email-uri: https://api.github.com/user/emails
+
   log:
     # 启用日志系统
     enabled: true

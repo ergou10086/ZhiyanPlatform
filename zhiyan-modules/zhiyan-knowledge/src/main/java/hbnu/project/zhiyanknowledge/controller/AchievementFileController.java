@@ -5,6 +5,8 @@ import com.alibaba.csp.sentinel.slots.block.BlockException;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.common.log.annotation.OperationLog;
+import hbnu.project.zhiyanactivelog.annotation.BizOperationLog;
+import hbnu.project.zhiyanactivelog.model.enums.BizOperationModule;
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
@@ -60,6 +62,14 @@ public class AchievementFileController {
     @PostMapping("/upload")
     @Operation(summary = "上传成果文件", description = "为指定成果上传单个文件")
     @OperationLog(module = "成果文件管理", type = OperationType.UPLOAD, description = "上传成果文件", recordParams = false, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.ACHIEVEMENT,
+            type = "FILE_UPLOAD",
+            description = "上传成果文件",
+            projectId = "#result?.data?.achievement?.projectId",
+            bizId = "#result?.data?.achievement?.id",
+            bizTitle = "#result?.data?.fileName"
+    )
     @SentinelResource(value = "knowledge:file:upload", blockHandler = "uploadBlockHandler", fallback = "uploadFallback")
     @Idempotent(type = IdempotentType.PARAM, timeout = 3, message = "文件上传中，请勿重复提交")    // 添加幂等注解 - 基于成果ID和文件名防重，10秒内不允许重复上传
     public R<AchievementFileDTO> uploadFile(
@@ -133,6 +143,12 @@ public class AchievementFileController {
     @DeleteMapping("/{fileId}")
     @Operation(summary = "删除成果文件", description = "删除指定的成果文件")
     @OperationLog(module = "成果文件管理", type = OperationType.DELETE,description = "删除指定成果的文件", recordParams = true, recordResult = true)
+    @BizOperationLog(
+            module = BizOperationModule.ACHIEVEMENT,
+            type = "FILE_DELETE",
+            description = "删除成果文件",
+            bizId = "#fileId"
+    )
     @Idempotent(type = IdempotentType.SPEL, key = "#fileId", timeout = 3, message = "文件删除中，请勿重复操作")
     public R<Void> deleteAchievementFile(
             @Parameter(description = "文件ID")  @PathVariable Long fileId

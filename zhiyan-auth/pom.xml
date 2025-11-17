@@ -75,6 +75,13 @@
             <artifactId>mapstruct-plus-spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- MapStruct 核心依赖（zhiyan-activelog模块需要） -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.5.Final</version>
+        </dependency>
+
         <!--hutool-all-->
         <dependency>
             <groupId>cn.hutool</groupId>
@@ -156,6 +163,17 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-activelog</artifactId>
+        </dependency>
+
+        <!-- zhiyan-common-oauth OAuth2第三方登录模块 -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-oauth</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -171,6 +189,12 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
+                        </path>
+                        <!-- MapStruct 标准注解处理器（zhiyan-activelog模块需要） -->
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.5.5.Final</version>
                         </path>
                         <path>
                             <groupId>io.github.linpeilie</groupId>

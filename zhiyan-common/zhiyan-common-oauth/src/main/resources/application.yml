@@ -1,0 +1,21 @@
+# 配置示例
+zhiyan:
+  oauth2:
+    # 是否启用OAuth2功能
+    enabled: true
+    # 回调地址基础路径（不包含具体路径）
+    callback-base-url: http://localhost:8080
+    github:
+      # 是否启用GitHub登录
+      enabled: true
+      # GitHub应用的Client ID（从GitHub开发者平台获取）
+      client-id: ${GITHUB_CLIENT_ID:Ov23liNSEUAOKgBl1xBA}
+      # GitHub应用的Client Secret（从GitHub开发者平台获取）
+      client-secret: ${GITHUB_CLIENT_SECRET:760d26f6727b47dd9ed6e24e08532480136052ba}
+      # 授权范围（默认：read:user,user:email）
+      scope: read:user,user:email
+      # 以下URL为GitHub固定值，一般不需要修改
+      authorization-uri: https://github.com/login/oauth/authorize
+      token-uri: https://github.com/login/oauth/access_token
+      user-info-uri: https://api.github.com/user
+      user-email-uri: https://api.github.com/user/emails
