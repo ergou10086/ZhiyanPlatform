@@ -35,6 +35,11 @@ public class MinioInitConfig implements CommandLineRunner {
             return;
         }
 
+
+
+
+        
+
         try {
             // 创建任务提交文件桶
             String bucketName = BucketType.TASK_SUBMISSION.getBucketName();
