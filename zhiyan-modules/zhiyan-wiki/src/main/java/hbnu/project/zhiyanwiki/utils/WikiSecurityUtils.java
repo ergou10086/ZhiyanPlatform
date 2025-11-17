@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanwiki.utils;
 
+import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonbasic.exception.ServiceException;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanwiki.client.ProjectServiceClient;
@@ -67,7 +68,8 @@ public class WikiSecurityUtils {
     public boolean isProjectMemberByProjectId(Long projectId, Long userId) {
         try {
             // 调用Project服务检查成员关系
-            return projectServiceClient.isProjectMember(projectId, userId);
+            R<Boolean> response = projectServiceClient.isProjectMember(projectId, userId);
+            return response.getData();
         } catch (Exception e) {
             log.error("检查项目成员关系失败: projectId={}, userId={}", projectId, userId, e);
             return false;

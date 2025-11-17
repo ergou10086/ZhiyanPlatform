@@ -1,5 +1,6 @@
 package hbnu.project.zhiyanwiki.client;
 
+import hbnu.project.zhiyancommonbasic.domain.R;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author ErgouTree
  */
-@FeignClient(name = "zhiyan-project", path = "/api")
+@FeignClient(name = "zhiyan-project", path = "/zhiyan/projects")
 public interface ProjectServiceClient {
 
     /**
@@ -22,8 +23,8 @@ public interface ProjectServiceClient {
      * @return 是否为项目成员
      */
     @GetMapping("/{projectId}/members/check")
-    Boolean isProjectMember(@PathVariable("projectId") Long projectId,
-                            @RequestParam("userId") Long userId);
+    R<Boolean> isProjectMember(@PathVariable("projectId") Long projectId,
+                              @RequestParam("userId") Long userId);
 
 
     /**
