@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanproject.utils;
+package hbnu.project.zhiyanproject.utils.message;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
+ * 项目成员相关工具类
  * 避免在serviceimpl中大量编写发送消息的方法
  * 把消息发送的具体内容集中在这里
  *
@@ -20,7 +21,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProjectMessageUtils {
+public class ProjectMemberMessageUtils {
 
     private final MessageServiceClient messageServiceClient;
 
@@ -241,6 +242,7 @@ public class ProjectMessageUtils {
             return "{}";
         }
     }
+
 
     /**
      * 转义JSON字符串中的特殊字符

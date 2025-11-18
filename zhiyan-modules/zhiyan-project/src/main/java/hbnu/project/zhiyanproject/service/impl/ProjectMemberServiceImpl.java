@@ -14,7 +14,7 @@ import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
 import hbnu.project.zhiyanproject.repository.ProjectRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
-import hbnu.project.zhiyanproject.utils.ProjectMessageUtils;
+import hbnu.project.zhiyanproject.utils.message.ProjectMemberMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -42,7 +42,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     private final AuthServiceClient authServiceClient;
     private final UserCacheService userCacheService;
 
-    private final ProjectMessageUtils projectMessageUtils;
+    private final ProjectMemberMessageUtils projectMemberMessageUtils;
 
     // ==================== 成员管理相关 ====================
 
@@ -100,7 +100,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         log.info("项目[{}]管理员[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
 
         // 发送邀请通知给新成员
-        projectMessageUtils.sendMessageInvitedNotification(project, member, inviterId);
+        projectMemberMessageUtils.sendMessageInvitedNotification(project, member, inviterId);
 
         // 通知项目其他成员有新成员加入
         List<Long> existingMemberIds = projectMemberRepository.findByProjectId(project.getId())
@@ -108,7 +108,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .map(ProjectMember::getUserId)
                 .filter(id -> !id.equals(member.getUserId()))
                 .collect(Collectors.toList());
-        projectMessageUtils.sendNewMemberJoinedNotification(project, member, inviterId, existingMemberIds);
+        projectMemberMessageUtils.sendNewMemberJoinedNotification(project, member, inviterId, existingMemberIds);
 
         return saved;
     }
@@ -149,7 +149,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         log.info("项目[{}]管理员[{}]移除成员[{}]", projectId, operatorId, userId);
 
         // 发送通知给被移除用户
-        projectMessageUtils.sendMemberRemovedNotification(project, userId, operatorId);
+        projectMemberMessageUtils.sendMemberRemovedNotification(project, userId, operatorId);
 
         // 通知其他成员
         List<Long> adminIds = projectMemberRepository.findByProjectId(project.getId())
@@ -159,7 +159,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                         m.getProjectRole() == ProjectMemberRole.ADMIN)
                 .map(ProjectMember::getUserId)
                 .collect(Collectors.toList());
-        projectMessageUtils.sendMemberLeftNotification(project, member, operatorId, adminIds);
+        projectMemberMessageUtils.sendMemberLeftNotification(project, member, operatorId, adminIds);
     }
 
     @Override
@@ -201,7 +201,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         log.info("项目[{}]管理员[{}]将成员[{}]角色修改为: {}", projectId, operatorId, userId, newRole);
 
         // 发送通知给该成员（通过消息队列）
-        projectMessageUtils.sendMemberRoleChangedNotification(project, member, oldRole.getRoleName(), newRole.getRoleName(), operatorId);
+        projectMemberMessageUtils.sendMemberRoleChangedNotification(project, member, oldRole.getRoleName(), newRole.getRoleName(), operatorId);
 
         // 同时通知项目管理员
         List<Long> adminIds = projectMemberRepository.findByProjectId(project.getId())
@@ -212,7 +212,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .map(ProjectMember::getUserId)
                 .toList();
 
-        projectMessageUtils.sendMemberRoleChangedNotificationToAdmins(project, member, oldRole.getRoleName(), newRole.getRoleName(), adminIds);
+        projectMemberMessageUtils.sendMemberRoleChangedNotificationToAdmins(project, member, oldRole.getRoleName(), newRole.getRoleName(), adminIds);
 
         return saved;
     }
@@ -241,7 +241,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                 .map(ProjectMember::getUserId)
                 .collect(Collectors.toList());
 
-        projectMessageUtils.sendMemberLeftNotification(
+        projectMemberMessageUtils.sendMemberLeftNotification(
                 projectRepository.findById(projectId).orElse(null),
                 member,
                 userId,
