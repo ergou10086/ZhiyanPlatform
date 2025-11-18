@@ -14,6 +14,7 @@
         <module>zhiyan-knowledge</module>
         <module>zhiyan-wiki</module>
         <module>zhiyan-activelog</module>
+        <module>zhiyan-messgae</module>
     </modules>
 
     <artifactId>zhiyan-modules</artifactId>

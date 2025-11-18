@@ -1,9 +1,12 @@
 package hbnu.project.zhiyanmessgae.repository;
 
 import hbnu.project.zhiyanmessgae.model.entity.MessageRecipient;
+import hbnu.project.zhiyanmessgae.model.enums.MessagePriority;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -52,4 +55,29 @@ public interface MessageRecipientRepository extends JpaRepository<MessageRecipie
      * 按时间范围查询,用于多久清理任务
      */
     List<MessageRecipient> findByReceiverIdAndDeletedFalseAndTriggerTimeBefore(Long receiverId, LocalDateTime time);
+
+    /**
+     * 按场景筛选消息
+     */
+    Page<MessageRecipient> findByReceiverIdAndSceneCodeAndDeletedFalseOrderByTriggerTimeDesc(
+            Long receiverId, String sceneCode, Pageable pageable);
+
+    /**
+     * 按优先级筛选消息
+     */
+    Page<MessageRecipient> findByReceiverIdAndMessageBody_PriorityAndDeletedFalseOrderByTriggerTimeDesc(
+            Long receiverId, MessagePriority priority, Pageable pageable);
+
+    /**
+     * 搜索消息（按标题或内容）
+     */
+    @Query("SELECT mr FROM MessageRecipient mr " +
+            "JOIN mr.messageBody mb " +
+            "WHERE mr.receiverId = :receiverId " +
+            "AND mr.deleted = false " +
+            "AND (mb.title LIKE %:keyword% OR mb.content LIKE %:keyword%) " +
+            "ORDER BY mr.triggerTime DESC")
+    Page<MessageRecipient> searchMessage(@Param("receiverId") Long receiverId,
+                                         @Param("keyword") String keyword,
+                                         Pageable pageable);
 }
