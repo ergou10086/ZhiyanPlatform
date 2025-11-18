@@ -226,16 +226,6 @@ zhiyan:
     # 开发环境：本地运行，使用localhost
     # 生产环境：需要改为实际域名，如 https://yourdomain.com
     callback-base-url: http://localhost:8091
-    # 前端页面重定向地址配置
-    frontend:
-      # 登录成功后跳转页面（可根据实际前端路由调整）
-      success-url: http://localhost:5173/
-      # 需要绑定账号时跳转页面
-      bind-url: http://localhost:5173/oauth2/bind
-      # 需要补充信息时跳转页面
-      supplement-url: http://localhost:5173/oauth2/supplement
-      # 发生错误时跳转页面
-      error-url: http://localhost:5173/oauth2/error
     github:
       # 是否启用GitHub登录
       enabled: true

@@ -2,6 +2,7 @@ package hbnu.project.zhiyancommonoauth.config.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * OAuth2 总配置属性
@@ -25,38 +26,10 @@ public class OAuth2Properties {
     private String callbackBaseUrl;
 
     /**
-     * 前端重定向地址配置
-     */
-    private FrontendRedirectProperties frontend = new FrontendRedirectProperties();
-
-    /**
      * GitHub OAuth2 配置（关联独立的GitHub配置类）
      */
     private GitHubOAuthProperties github = new GitHubOAuthProperties();
 
     // 后续新增其他提供商（如微信、Google），直接在此处添加对应的配置类对象
     // 例如：private WechatOAuthProperties wechat = new WechatOAuthProperties();
-
-    @Data
-    public static class FrontendRedirectProperties {
-        /**
-         * 登录成功后跳转到的前端地址
-         */
-        private String successUrl;
-
-        /**
-         * 需要绑定账号时跳转的地址
-         */
-        private String bindUrl;
-
-        /**
-         * 需要补充信息时跳转的地址
-         */
-        private String supplementUrl;
-
-        /**
-         * 登录出错时跳转的地址
-         */
-        private String errorUrl;
-    }
 }

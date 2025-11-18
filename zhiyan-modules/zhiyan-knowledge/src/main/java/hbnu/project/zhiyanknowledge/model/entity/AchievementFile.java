@@ -1,7 +1,9 @@
 package hbnu.project.zhiyanknowledge.model.entity;
 
-import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 
+
+import hbnu.project.zhiyancommonbasic.annotation.LongToString;
+import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +13,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDateTime;
-
 
 /**
  * 文件管理表实体类
@@ -34,11 +35,9 @@ public class AchievementFile{
      * 文件唯一标识
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @LongToString
     @Column(name = "id", nullable = false, columnDefinition = "BIGINT COMMENT '文件唯一标识'")
     private Long id;
-
 
     /**
      * 所属成果ID
@@ -47,20 +46,17 @@ public class AchievementFile{
     @Column(name = "achievement_id", nullable = false, columnDefinition = "BIGINT COMMENT '所属成果ID'")
     private Long achievementId;
 
-
     /**
      * 原始文件名
      */
     @Column(name = "file_name", nullable = false, length = 255, columnDefinition = "VARCHAR(255) COMMENT '原始文件名'")
     private String fileName;
 
-
     /**
      * 文件大小（字节）
      */
     @Column(name = "file_size", columnDefinition = "BIGINT COMMENT '文件大小（字节）'")
     private Long fileSize;
-
 
     /**
      * 文件类型（pdf/zip/csv等）
@@ -69,13 +65,11 @@ public class AchievementFile{
     @Column(name = "file_type", length = 50, columnDefinition = "VARCHAR(50) COMMENT '文件类型（pdf/zip/csv等）'")
     private String fileType;
 
-
     /**
      * MinIO桶名
      */
     @Column(name = "bucket_name", nullable = false, length = 100, columnDefinition = "VARCHAR(100) COMMENT 'MinIO桶名'")
     private String bucketName;
-
 
     /**
      * MinIO对象键
@@ -83,27 +77,11 @@ public class AchievementFile{
     @Column(name = "object_key", nullable = false, length = 500, columnDefinition = "VARCHAR(500) COMMENT 'MinIO对象键'")
     private String objectKey;
 
-
     /**
      * 完整访问URL
      */
     @Column(name = "minio_url", nullable = false, length = 1000, columnDefinition = "VARCHAR(1000) COMMENT '完整访问URL'")
     private String minioUrl;
-
-
-//    /**
-//     * 文件版本号
-//     */
-//    @Column(name = "version", columnDefinition = "INT DEFAULT 1 COMMENT '文件版本号'")
-//    private Integer version = 1;
-//
-//
-//    /**
-//     * 是否最新版本
-//     */
-//    @Column(name = "is_latest", columnDefinition = "BOOLEAN DEFAULT TRUE COMMENT '是否最新版本'")
-//    private Boolean isLatest = true;
-
 
     /**
      * 上传者ID
@@ -112,13 +90,11 @@ public class AchievementFile{
     @Column(name = "upload_by", nullable = false, columnDefinition = "BIGINT COMMENT '上传者ID'")
     private Long uploadBy;
 
-
     /**
      * 上传时间
      */
     @Column(name = "upload_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间'")
     private LocalDateTime uploadAt;
-
 
     /**
      * 关联的成果实体（外键关联）
@@ -128,12 +104,16 @@ public class AchievementFile{
             foreignKey = @ForeignKey(name = "achievement_file_ibfk_1"))
     private Achievement achievement;
 
-
     /**
-     * 在持久化之前设置上传时间
+     * 在持久化之前设置ID和上传时间
      */
     @PrePersist
-    public void setUploadAt() {
+    public void prePersist() {
+        // 生成雪花ID
+        if (this.id == null) {
+            this.id = SnowflakeIdUtil.nextId();
+        }
+        // 设置上传时间
         if (this.uploadAt == null) {
             this.uploadAt = LocalDateTime.now();
         }

@@ -1,0 +1,182 @@
+# 云服务环境（服务器环境）
+
+server:
+  port: 8088
+
+spring:
+  application:
+    name: zhiyan-message  # 服务名（业务标识，用于服务发现）
+
+  cloud:
+    nacos:
+      # Nacos服务发现配置
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 152.136.245.180:8848  # Nacos服务地址
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf  # Nacos命名空间ID
+        group: DEFAULT_GROUP  # 业务服务的注册分组
+        weight: 1
+
+      # Nacos配置中心配置
+      config:
+        username: nacos
+        password: nacos
+        server-addr: 152.136.245.180:8848
+        namespace: 3936229d-c8b3-4947-9192-6b984dca44bf
+        group: DEFAULT_GROUP  # 业务服务的配置分组
+        file-extension: yaml
+
+    # OpenFeign配置
+    openfeign:
+      client:
+        config:
+          default:
+            connect-timeout: 5000
+            read-timeout: 10000
+            logger-level: basic
+      compression:
+        request:
+          enabled: true
+        response:
+          enabled: true
+
+  # 数据库配置
+  datasource:
+    url: jdbc:mysql://152.136.245.180:3306/zhiyan_message_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+    username: root
+    password: zjm10086
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池配置优化
+    hikari:
+      pool-name: KnowledgeServiceHikariPool
+      # 最小空闲连接数（减少到4）
+      minimum-idle: 4
+      # 最大连接池大小（减少到14，多服务共享数据库时避免连接数过多）
+      maximum-pool-size: 14
+      # 空闲连接超时时间（10分钟）
+      idle-timeout: 600000
+      # 连接最大生命周期（30分钟）
+      max-lifetime: 1800000
+      # 连接超时时间（30秒）
+      connection-timeout: 30000
+      # 连接测试查询
+      connection-test-query: SELECT 1
+      # 启用连接泄漏检测（超过30秒未归还的连接会被记录）
+      leak-detection-threshold: 30000
+      # 注册JMX监控
+      register-mbeans: true
+
+  # Jackson配置
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+  # JPA配置
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+# JWT配置
+jwt:
+  secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"
+  issuer: "zhiyan-platform"
+
+# Actuator配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+    info:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    git:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  health:
+    redis:
+      enabled: false
+
+# 日志配置
+logging:
+  level:
+    com.alibaba.nacos: WARN
+    org.springframework.cloud: INFO
+    root: INFO
+    hbnu.project.zhiyan: INFO
+    org.springframework.security: WARN
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    com.zaxxer.hikari: INFO
+    org.springframework.data.redis.repository: WARN
+    com.alibaba.csp.sentinel: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/zhiyan-knowledge-service.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+
+# Swagger配置
+swagger:
+  enabled: false
+  title: "智研平台的知识管理模块"
+  description: "学术成果、文献、专利管理"
+
+
+# 智研日志系统配置
+zhiyan:
+  log:
+    # 启用日志系统
+    enabled: true
+    # 启用操作日志
+    operation-enabled: true
+    # 启用访问日志
+    access-enabled: true
+    # 启用异常日志
+    exception-enabled: true
+    # 记录请求参数
+    record-request-params: true
+    # 记录响应结果
+    record-response-result: true
+    # 响应结果最大长度
+    max-response-length: 2000
+    # 请求参数最大长度
+    max-request-length: 2000
+    # 排除的 URL 路径
+    excluded-paths:
+      - /actuator/**
+      - /health
+      - /favicon.ico
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /doc.html
+      - /knife4j/**
+    # 慢请求阈值（毫秒）
+    slow-request-threshold: 2000
+    # 异步处理日志
+    async: true
