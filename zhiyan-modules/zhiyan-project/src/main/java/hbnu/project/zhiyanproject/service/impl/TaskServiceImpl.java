@@ -274,9 +274,13 @@ public class TaskServiceImpl implements TaskService {
 
         // 3. 验证新的执行者都是项目成员
         if (assigneeIds != null && !assigneeIds.isEmpty()) {
+            log.info("验证执行者是否为项目成员 - 项目ID: {}, 执行者IDs: {}", task.getProjectId(), assigneeIds);
             for (Long assigneeId : assigneeIds) {
-                if (!projectMemberService.isMember(task.getProjectId(), assigneeId)) {
-                    throw new IllegalArgumentException("执行者必须是项目成员");
+                boolean isMember = projectMemberService.isMember(task.getProjectId(), assigneeId);
+                log.info("检查用户[{}]是否为项目[{}]成员: {}", assigneeId, task.getProjectId(), isMember);
+                if (!isMember) {
+                    log.error("用户[{}]不是项目[{}]的成员，分配失败", assigneeId, task.getProjectId());
+                    throw new IllegalArgumentException("执行者必须是项目成员 (用户ID: " + assigneeId + ")");
                 }
             }
             
@@ -286,15 +290,44 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        // 4. 软删除旧的task_user记录
+        // 4. 更新task_user记录（保留现有执行者，只更新为传入的列表）
         Instant now = Instant.now();
-        taskUserRepository.deactivateTaskAssignees(taskId, now, operatorId);
+        
+        // 获取当前所有活跃的执行者
+        List<TaskUser> currentAssignees = taskUserRepository.findActiveExecutorsByTaskId(taskId);
+        Set<Long> currentUserIds = currentAssignees.stream()
+                .map(TaskUser::getUserId)
+                .collect(Collectors.toSet());
+        
+        Set<Long> newUserIds = assigneeIds != null ? new HashSet<>(assigneeIds) : new HashSet<>();
+        
+        // 找出需要移除的执行者（在当前列表中但不在新列表中）
+        Set<Long> toRemove = new HashSet<>(currentUserIds);
+        toRemove.removeAll(newUserIds);
+        
+        // 找出需要添加的执行者（在新列表中但不在当前列表中）
+        Set<Long> toAdd = new HashSet<>(newUserIds);
+        toAdd.removeAll(currentUserIds);
+        
+        // 移除不在新列表中的执行者
+        if (!toRemove.isEmpty()) {
+            for (Long userId : toRemove) {
+                Optional<TaskUser> existing = taskUserRepository.findByTaskIdAndUserId(taskId, userId);
+                if (existing.isPresent() && existing.get().getIsActive()) {
+                    TaskUser taskUser = existing.get();
+                    taskUser.setIsActive(false);
+                    taskUser.setRemovedAt(now);
+                    taskUser.setRemovedBy(operatorId);
+                    taskUserRepository.save(taskUser);
+                }
+            }
+        }
         
         // 5. 添加新的task_user记录（ASSIGNED类型）
-        if (assigneeIds != null && !assigneeIds.isEmpty()) {
+        if (!toAdd.isEmpty()) {
             List<TaskUser> newAssignees = new ArrayList<>();
             
-            for (Long userId : assigneeIds) {
+            for (Long userId : toAdd) {
                 // 检查是否已存在记录（避免唯一约束冲突）
                 Optional<TaskUser> existing = taskUserRepository.findByTaskIdAndUserId(taskId, userId);
                 
