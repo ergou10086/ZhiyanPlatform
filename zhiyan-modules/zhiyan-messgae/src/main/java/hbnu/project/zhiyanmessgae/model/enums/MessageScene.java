@@ -14,6 +14,8 @@ public enum MessageScene {
     TASK_DEADLINE_REMIND("TASK", "任务到期提醒"),
     TASK_OVERDUE("TASK", "任务逾期警告"),
     PROJECT_MEMBER_APPLY("PROJECT", "成员加入申请"),
+    PROJECT_MEMBER_INVITED("PROJECT","项目成员邀请"),
+    PROJECT_MEMBER_REMOVED("PROJECT","项目成员移除"),
     PROJECT_MEMBER_APPROVAL("PROJECT", "成员加入审批结果"),
     PROJECT_ROLE_CHANGED("PROJECT", "角色权限变更"),
     PROJECT_STATUS_CHANGED("PROJECT", "项目状态变更"),

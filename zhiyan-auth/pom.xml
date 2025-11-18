@@ -16,6 +16,14 @@
 
     <properties>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--   解决maven命令执行时控制台出现中文乱码     -->
+        <argLine>-Dfile.encoding=UTF-8</argLine>
+        <!-- 其他乱码问题解决 -->
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
     </properties>
 
     <dependencies>

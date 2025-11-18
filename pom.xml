@@ -101,9 +101,14 @@
         <zhiyan-common-excel.version>0.0.1-SNAPSHOT</zhiyan-common-excel.version>
         <zhiyan-activelog.version>0.0.1-SNAPSHOT</zhiyan-activelog.version>
         <zhiyan-common-oauth.version>0.0.1-SNAPSHOT</zhiyan-common-oauth.version>
+        <zhiyan-messgae.version>0.0.1-SNAPSHOT</zhiyan-messgae.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--   解决maven命令执行时控制台出现中文乱码     -->
+        <argLine>-Dfile.encoding=UTF-8</argLine>
+        <!-- 其他乱码问题解决 -->
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
     </properties>
 
 
@@ -654,6 +659,12 @@
                 <groupId>hbnu.project</groupId>
                 <artifactId>zhiyan-common-oauth</artifactId>
                 <version>${zhiyan-common-oauth.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>hbnu.project</groupId>
+                <artifactId>zhiyan-messgae</artifactId>
+                <version>${zhiyan-messgae.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

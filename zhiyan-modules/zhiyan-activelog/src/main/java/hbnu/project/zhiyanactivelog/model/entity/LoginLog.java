@@ -1,7 +1,6 @@
 package hbnu.project.zhiyanactivelog.model.entity;
 
 import hbnu.project.zhiyanactivelog.model.enums.LoginStatus;
-import hbnu.project.zhiyanactivelog.model.enums.LoginType;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
@@ -49,13 +48,6 @@ public class LoginLog {
      */
     @Column(name = "username", length = 100, columnDefinition = "VARCHAR(100) COMMENT '用户名（冗余字段，便于查询）'")
     private String username;
-
-    /**
-     * 登录类型
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "login_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20) NOT NULL DEFAULT 'PASSWORD' COMMENT '登录类型：PASSWORD-密码登录, OAUTH-第三方登录'")
-    private LoginType loginType = LoginType.PASSWORD;
 
     /**
      * 登录IP地址

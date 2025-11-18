@@ -27,11 +27,11 @@ import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonredis.service.RedisService;
 import hbnu.project.zhiyanactivelog.model.entity.LoginLog;
 import hbnu.project.zhiyanactivelog.model.enums.LoginStatus;
-import hbnu.project.zhiyanactivelog.model.enums.LoginType;
 import hbnu.project.zhiyanactivelog.service.OperationLogplusService;
 import hbnu.project.zhiyancommonbasic.utils.ServletUtils;
 import hbnu.project.zhiyancommonbasic.utils.ip.IpUtils;
 import hbnu.project.zhiyancommonsecurity.utils.PasswordUtils;
+
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -852,7 +852,6 @@ public class AuthServiceImpl implements AuthService {
             LoginLog loginLog = LoginLog.builder()
                     .userId(userId != null ? userId : 0L) // 如果用户不存在，使用0作为占位符
                     .username(email)
-                    .loginType(LoginType.PASSWORD)
                     .loginIp(ipAddress)
                     .userAgent(userAgent)
                     .loginStatus(status)
