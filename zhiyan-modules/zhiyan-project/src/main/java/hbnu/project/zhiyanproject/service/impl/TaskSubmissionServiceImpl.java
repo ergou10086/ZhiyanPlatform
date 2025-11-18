@@ -21,6 +21,7 @@ import hbnu.project.zhiyanproject.repository.TaskSubmissionRepository;
 import hbnu.project.zhiyanproject.repository.TaskUserRepository;
 import hbnu.project.zhiyanproject.service.TaskSubmissionService;
 import hbnu.project.zhiyanproject.service.UserCacheService;
+import hbnu.project.zhiyanproject.utils.message.TaskMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,8 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     private final ProjectRepository projectRepository;
     private final UserCacheService userCacheService;
     private final ObjectMapper objectMapper;
+
+    private final TaskMessageUtils taskMessageUtils;
 
     @Autowired
     private MinioService minioService;
@@ -127,6 +130,9 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             task.setStatus(TaskStatus.PENDING_REVIEW);
             taskRepository.save(task);
             log.info("任务状态已更新为待审核: taskId={}", taskId);
+
+            // 发送任务提交通知（仅最终提交需要通知审核）
+            taskMessageUtils.sendTaskSubmittedNotification(submission, task);
         }
 
         // 8. 转换为DTO返回
@@ -191,6 +197,9 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             }
         }
 
+        // 发送任务审核结果通知到提交者
+        taskMessageUtils.sendTaskReviewResultNotification(submission, task, request.getReviewStatus(), reviewerId);
+
         // 7. 转换为DTO返回
         return convertToDTO(submission, task);
     }
@@ -228,7 +237,10 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
         Tasks task = taskRepository.findById(submission.getTaskId())
                 .orElseThrow(() -> new IllegalArgumentException("关联任务不存在"));
 
-        // 6. 转换为DTO返回
+        // 6.发送任务撤回通知
+        taskMessageUtils.sendTaskSubmissionRevokedNotification(submission, task);
+
+        // 7. 转换为DTO返回
         return convertToDTO(submission, task);
     }
 

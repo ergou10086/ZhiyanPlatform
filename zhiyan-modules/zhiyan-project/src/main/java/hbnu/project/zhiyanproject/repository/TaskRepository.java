@@ -243,4 +243,24 @@ public interface TaskRepository extends JpaRepository<Tasks, Long> {
             @Param("taskId") Long taskId,
             @Param("assignType") AssignType assignType
     );
+
+
+    /**
+     * 查询即将到期的任务（不包含已删除的任务）
+     *
+     * @param dueDate 截止日期
+     * @return 任务列表
+     */
+    @Query("SELECT t FROM Tasks t WHERE t.isDeleted = false AND t.dueDate <= :dueDate AND t.status != 'DONE'")
+    List<Tasks> findUpcomingTasks(@Param("dueDate") LocalDate dueDate);
+
+
+    /**
+     * 查询已逾期的任务（不包含已删除的任务）
+     *
+     * @param currentDate 当前日期
+     * @return 任务列表
+     */
+    @Query("SELECT t FROM Tasks t WHERE t.isDeleted = false AND t.dueDate < :currentDate AND t.status != 'DONE'")
+    List<Tasks> findOverdueTasks(@Param("currentDate") LocalDate currentDate);
 }
