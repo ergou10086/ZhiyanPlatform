@@ -55,7 +55,7 @@ public class TaskServiceImpl implements TaskService {
     private final UserCacheService userCacheService;
     private final ObjectMapper objectMapper;
     
-    // ✅ 新增：task_user关联表Repository
+    // 新增：task_user关联表Repository
     private final TaskUserRepository taskUserRepository;
 
     // ==================== 任务创建与管理 ====================
@@ -94,6 +94,7 @@ public class TaskServiceImpl implements TaskService {
                 .assigneeId("[]")  // ✅ 废弃字段，设为空
                 .dueDate(request.getDueDate())
                 .worktime(request.getWorktime())
+                .requiredPeople(request.getRequiredPeople() != null ? request.getRequiredPeople() : 1)
                 .createdBy(creatorId)
                 .isDeleted(false)
                 .build();
@@ -159,6 +160,11 @@ public class TaskServiceImpl implements TaskService {
 
         if (request.getPriority() != null) {
             task.setPriority(request.getPriority());
+            updated = true;
+        }
+
+        if (request.getRequiredPeople() != null) {
+            task.setRequiredPeople(request.getRequiredPeople());
             updated = true;
         }
 
@@ -269,7 +275,7 @@ public class TaskServiceImpl implements TaskService {
         Instant now = Instant.now();
         taskUserRepository.deactivateTaskAssignees(taskId, now, operatorId);
         
-        // 5. ✅ 添加新的task_user记录
+        // 5. 添加新的task_user记录（ASSIGNED类型）
         if (assigneeIds != null && !assigneeIds.isEmpty()) {
             List<TaskUser> newAssignees = new ArrayList<>();
             
@@ -284,7 +290,7 @@ public class TaskServiceImpl implements TaskService {
                         taskUser.setIsActive(true);
                         taskUser.setAssignedBy(operatorId);
                         taskUser.setAssignedAt(now);
-                        taskUser.setAssignType(AssignType.ASSIGNED);
+                        taskUser.setAssignType(AssignType.ASSIGNED); // 设置为分配类型
                         taskUser.setRemovedAt(null);
                         taskUser.setRemovedBy(null);
                         newAssignees.add(taskUser);
@@ -296,7 +302,7 @@ public class TaskServiceImpl implements TaskService {
                             .taskId(taskId)
                             .projectId(task.getProjectId())  // ✅ 冗余project_id
                             .userId(userId)
-                            .assignType(AssignType.ASSIGNED)
+                            .assignType(AssignType.ASSIGNED)  // 分配类型
                             .assignedBy(operatorId)
                             .assignedAt(now)
                             .isActive(true)
@@ -312,7 +318,7 @@ public class TaskServiceImpl implements TaskService {
         
         // 6. 更新assigneeId字段为空（废弃字段）
         task.setAssigneeId("[]");
-        
+
         // 7. 如果任务状态是TODO，自动改为IN_PROGRESS
         if (task.getStatus() == TaskStatus.TODO && assigneeIds != null && !assigneeIds.isEmpty()) {
             task.setStatus(TaskStatus.IN_PROGRESS);
@@ -361,6 +367,7 @@ public class TaskServiceImpl implements TaskService {
             taskUser.setRemovedAt(null);
             taskUser.setRemovedBy(null);
             taskUserRepository.save(taskUser);
+            log.info("✅ 重新激活用户的任务接取记录: taskId={}, userId={}", taskId, userId);
         } else {
             // 5. ✅ 创建新的task_user记录
             TaskUser taskUser = TaskUser.builder()
@@ -823,6 +830,7 @@ public class TaskServiceImpl implements TaskService {
                 .assignees(assignees)
                 .dueDate(task.getDueDate())
                 .worktime(task.getWorktime())
+                .requiredPeople(task.getRequiredPeople())
                 .isOverdue(isOverdue)
                 .createdBy(String.valueOf(task.getCreatedBy()))
                 .creatorName(creatorName)
@@ -959,6 +967,7 @@ public class TaskServiceImpl implements TaskService {
                 .assignees(assignees)
                 .dueDate(task.getDueDate())
                 .worktime(task.getWorktime())
+                .requiredPeople(task.getRequiredPeople())
                 .isOverdue(isOverdue)
                 .createdBy(String.valueOf(task.getCreatedBy()))
                 .creatorName(creatorName)

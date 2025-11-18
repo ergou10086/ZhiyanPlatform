@@ -2,12 +2,10 @@ package hbnu.project.zhiyanproject.model.form;
 
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,7 +15,8 @@ import java.util.List;
  *
  * @author Tokito
  */
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,6 +33,10 @@ public class CreateTaskRequest {
 
     @Schema(description = "任务描述")
     private String description;
+
+    @Schema(description = "任务需要人数")
+    @Min(value = 1, message = "任务需要人数至少为1")
+    private Integer requiredPeople = 1;
 
     @Schema(description = "执行者ID列表（从项目成员中选择）")
     private List<Long> assigneeIds;

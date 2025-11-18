@@ -6,9 +6,7 @@ import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
@@ -27,7 +25,8 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_project", columnList = "project_id"),
                 @Index(name = "idx_user", columnList = "user_id")
         })
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor

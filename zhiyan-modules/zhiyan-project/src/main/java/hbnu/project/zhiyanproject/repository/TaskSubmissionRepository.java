@@ -226,4 +226,19 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
     long countPendingSubmissionsForReviewer(
             @Param("taskCreatorId") Long taskCreatorId,
             @Param("reviewStatus") ReviewStatus reviewStatus);
+
+    /**
+     * 查询任务的最终提交记录
+     */
+    @Query("SELECT s FROM TaskSubmission s WHERE s.taskId = :taskId " +
+            "AND s.isFinal = true AND s.isDeleted = false " +
+            "ORDER BY s.version DESC")
+    List<TaskSubmission> findFinalSubmissionsByTaskId(@Param("taskId") Long taskId);
+
+    /**
+     * 查询任务已批准的最终提交记录
+     */
+    @Query("SELECT s FROM TaskSubmission s WHERE s.taskId = :taskId " +
+            "AND s.isFinal = true AND s.reviewStatus = 'APPROVED' AND s.isDeleted = false")
+    List<TaskSubmission> findApprovedFinalSubmissionsByTaskId(@Param("taskId") Long taskId);
 }

@@ -69,6 +69,12 @@ public class TaskDetailDTO {
     private String statusName;
 
     /**
+     * 任务需要人数
+     */
+    @Schema(description = "任务需要人数")
+    private Integer requiredPeople;
+
+    /**
      * 优先级
      */
     @Schema(description = "任务优先级", example = "HIGH")
