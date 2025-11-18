@@ -388,6 +388,7 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
             case MODEL -> AchievementTemple.getModelTemplate();
             case REPORT -> AchievementTemple.getReportTemplate();
             case CUSTOM -> AchievementTemple.getCustomTemplate();
+            case TASK_RESULT -> AchievementTemple.getTaskResultTemplate();
         };
     }
 

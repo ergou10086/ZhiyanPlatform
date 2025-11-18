@@ -311,4 +311,49 @@ public class AchievementTemple {
                 .isSystem(true)
                 .build();
     }
+
+    /**
+     * 任务成果模板
+     */
+    public static AchievementTemplateDTO getTaskResultTemplate() {
+        List<CustomAchievementFieldDTO> fields = Arrays.asList(
+                CustomAchievementFieldDTO.builder()
+                        .fieldKey("taskName")
+                        .fieldLabel("任务名称")
+                        .fieldType("text")
+                        .required(true)
+                        .placeholder("请输入任务名称")
+                        .sortOrder(1)
+                        .build(),
+                CustomAchievementFieldDTO.builder()
+                        .fieldKey("taskDescription")
+                        .fieldLabel("任务描述")
+                        .fieldType("textarea")
+                        .placeholder("请输入任务描述")
+                        .sortOrder(2)
+                        .build(),
+                CustomAchievementFieldDTO.builder()
+                        .fieldKey("completionDate")
+                        .fieldLabel("完成日期")
+                        .fieldType("date")
+                        .required(true)
+                        .sortOrder(3)
+                        .build(),
+                CustomAchievementFieldDTO.builder()
+                        .fieldKey("resultSummary")
+                        .fieldLabel("成果摘要")
+                        .fieldType("textarea")
+                        .placeholder("请输入成果摘要")
+                        .sortOrder(4)
+                        .build()
+        );
+
+        return AchievementTemplateDTO.builder()
+                .type(AchievementType.TASK_RESULT)
+                .templateName("任务成果")
+                .description("用于记录任务成果的详细信息")
+                .fields(fields)
+                .isSystem(true)
+                .build();
+    }
 }
