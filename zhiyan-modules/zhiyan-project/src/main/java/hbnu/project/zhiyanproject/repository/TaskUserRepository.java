@@ -94,6 +94,16 @@ public interface TaskUserRepository extends JpaRepository<TaskUser, Long> {
     long countActiveTasksByUserId(@Param("userId") Long userId);
 
     /**
+     * 统计任务的活跃执行者数量
+     *
+     * @param taskId 任务ID
+     * @return 执行者数量
+     */
+    @Query("SELECT COUNT(tu) FROM TaskUser tu WHERE tu.taskId = :taskId " +
+           "AND tu.isActive = true")
+    long countActiveExecutorsByTaskId(@Param("taskId") Long taskId);
+
+    /**
      * 统计项目的任务分配情况
      *
      * @param projectId 项目ID

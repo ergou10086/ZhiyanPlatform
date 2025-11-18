@@ -269,6 +269,11 @@ public class TaskServiceImpl implements TaskService {
                     throw new IllegalArgumentException("执行者必须是项目成员");
                 }
             }
+            
+            // 检查分配人数是否超过任务委托人数限制
+            if (assigneeIds.size() > task.getRequiredPeople()) {
+                throw new IllegalArgumentException("分配的执行者数量(" + assigneeIds.size() + ")不能超过任务委托人数限制(" + task.getRequiredPeople() + ")");
+            }
         }
 
         // 4. ✅ 软删除旧的task_user记录
@@ -347,12 +352,18 @@ public class TaskServiceImpl implements TaskService {
             throw new IllegalArgumentException("只有项目成员才能接取任务");
         }
 
-        // 3. ✅ 检查是否已是执行者（使用task_user表）
+        // 3. 检查是否已是执行者（使用task_user表）
         if (taskUserRepository.isUserActiveExecutor(taskId, userId)) {
             throw new IllegalArgumentException("您已经是该任务的执行者");
         }
 
-        // 4. ✅ 检查是否存在历史记录
+        // 4. 检查任务是否已达到任务人数限制
+        long currentExecutorCount = taskUserRepository.countActiveExecutorsByTaskId(taskId);
+        if (currentExecutorCount >= task.getRequiredPeople()) {
+            throw new IllegalArgumentException("任务已达到最大委托人数限制(" + task.getRequiredPeople() + ")，无法再接取");
+        }
+
+        // 5. 检查是否存在历史记录
         Optional<TaskUser> existing = taskUserRepository.findByTaskIdAndUserId(taskId, userId);
         
         Instant now = Instant.now();
@@ -363,18 +374,18 @@ public class TaskServiceImpl implements TaskService {
             taskUser.setIsActive(true);
             taskUser.setAssignedBy(userId);  // 自己分配给自己
             taskUser.setAssignedAt(now);
-            taskUser.setAssignType(AssignType.CLAIMED);  // ✅ 标记为主动接取
+            taskUser.setAssignType(AssignType.CLAIMED);  // 标记为主动接取
             taskUser.setRemovedAt(null);
             taskUser.setRemovedBy(null);
             taskUserRepository.save(taskUser);
-            log.info("✅ 重新激活用户的任务接取记录: taskId={}, userId={}", taskId, userId);
+            log.info("重新激活用户的任务接取记录: taskId={}, userId={}", taskId, userId);
         } else {
-            // 5. ✅ 创建新的task_user记录
+            // 5. 创建新的task_user记录
             TaskUser taskUser = TaskUser.builder()
                     .taskId(taskId)
-                    .projectId(task.getProjectId())  // ✅ 冗余project_id
+                    .projectId(task.getProjectId())  // 冗余project_id
                     .userId(userId)
-                    .assignType(AssignType.CLAIMED)  // ✅ 标记为主动接取
+                    .assignType(AssignType.CLAIMED)  // 标记为主动接取
                     .assignedBy(userId)  // 自己分配给自己
                     .assignedAt(now)
                     .isActive(true)
