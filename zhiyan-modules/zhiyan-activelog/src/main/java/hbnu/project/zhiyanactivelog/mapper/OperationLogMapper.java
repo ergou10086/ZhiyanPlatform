@@ -48,7 +48,6 @@ public interface OperationLogMapper {
     @Mapping(target = "title", source = "achievementTitle")
     UnifiedOperationLogVO mapAchievement(AchievementOperationLog e);
 
-    @Mapping(target = "operationType", source = "loginType", qualifiedByName = "enumName")
     @Mapping(target = "source", constant = "LOGIN")
     @Mapping(target = "operationModule", constant = "登录")
     @Mapping(target = "relatedId", expression = "java(null)")

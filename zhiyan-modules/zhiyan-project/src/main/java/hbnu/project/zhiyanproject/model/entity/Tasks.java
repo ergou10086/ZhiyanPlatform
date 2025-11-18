@@ -8,10 +8,7 @@ import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -22,10 +19,10 @@ import java.time.LocalDate;
  *
  * @author ErgouTree
  */
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "tasks")
-@Data
+@Setter
+@Getter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -101,6 +98,11 @@ public class Tasks extends BaseAuditEntity {
     @Column(name = "due_date", columnDefinition = "DATE COMMENT '任务截止日期'")
     private LocalDate dueDate;
 
+    /**
+     * 任务需要人数，默认单人任务
+     */
+    @Column(name = "required_people", columnDefinition = "INT DEFAULT 1 COMMENT '任务需要人数'")
+    private Integer requiredPeople = 1;
 
     /**
      * 是否已删除（软删除标记）

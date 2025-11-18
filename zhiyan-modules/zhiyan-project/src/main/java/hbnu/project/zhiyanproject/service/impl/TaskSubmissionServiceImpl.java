@@ -7,6 +7,7 @@ import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyanproject.model.dto.TaskSubmissionDTO;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.TaskSubmission;
+import hbnu.project.zhiyanproject.model.entity.TaskUser;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
 import hbnu.project.zhiyanproject.model.enums.ReviewStatus;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
@@ -20,6 +21,7 @@ import hbnu.project.zhiyanproject.repository.TaskSubmissionRepository;
 import hbnu.project.zhiyanproject.repository.TaskUserRepository;
 import hbnu.project.zhiyanproject.service.TaskSubmissionService;
 import hbnu.project.zhiyanproject.service.UserCacheService;
+import hbnu.project.zhiyanproject.utils.message.TaskMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,6 +53,8 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
     private final ProjectRepository projectRepository;
     private final UserCacheService userCacheService;
     private final ObjectMapper objectMapper;
+
+    private final TaskMessageUtils taskMessageUtils;
 
     @Autowired
     private MinioService minioService;
@@ -77,8 +79,14 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
             throw new IllegalArgumentException("只有任务执行者才能提交任务");
         }
 
-        // 3. 如果是最终提交，检查任务状态
+        // 3. 如果是最终提交，检查是否已有其他执行者的最终提交被批准
         if (Boolean.TRUE.equals(request.getIsFinal())) {
+            boolean hasApprovedSubmission = checkIfTaskHasApprovedSubmission(taskId);
+            if (hasApprovedSubmission) {
+                throw new IllegalArgumentException("任务已有执行者提交通过审核，无法再次提交最终版本");
+            }
+
+            // 检查任务状态，避免重复提交
             if (task.getStatus() == TaskStatus.DONE) {
                 throw new IllegalArgumentException("任务已完成，无法重复提交");
             }
@@ -114,13 +122,17 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
                 .build();
 
         submission = submissionRepository.save(submission);
-        log.info("任务提交成功: submissionId={}, version={}", submission.getId(), nextVersion);
+        log.info("任务提交成功: submissionId={}, version={}, isFinal={}",
+                submission.getId(), nextVersion, request.getIsFinal());
 
-        // 7. 如果是最终提交，更新任务状态为待审核
+        // 7. 如果是最终提交，更新任务状态为待审核（无论是否已有其他执行者提交）
         if (Boolean.TRUE.equals(request.getIsFinal())) {
             task.setStatus(TaskStatus.PENDING_REVIEW);
             taskRepository.save(task);
             log.info("任务状态已更新为待审核: taskId={}", taskId);
+
+            // 发送任务提交通知（仅最终提交需要通知审核）
+            taskMessageUtils.sendTaskSubmittedNotification(submission, task);
         }
 
         // 8. 转换为DTO返回
@@ -173,10 +185,20 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
 
         // 6. 如果审核通过且为最终提交，更新任务状态为已完成
         if (request.getReviewStatus() == ReviewStatus.APPROVED && Boolean.TRUE.equals(submission.getIsFinal())) {
-            task.setStatus(TaskStatus.DONE);
-            taskRepository.save(task);
-            log.info("任务已完成: taskId={}", task.getId());
+            // 检查是否已有其他执行者的提交被批准
+            boolean hasApprovedSubmission = checkIfTaskHasApprovedSubmission(task.getId());
+
+            if (!hasApprovedSubmission) {
+                task.setStatus(TaskStatus.DONE);
+                taskRepository.save(task);
+                log.info("✅ 任务已完成: taskId={}, 首个执行者提交通过审核", task.getId());
+            } else {
+                log.info("✅ 任务已完成: taskId={}, 已有其他执行者提交通过审核", task.getId());
+            }
         }
+
+        // 发送任务审核结果通知到提交者
+        taskMessageUtils.sendTaskReviewResultNotification(submission, task, request.getReviewStatus(), reviewerId);
 
         // 7. 转换为DTO返回
         return convertToDTO(submission, task);
@@ -215,7 +237,10 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
         Tasks task = taskRepository.findById(submission.getTaskId())
                 .orElseThrow(() -> new IllegalArgumentException("关联任务不存在"));
 
-        // 6. 转换为DTO返回
+        // 6.发送任务撤回通知
+        taskMessageUtils.sendTaskSubmissionRevokedNotification(submission, task);
+
+        // 7. 转换为DTO返回
         return convertToDTO(submission, task);
     }
 
@@ -330,6 +355,20 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
         return submissionRepository.countPendingSubmissionsForReviewer(userId, ReviewStatus.PENDING);
     }
 
+    @Override
+    public Page<TaskSubmissionDTO> getMyCreatedTasksPendingSubmissions(Long userId, Pageable pageable) {
+        log.debug("查询用户[{}]创建的任务中的待审核提交", userId);
+        return submissionRepository
+                .findPendingSubmissionsForMyCreatedTasks(userId, ReviewStatus.PENDING, pageable)
+                .map(this::convertToDTO);
+    }
+
+    @Override
+    public long countMyCreatedTasksPendingSubmissions(Long userId) {
+        log.debug("统计用户[{}]创建的任务中的待审核提交数量", userId);
+        return submissionRepository.countPendingSubmissionsForMyCreatedTasks(userId, ReviewStatus.PENDING);
+    }
+
     /**
      * 转换实体为DTO（带任务信息）
      */
@@ -421,17 +460,67 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService {
         return instant != null ? LocalDateTime.ofInstant(instant, ZoneId.systemDefault()) : null;
     }
 
-    @Override
-    public Page<TaskSubmissionDTO> getMyCreatedTasksPendingSubmissions(Long userId, Pageable pageable) {
-        log.debug("查询用户[{}]创建的任务中的待审核提交", userId);
-        return submissionRepository
-                .findPendingSubmissionsForMyCreatedTasks(userId, ReviewStatus.PENDING, pageable)
-                .map(this::convertToDTO);
+    /**
+     * 检查任务是否已有通过审核的最终提交
+     * 用于避免重复更新任务状态
+     */
+    private boolean checkIfTaskHasApprovedSubmission(Long taskId) {
+        // 查询任务的所有最终提交记录
+        List<TaskSubmission> finalSubmissions = submissionRepository.findByTaskIdAndIsDeletedFalseOrderByVersionDesc(taskId)
+                .stream()
+                .filter(submission -> Boolean.TRUE.equals(submission.getIsFinal()))
+                .toList();
+
+        // 检查是否有已批准的最终提交
+        return finalSubmissions.stream()
+                .anyMatch(submission -> submission.getReviewStatus() == ReviewStatus.APPROVED);
     }
 
-    @Override
-    public long countMyCreatedTasksPendingSubmissions(Long userId) {
-        log.debug("统计用户[{}]创建的任务中的待审核提交数量", userId);
-        return submissionRepository.countPendingSubmissionsForMyCreatedTasks(userId, ReviewStatus.PENDING);
+
+    /**
+     * 检查任务是否可以标记为已完成
+     * 当有执行者提交最终版本并通过审核时，任务即可完成
+     */
+    private boolean canMarkTaskAsDone(Long taskId) {
+        // 查询任务的所有执行者
+        List<TaskUser> executors = taskUserRepository.findActiveExecutorsByTaskId(taskId);
+
+        if (executors.isEmpty()) {
+            return false;
+        }
+
+        // 检查是否有至少一个执行者的最终提交被批准
+        List<TaskSubmission> approvedSubmissions = submissionRepository.findApprovedFinalSubmissionsByTaskId(taskId);
+
+        return !approvedSubmissions.isEmpty();
+    }
+
+
+    /**
+     * 获取任务的提交统计信息
+     */
+    public Map<String, Object> getTaskSubmissionStats(Long taskId) {
+        Map<String, Object> stats = new HashMap<>();
+
+        // 获取所有执行者
+        List<TaskUser> executors = taskUserRepository.findActiveExecutorsByTaskId(taskId);
+        stats.put("totalExecutors", executors.size());
+
+        // 获取所有最终提交
+        List<TaskSubmission> finalSubmissions = submissionRepository.findFinalSubmissionsByTaskId(taskId);
+        stats.put("totalFinalSubmissions", finalSubmissions.size());
+
+        // 获取已批准的最终提交
+        List<TaskSubmission> approvedSubmissions = submissionRepository.findApprovedFinalSubmissionsByTaskId(taskId);
+        stats.put("approvedFinalSubmissions", approvedSubmissions.size());
+
+        // 按执行者统计提交情况
+        Map<Long, List<TaskSubmission>> submissionsByExecutor = finalSubmissions.stream()
+                .collect(Collectors.groupingBy(TaskSubmission::getSubmitterId));
+
+        stats.put("submissionsByExecutor", submissionsByExecutor);
+        stats.put("canBeMarkedAsDone", !approvedSubmissions.isEmpty());
+
+        return stats;
     }
 }

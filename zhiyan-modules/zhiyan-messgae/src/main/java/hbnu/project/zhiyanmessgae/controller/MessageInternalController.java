@@ -1,0 +1,157 @@
+package hbnu.project.zhiyanmessgae.controller;
+
+import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+import hbnu.project.zhiyanmessgae.model.entity.MessageBody;
+import hbnu.project.zhiyanmessgae.model.enums.MessageScene;
+import hbnu.project.zhiyanmessgae.service.InboxMessageService;
+
+import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * 消息模块内部接口
+ * 供其他微服务通过Feign调用
+ *
+ * @author ErgouTree
+ */
+@Slf4j
+@RestController
+@RequestMapping("/zhiyan/message/internal")
+@RequiredArgsConstructor
+public class MessageInternalController {
+
+    @Resource
+    private final InboxMessageService inboxMessageService;
+
+    /**
+     * 发送个人消息(单收件人)
+     * 供其他微服务调用
+     */
+    @PostMapping("/send/personal")
+    public R<Void> sendPersonalMessage(@RequestBody SendMessageRequestDTO request) {
+        try{
+            // 参数验证
+            if (request.getScene() == null || request.getReceiverId() == null || request.getTitle() == null || request.getContent() == null) {
+                return R.fail("参数不完整");
+            }
+
+            MessageScene scene;
+            try{
+                scene = MessageScene.valueOf(request.getScene());
+            }catch (IllegalArgumentException e){
+                log.warn("无效的消息场景: {}", request.getScene());
+                return R.fail("无效的消息场景");
+            }
+
+            // 调用消息发送
+            MessageBody messageBody = inboxMessageService.sendPersonalMessage(
+                    scene,
+                    request.getSenderId(),
+                    request.getReceiverId(),
+                    request.getTitle(),
+                    request.getContent(),
+                    request.getBusinessId(),
+                    request.getBusinessType(),
+                    request.getExtendData()
+            );
+
+            log.info("内部接口发送个人消息成功: scene={}, receiverId={}, messageId={}",
+                    request.getScene(), request.getReceiverId(), messageBody.getId());
+
+            return R.ok(null, "消息发送成功");
+        }catch (Exception e){
+            log.error("内部接口发送个人消息失败: scene={}, receiverId={}",
+                    request.getScene(), request.getReceiverId(), e);
+            return R.fail("消息发送失败: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * 群发消息
+     * 供其他微服务调用
+     */
+    @PostMapping("/send/batch")
+    public R<Void> sendBatchMessage(@RequestBody SendMessageRequestDTO request) {
+        try{
+            // 参数验证
+            if(request.getScene() == null || request.getReceiverIds() == null || request.getTitle() == null || request.getContent() == null) {
+                return R.fail("参数不完整");
+            }
+
+            MessageScene scene;
+            try{
+                scene = MessageScene.valueOf(request.getScene());
+            }catch (IllegalArgumentException e){
+                log.warn("无效的消息场景: {}", request.getScene());
+                return R.fail("无效的消息场景");
+            }
+
+            // 调用群发
+            MessageBody messageBody = inboxMessageService.sendPersonalMessage(
+                    scene,
+                    request.getSenderId(),
+                    request.getReceiverId(),
+                    request.getTitle(),
+                    request.getContent(),
+                    request.getBusinessId(),
+                    request.getBusinessType(),
+                    request.getExtendData()
+            );
+
+            log.info("内部接口发送个人消息成功: scene={}, receiverId={}, messageId={}",
+                    request.getScene(), request.getReceiverId(), messageBody.getId());
+
+            return R.ok(null, "消息发送成功");
+        }catch (Exception e){
+            log.error("内部接口发送批量消息失败: scene={}, receiverCount={}",
+                    request.getScene(),
+                    request.getReceiverIds() != null ? request.getReceiverIds().size() : 0, e);
+
+            return R.fail("消息批量发送失败: " + e.getMessage());
+        }
+    }
+
+
+    /**
+     * 发送广播消息(全体用户)
+     * 供其他微服务调用
+     */
+    @PostMapping("/send/broadcast")
+    public R<Void> sendBroadcastMessage(@RequestBody SendMessageRequestDTO request) {
+        try{
+            // 参数验证
+            if (request.getScene() == null || request.getTitle() == null || request.getContent() == null) {
+                return R.fail("参数不完整");
+            }
+
+            MessageScene scene;
+            try {
+                scene = MessageScene.valueOf(request.getScene());
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的消息场景: {}", request.getScene());
+                return R.fail("无效的消息场景");
+            }
+
+            // 调用服务发送广播消息
+            MessageBody messageBody = inboxMessageService.sendAllPersonalMessage(
+                    scene,
+                    request.getSenderId(),
+                    request.getTitle(),
+                    request.getContent(),
+                    request.getExtendData()
+            );
+
+            log.info("内部接口发送广播消息成功: scene={}, messageId={}",
+                    request.getScene(), messageBody.getId());
+
+            return R.ok(null, "广播消息发送成功");
+        }catch (Exception e){
+            log.error("内部接口发送广播消息失败: scene={}", request.getScene(), e);
+            return R.fail("广播消息发送失败: " + e.getMessage());
+        }
+    }
+}

@@ -23,6 +23,7 @@ import hbnu.project.zhiyanproject.repository.TaskRepository;
 import hbnu.project.zhiyanproject.repository.TaskUserRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import hbnu.project.zhiyanproject.service.TaskService;
+import hbnu.project.zhiyanproject.utils.message.TaskMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,8 +56,10 @@ public class TaskServiceImpl implements TaskService {
     private final UserCacheService userCacheService;
     private final ObjectMapper objectMapper;
     
-    // ✅ 新增：task_user关联表Repository
+    // 新增：task_user关联表Repository
     private final TaskUserRepository taskUserRepository;
+
+    private final TaskMessageUtils taskMessageUtils;
 
     // ==================== 任务创建与管理 ====================
 
@@ -91,9 +94,10 @@ public class TaskServiceImpl implements TaskService {
                 .description(request.getDescription())
                 .status(TaskStatus.TODO) // 新创建的任务默认为待办
                 .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.MEDIUM)
-                .assigneeId("[]")  // ✅ 废弃字段，设为空
+                .assigneeId("[]")  // 暂时废弃字段，设为空
                 .dueDate(request.getDueDate())
                 .worktime(request.getWorktime())
+                .requiredPeople(request.getRequiredPeople() != null ? request.getRequiredPeople() : 1)
                 .createdBy(creatorId)
                 .isDeleted(false)
                 .build();
@@ -117,12 +121,18 @@ public class TaskServiceImpl implements TaskService {
             
             taskUserRepository.saveAll(taskUsers);
             log.info("✅ 创建任务并分配执行者: taskId={}, assignees={}", saved.getId(), assigneeIds);
+
+            // 发送任务创建通知
+            taskMessageUtils.sendTaskCreatedNotification(saved, creatorId, assigneeIds);
+
+            // 如果分配人数达到任务要求人数，发送人数已满通知
+            if (assigneeIds.size() == saved.getRequiredPeople()) {
+                taskMessageUtils.sendTaskFullNotification(saved, assigneeIds);
+            }
         }
         
         log.info("创建任务成功: taskId={}, projectId={}, title={}, creator={}", 
                 saved.getId(), projectId, request.getTitle(), creatorId);
-
-        // TODO: 发布"任务已创建"事件到消息队列，通知执行者
 
         return saved;
     }
@@ -159,6 +169,11 @@ public class TaskServiceImpl implements TaskService {
 
         if (request.getPriority() != null) {
             task.setPriority(request.getPriority());
+            updated = true;
+        }
+
+        if (request.getRequiredPeople() != null) {
+            task.setRequiredPeople(request.getRequiredPeople());
             updated = true;
         }
 
@@ -239,7 +254,8 @@ public class TaskServiceImpl implements TaskService {
         log.info("更新任务状态: taskId={}, {} -> {}, operator={}", 
                 taskId, oldStatus, newStatus, operatorId);
 
-        // TODO: 发布"任务状态变更"事件，通知相关人员
+        // 布"任务状态变更"事件，通知相关人员
+        taskMessageUtils.sendTaskStatusChangedNotification(saved, oldStatus, newStatus, operatorId);
 
         return saved;
     }
@@ -263,13 +279,18 @@ public class TaskServiceImpl implements TaskService {
                     throw new IllegalArgumentException("执行者必须是项目成员");
                 }
             }
+            
+            // 检查分配人数是否超过任务委托人数限制
+            if (assigneeIds.size() > task.getRequiredPeople()) {
+                throw new IllegalArgumentException("分配的执行者数量(" + assigneeIds.size() + ")不能超过任务委托人数限制(" + task.getRequiredPeople() + ")");
+            }
         }
 
-        // 4. ✅ 软删除旧的task_user记录
+        // 4. 软删除旧的task_user记录
         Instant now = Instant.now();
         taskUserRepository.deactivateTaskAssignees(taskId, now, operatorId);
         
-        // 5. ✅ 添加新的task_user记录
+        // 5. 添加新的task_user记录（ASSIGNED类型）
         if (assigneeIds != null && !assigneeIds.isEmpty()) {
             List<TaskUser> newAssignees = new ArrayList<>();
             
@@ -284,7 +305,7 @@ public class TaskServiceImpl implements TaskService {
                         taskUser.setIsActive(true);
                         taskUser.setAssignedBy(operatorId);
                         taskUser.setAssignedAt(now);
-                        taskUser.setAssignType(AssignType.ASSIGNED);
+                        taskUser.setAssignType(AssignType.ASSIGNED); // 设置为分配类型
                         taskUser.setRemovedAt(null);
                         taskUser.setRemovedBy(null);
                         newAssignees.add(taskUser);
@@ -294,9 +315,9 @@ public class TaskServiceImpl implements TaskService {
                     // 不存在，创建新记录
                     newAssignees.add(TaskUser.builder()
                             .taskId(taskId)
-                            .projectId(task.getProjectId())  // ✅ 冗余project_id
+                            .projectId(task.getProjectId())  // 冗余project_id
                             .userId(userId)
-                            .assignType(AssignType.ASSIGNED)
+                            .assignType(AssignType.ASSIGNED)  // 分配类型
                             .assignedBy(operatorId)
                             .assignedAt(now)
                             .isActive(true)
@@ -312,8 +333,8 @@ public class TaskServiceImpl implements TaskService {
         
         // 6. 更新assigneeId字段为空（废弃字段）
         task.setAssigneeId("[]");
-        
-        // 7. 如果任务状态是TODO，自动改为IN_PROGRESS
+
+        // 7. 如果任务状态是TO DO，自动改为IN_PROGRESS
         if (task.getStatus() == TaskStatus.TODO && assigneeIds != null && !assigneeIds.isEmpty()) {
             task.setStatus(TaskStatus.IN_PROGRESS);
             log.info("任务状态自动从TODO更新为IN_PROGRESS");
@@ -324,7 +345,15 @@ public class TaskServiceImpl implements TaskService {
         log.info("✅ 重新分配任务: taskId={}, assigneeIds={}, newStatus={}, operator={}", 
                 taskId, assigneeIds, saved.getStatus(), operatorId);
 
-        // TODO: 发布"任务已重新分配"事件，通知新的执行者
+        // 发布"任务已重新分配"事件，通知新的执行者
+        taskMessageUtils.sendTaskAssignedNotification(saved, assigneeIds, operatorId);
+
+        // 如果分配后人数达到任务要求人数，发送人数已满通知
+        long currentExecutorCounts = taskUserRepository.countActiveExecutorsByTaskId(taskId);
+        if (currentExecutorCounts == task.getRequiredPeople()) {
+            List<Long> allAssigneeIds = taskMessageUtils.getTaskAssigneeIds(taskId);
+            taskMessageUtils.sendTaskFullNotification(saved, allAssigneeIds);
+        }
 
         return saved;
     }
@@ -341,12 +370,18 @@ public class TaskServiceImpl implements TaskService {
             throw new IllegalArgumentException("只有项目成员才能接取任务");
         }
 
-        // 3. ✅ 检查是否已是执行者（使用task_user表）
+        // 3. 检查是否已是执行者（使用task_user表）
         if (taskUserRepository.isUserActiveExecutor(taskId, userId)) {
             throw new IllegalArgumentException("您已经是该任务的执行者");
         }
 
-        // 4. ✅ 检查是否存在历史记录
+        // 4. 检查任务是否已达到任务人数限制
+        long currentExecutorCount = taskUserRepository.countActiveExecutorsByTaskId(taskId);
+        if (currentExecutorCount >= task.getRequiredPeople()) {
+            throw new IllegalArgumentException("任务已达到最大委托人数限制(" + task.getRequiredPeople() + ")，无法再接取");
+        }
+
+        // 5. 检查是否存在历史记录
         Optional<TaskUser> existing = taskUserRepository.findByTaskIdAndUserId(taskId, userId);
         
         Instant now = Instant.now();
@@ -357,17 +392,18 @@ public class TaskServiceImpl implements TaskService {
             taskUser.setIsActive(true);
             taskUser.setAssignedBy(userId);  // 自己分配给自己
             taskUser.setAssignedAt(now);
-            taskUser.setAssignType(AssignType.CLAIMED);  // ✅ 标记为主动接取
+            taskUser.setAssignType(AssignType.CLAIMED);  // 标记为主动接取
             taskUser.setRemovedAt(null);
             taskUser.setRemovedBy(null);
             taskUserRepository.save(taskUser);
+            log.info("重新激活用户的任务接取记录: taskId={}, userId={}", taskId, userId);
         } else {
-            // 5. ✅ 创建新的task_user记录
+            // 5. 创建新的task_user记录
             TaskUser taskUser = TaskUser.builder()
                     .taskId(taskId)
-                    .projectId(task.getProjectId())  // ✅ 冗余project_id
+                    .projectId(task.getProjectId())  // 冗余project_id
                     .userId(userId)
-                    .assignType(AssignType.CLAIMED)  // ✅ 标记为主动接取
+                    .assignType(AssignType.CLAIMED)  // 标记为主动接取
                     .assignedBy(userId)  // 自己分配给自己
                     .assignedAt(now)
                     .isActive(true)
@@ -375,9 +411,20 @@ public class TaskServiceImpl implements TaskService {
                     .build();
             
             taskUserRepository.save(taskUser);
+
+            // 发送任务接取通知
+            taskMessageUtils.sendTaskClaimedNotification(task, userId);
+
+            // 如果接取后人数达到任务要求人数，发送人数已满通知
+            long currentExecutorCounts = taskUserRepository.countActiveExecutorsByTaskId(taskId);
+            if (currentExecutorCounts == task.getRequiredPeople()) {
+                List<Long> allAssigneeIds = taskMessageUtils.getTaskAssigneeIds(taskId);
+                taskMessageUtils.sendTaskFullNotification(task, allAssigneeIds);
+            }
+
         }
 
-        // 6. 如果任务状态是TODO，自动改为IN_PROGRESS
+        // 6. 如果任务状态是TO DO，自动改为IN_PROGRESS
         if (task.getStatus() == TaskStatus.TODO) {
             task.setStatus(TaskStatus.IN_PROGRESS);
         }
@@ -385,8 +432,6 @@ public class TaskServiceImpl implements TaskService {
         Tasks saved = taskRepository.save(task);
 
         log.info("✅ 用户接取任务: taskId={}, userId={}", taskId, userId);
-
-        // TODO: 发布"任务已接取"事件，通知项目成员
 
         return saved;
     }
@@ -641,7 +686,7 @@ public class TaskServiceImpl implements TaskService {
         // 过滤已删除的任务
         List<Tasks> activeTasks = tasks.stream()
                 .filter(t -> !t.getIsDeleted())
-                .collect(Collectors.toList());
+                .toList();
         
         // 4. 统计各状态任务数量
         long todoCount = activeTasks.stream()
@@ -823,6 +868,7 @@ public class TaskServiceImpl implements TaskService {
                 .assignees(assignees)
                 .dueDate(task.getDueDate())
                 .worktime(task.getWorktime())
+                .requiredPeople(task.getRequiredPeople())
                 .isOverdue(isOverdue)
                 .createdBy(String.valueOf(task.getCreatedBy()))
                 .creatorName(creatorName)
@@ -959,6 +1005,7 @@ public class TaskServiceImpl implements TaskService {
                 .assignees(assignees)
                 .dueDate(task.getDueDate())
                 .worktime(task.getWorktime())
+                .requiredPeople(task.getRequiredPeople())
                 .isOverdue(isOverdue)
                 .createdBy(String.valueOf(task.getCreatedBy()))
                 .creatorName(creatorName)
@@ -981,21 +1028,4 @@ public class TaskServiceImpl implements TaskService {
             return "[]";
         }
     }
-
-    /**
-     * 将JSON字符串转换为ID列表
-     */
-    private List<Long> convertJsonToList(String json) {
-        if (json == null || json.trim().isEmpty() || "[]".equals(json)) {
-            return Collections.emptyList();
-        }
-        try {
-            return objectMapper.readValue(json, 
-                    objectMapper.getTypeFactory().constructCollectionType(List.class, Long.class));
-        } catch (JsonProcessingException e) {
-            log.error("解析JSON为ID列表失败: json={}", json, e);
-            return Collections.emptyList();
-        }
-    }
-
 }

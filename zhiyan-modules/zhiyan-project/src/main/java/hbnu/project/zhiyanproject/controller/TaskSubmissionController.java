@@ -8,8 +8,11 @@ import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import hbnu.project.zhiyanproject.model.dto.TaskSubmissionDTO;
+import hbnu.project.zhiyanproject.model.entity.Tasks;
 import hbnu.project.zhiyanproject.model.form.ReviewSubmissionRequest;
 import hbnu.project.zhiyanproject.model.form.SubmitTaskRequest;
+import hbnu.project.zhiyanproject.repository.TaskRepository;
+import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import hbnu.project.zhiyanproject.service.TaskSubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +29,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 任务提交控制器
@@ -43,6 +47,8 @@ import java.util.List;
 public class TaskSubmissionController {
 
     private final TaskSubmissionService submissionService;
+    private final TaskRepository taskRepository;
+    private final ProjectMemberService projectMemberService;
 
     // ==================== 提交任务接口 ====================
 
@@ -461,6 +467,39 @@ public class TaskSubmissionController {
         } catch (Exception e) {
             log.error("统计我创建的任务的待审核数量失败", e);
             return R.fail("统计失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取任务提交统计信息
+     */
+    @GetMapping("/task/{taskId}/stats")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取任务提交统计", description = "获取任务的提交统计信息，包括执行者数量、提交情况等")
+    public R<Map<String, Object>> getTaskSubmissionStats(
+            @PathVariable @Parameter(description = "任务ID") Long taskId) {
+
+        log.debug("查询任务提交统计: taskId={}", taskId);
+
+        try {
+            // 验证任务存在
+            Tasks task = taskRepository.findById(taskId)
+                    .orElseThrow(() -> new IllegalArgumentException("任务不存在"));
+
+            // 验证用户有权限查看（项目成员）
+            Long userId = SecurityUtils.getUserId();
+            if (!projectMemberService.isMember(task.getProjectId(), userId)) {
+                return R.fail("无权查看该任务的统计信息");
+            }
+
+            Map<String, Object> stats = submissionService.getTaskSubmissionStats(taskId);
+            return R.ok(stats);
+        } catch (IllegalArgumentException e) {
+            log.warn("查询任务提交统计失败: {}", e.getMessage());
+            return R.fail(e.getMessage());
+        } catch (Exception e) {
+            log.error("查询任务提交统计失败", e);
+            return R.fail("查询失败: " + e.getMessage());
         }
     }
 }

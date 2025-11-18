@@ -4,10 +4,7 @@ import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 import hbnu.project.zhiyanproject.model.enums.AssignType;
 import hbnu.project.zhiyanproject.model.enums.RoleType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.Instant;
 
@@ -19,7 +16,8 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "task_user")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

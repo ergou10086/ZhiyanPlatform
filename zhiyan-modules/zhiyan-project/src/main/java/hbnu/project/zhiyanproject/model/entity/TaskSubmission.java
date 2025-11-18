@@ -5,10 +5,7 @@ import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanproject.model.enums.ReviewStatus;
 import hbnu.project.zhiyanproject.model.enums.SubmissionType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,7 +18,8 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "task_submission")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

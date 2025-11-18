@@ -1,0 +1,39 @@
+package hbnu.project.zhiyanproject.client;
+
+import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+/**
+ * 消息服务Feign客户端
+ * 用于项目模块调用消息模块的接口
+ *
+ * @author Tokito
+ */
+@FeignClient(
+        name = "zhiyan-message-service",
+        path = "/zhiyan/message/internal"
+)
+public interface MessageServiceClient {
+
+    /**
+     * 发送个人消息(单收件人)
+     */
+    @PostMapping("/send/personal")
+    R<Void> sendPersonalMessage(@RequestBody SendMessageRequestDTO request);
+
+    /**
+     * 发送批量个人消息(多收件人)
+     */
+    @PostMapping("/send/batch")
+    R<Void> sendBatchPersonalMessage(@RequestBody SendMessageRequestDTO request);
+
+    /**
+     * 发送广播消息(全体用户)
+     */
+    @PostMapping("/send/broadcast")
+    R<Void> sendBroadcastMessage(@RequestBody SendMessageRequestDTO request);
+}

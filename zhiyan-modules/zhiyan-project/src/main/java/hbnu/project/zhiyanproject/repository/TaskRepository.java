@@ -1,6 +1,8 @@
 package hbnu.project.zhiyanproject.repository;
 
+import hbnu.project.zhiyanproject.model.entity.TaskUser;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
+import hbnu.project.zhiyanproject.model.enums.AssignType;
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import org.springframework.data.domain.Page;
@@ -212,4 +214,53 @@ public interface TaskRepository extends JpaRepository<Tasks, Long> {
            "AND t.projectId IN (SELECT p.id FROM Project p WHERE p.isDeleted = false)")
     Page<Tasks> findMyCreatedTasksWithActiveProjects(@Param("createdBy") Long createdBy, 
                                                        Pageable pageable);
+
+
+    /**
+     * 查询任务的所有有效执行者（包括ASSIGNED和CLAIMED类型）
+     *
+     * @param taskId 任务ID
+     * @return 执行者列表
+     */
+    @Query("SELECT tu FROM TaskUser tu WHERE tu.taskId = :taskId " +
+            "AND tu.isActive = true " +
+            "ORDER BY tu.assignedAt ASC")
+    List<TaskUser> findActiveExecutorsByTaskId(@Param("taskId") Long taskId);
+
+
+    /**
+     * 查询任务的指定类型执行者
+     *
+     * @param taskId 任务ID
+     * @param assignType 分配类型
+     * @return 执行者列表
+     */
+    @Query("SELECT tu FROM TaskUser tu WHERE tu.taskId = :taskId " +
+            "AND tu.assignType = :assignType " +
+            "AND tu.isActive = true " +
+            "ORDER BY tu.assignedAt ASC")
+    List<TaskUser> findActiveExecutorsByTaskIdAndType(
+            @Param("taskId") Long taskId,
+            @Param("assignType") AssignType assignType
+    );
+
+
+    /**
+     * 查询即将到期的任务（不包含已删除的任务）
+     *
+     * @param dueDate 截止日期
+     * @return 任务列表
+     */
+    @Query("SELECT t FROM Tasks t WHERE t.isDeleted = false AND t.dueDate <= :dueDate AND t.status != 'DONE'")
+    List<Tasks> findUpcomingTasks(@Param("dueDate") LocalDate dueDate);
+
+
+    /**
+     * 查询已逾期的任务（不包含已删除的任务）
+     *
+     * @param currentDate 当前日期
+     * @return 任务列表
+     */
+    @Query("SELECT t FROM Tasks t WHERE t.isDeleted = false AND t.dueDate < :currentDate AND t.status != 'DONE'")
+    List<Tasks> findOverdueTasks(@Param("currentDate") LocalDate currentDate);
 }

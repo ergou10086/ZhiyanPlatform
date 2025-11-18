@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 任务提交服务接口
@@ -163,4 +164,12 @@ public interface TaskSubmissionService {
      * @return 数量
      */
     long countPendingSubmissionsForReview(Long userId);
+
+    /**
+     * 获取任务提交统计信息
+     *
+     * @param taskId 任务ID
+     * @return 提交统计信息
+     */
+    Map<String, Object> getTaskSubmissionStats(Long taskId);
 }

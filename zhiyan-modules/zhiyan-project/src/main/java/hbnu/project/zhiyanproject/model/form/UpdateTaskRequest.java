@@ -3,6 +3,7 @@ package hbnu.project.zhiyanproject.model.form;
 import hbnu.project.zhiyanproject.model.enums.TaskPriority;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +35,10 @@ public class UpdateTaskRequest {
 
     @Schema(description = "优先级")
     private TaskPriority priority;
+
+    @Schema(description = "任务需要人数")
+    @Min(value = 1, message = "任务需要人数至少为1")
+    private Integer requiredPeople;
 
     @Schema(description = "执行者ID列表")
     private List<Long> assigneeIds;

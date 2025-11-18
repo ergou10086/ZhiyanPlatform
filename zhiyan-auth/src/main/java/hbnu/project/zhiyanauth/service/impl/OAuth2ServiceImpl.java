@@ -14,7 +14,6 @@ import hbnu.project.zhiyanauth.service.OAuth2Service;
 import hbnu.project.zhiyanauth.service.RoleService;
 import hbnu.project.zhiyanactivelog.model.entity.LoginLog;
 import hbnu.project.zhiyanactivelog.model.enums.LoginStatus;
-import hbnu.project.zhiyanactivelog.model.enums.LoginType;
 import hbnu.project.zhiyanactivelog.service.OperationLogplusService;
 import hbnu.project.zhiyancommonoauth.exception.OAuth2Exception;
 import hbnu.project.zhiyancommonoauth.model.dto.OAuth2UserInfo;
@@ -27,7 +26,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -342,7 +340,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
         }
 
         // 更新昵称（如果OAuth2提供了昵称且与当前不同）
-        if (StringUtils.isNotEmpty(oauth2UserInfo.getNickname()) 
+        if (StringUtils.isNotEmpty(oauth2UserInfo.getNickname())
                 && !oauth2UserInfo.getNickname().equals(user.getName())) {
             // 可以选择更新或不更新，这里选择不自动更新（避免覆盖用户手动修改的名称）
             // user.setName(oauth2UserInfo.getNickname());
@@ -391,7 +389,6 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             LoginLog loginLog = LoginLog.builder()
                     .userId(userId != null ? userId : 0L)
                     .username(email)
-                    .loginType(LoginType.OAUTH) // OAuth2登录类型
                     .loginIp(ipAddress)
                     .userAgent(userAgent)
                     .loginStatus(status)

@@ -8,9 +8,7 @@ import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -27,7 +25,8 @@ import java.util.stream.Collectors;
  */
 @Entity
 @Table(name = "projects")
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor

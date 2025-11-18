@@ -14,6 +14,7 @@ import hbnu.project.zhiyanproject.model.form.InviteMemberRequest;
 import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
 import hbnu.project.zhiyanproject.repository.ProjectRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
+import hbnu.project.zhiyanproject.utils.message.ProjectMemberMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -40,6 +41,8 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     private final ProjectRepository projectRepository;
     private final AuthServiceClient authServiceClient;
     private final UserCacheService userCacheService;
+
+    private final ProjectMemberMessageUtils projectMemberMessageUtils;
 
     // ==================== 成员管理相关 ====================
 
@@ -96,7 +99,16 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         
         log.info("项目[{}]管理员[{}]直接添加用户[{}]为项目成员，角色: {}", projectId, inviterId, userId, role);
 
-        // TODO: 发送通知给被添加的用户（通过消息队列），告知已被添加到项目
+        // 发送邀请通知给新成员
+        projectMemberMessageUtils.sendMessageInvitedNotification(project, member, inviterId);
+
+        // 通知项目其他成员有新成员加入
+        List<Long> existingMemberIds = projectMemberRepository.findByProjectId(project.getId())
+                .stream()
+                .map(ProjectMember::getUserId)
+                .filter(id -> !id.equals(member.getUserId()))
+                .collect(Collectors.toList());
+        projectMemberMessageUtils.sendNewMemberJoinedNotification(project, member, inviterId, existingMemberIds);
 
         return saved;
     }
@@ -104,6 +116,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     @Override
     @Transactional
     public void removeMember(Long projectId, Long userId, Long operatorId) {
+        // 0.查询项目是否存在
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new IllegalArgumentException("项目不存在"));
+
         // 1. 检查操作人是否为项目管理员（OWNER或ADMIN）
         if (!isAdmin(projectId, operatorId)) {
             throw new IllegalArgumentException("只有项目管理员可以移除成员");
@@ -133,12 +148,26 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         projectMemberRepository.delete(member);
         log.info("项目[{}]管理员[{}]移除成员[{}]", projectId, operatorId, userId);
 
-        // TODO: 发送通知给被移除用户（通过消息队列）
+        // 发送通知给被移除用户
+        projectMemberMessageUtils.sendMemberRemovedNotification(project, userId, operatorId);
+
+        // 通知其他成员
+        List<Long> adminIds = projectMemberRepository.findByProjectId(project.getId())
+                .stream()
+                .filter(m -> !m.getUserId().equals(userId))
+                .filter(m -> m.getProjectRole() == ProjectMemberRole.OWNER ||
+                        m.getProjectRole() == ProjectMemberRole.ADMIN)
+                .map(ProjectMember::getUserId)
+                .collect(Collectors.toList());
+        projectMemberMessageUtils.sendMemberLeftNotification(project, member, operatorId, adminIds);
     }
 
     @Override
     @Transactional
     public ProjectMember updateMemberRole(Long projectId, Long userId, ProjectMemberRole newRole, Long operatorId) {
+        // 0.查询项目是否存在
+        Project project = projectRepository.findById(projectId).orElseThrow(() -> new IllegalArgumentException("项目不存在"));
+
         // 1. 检查操作人是否为项目管理员（OWNER或ADMIN）
         if (!isAdmin(projectId, operatorId)) {
             throw new IllegalArgumentException("只有项目管理员可以修改成员角色");
@@ -165,12 +194,25 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         }
 
         // 6. 更新角色
+        ProjectMemberRole oldRole = member.getProjectRole();
         member.setProjectRole(newRole);
         ProjectMember saved = projectMemberRepository.save(member);
 
         log.info("项目[{}]管理员[{}]将成员[{}]角色修改为: {}", projectId, operatorId, userId, newRole);
 
-        // TODO: 发送通知给该成员（通过消息队列）
+        // 发送通知给该成员（通过消息队列）
+        projectMemberMessageUtils.sendMemberRoleChangedNotification(project, member, oldRole.getRoleName(), newRole.getRoleName(), operatorId);
+
+        // 同时通知项目管理员
+        List<Long> adminIds = projectMemberRepository.findByProjectId(project.getId())
+                .stream()
+                .filter(m -> !m.getUserId().equals(member.getUserId()))
+                .filter(m -> m.getProjectRole() == ProjectMemberRole.OWNER ||
+                        m.getProjectRole() == ProjectMemberRole.ADMIN)
+                .map(ProjectMember::getUserId)
+                .toList();
+
+        projectMemberMessageUtils.sendMemberRoleChangedNotificationToAdmins(project, member, oldRole.getRoleName(), newRole.getRoleName(), adminIds);
 
         return saved;
     }
@@ -191,7 +233,20 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         projectMemberRepository.delete(member);
         log.info("用户[{}]退出项目[{}]", userId, projectId);
 
-        // TODO: 发送通知给项目负责人（通过消息队列）
+        // 发送通知给项目负责人和管理员
+        List<Long> adminIds = projectMemberRepository.findByProjectId(projectId)
+                .stream()
+                .filter(m -> m.getProjectRole() == ProjectMemberRole.OWNER ||
+                        m.getProjectRole() == ProjectMemberRole.ADMIN)
+                .map(ProjectMember::getUserId)
+                .collect(Collectors.toList());
+
+        projectMemberMessageUtils.sendMemberLeftNotification(
+                projectRepository.findById(projectId).orElse(null),
+                member,
+                userId,
+                adminIds
+        );
     }
 
     // ==================== 查询相关 ====================
@@ -519,10 +574,8 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
                         log.debug("成功获取 {} 个用户信息", users.size());
                         
                         // 打印每个用户的详细信息（调试用）
-                        users.forEach(user -> {
-                            log.debug("用户信息: id={}, name={}, email={}, avatarUrl={}", 
-                                     user.getId(), user.getName(), user.getEmail(), user.getAvatarUrl());
-                        });
+                        users.forEach(user -> log.debug("用户信息: id={}, name={}, email={}, avatarUrl={}",
+                                 user.getId(), user.getName(), user.getEmail(), user.getAvatarUrl()));
                         
                         // 将List转换为Map
                         userMap = users.stream()

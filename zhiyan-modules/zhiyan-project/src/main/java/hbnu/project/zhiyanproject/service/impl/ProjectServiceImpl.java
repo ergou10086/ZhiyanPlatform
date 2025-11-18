@@ -4,6 +4,7 @@ import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
+import hbnu.project.zhiyanproject.model.entity.ProjectMember;
 import hbnu.project.zhiyanproject.model.enums.ProjectMemberRole;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
 import hbnu.project.zhiyanproject.model.enums.ProjectVisibility;
@@ -11,6 +12,7 @@ import hbnu.project.zhiyanproject.repository.ProjectMemberRepository;
 import hbnu.project.zhiyanproject.repository.ProjectRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
 import hbnu.project.zhiyanproject.service.ProjectService;
+import hbnu.project.zhiyanproject.utils.message.ProjectMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +41,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectMemberService projectMemberService;
     private final AuthServiceClient authServiceClient;
+
+    private final ProjectMessageUtils projectMessageUtils;
 
     @Override
     @Transactional
@@ -75,6 +80,10 @@ public class ProjectServiceImpl implements ProjectService {
             projectMemberService.addMemberInternal(project.getId(), creatorId, ProjectMemberRole.OWNER);
 
             log.info("成功创建项目: id={}, name={}, creator={}", project.getId(), name, creatorId);
+
+            // 发送项目创建成功通知给创建者
+            projectMessageUtils.sendProjectCreatedNotification(project, creatorId);
+
             return R.ok(project, "项目创建成功");
         } catch (Exception e) {
             log.error("创建项目失败: name={}, creatorId={}", name, creatorId, e);
@@ -92,6 +101,10 @@ public class ProjectServiceImpl implements ProjectService {
             if (project == null) {
                 return R.fail("项目不存在");
             }
+
+            // 记录状态变化
+            ProjectStatus oldStatus = project.getStatus();
+            boolean statusChanged = status != null && !status.equals(oldStatus);
 
             // 更新项目信息
             if (StringUtils.hasText(name) && !name.equals(project.getName())) {
@@ -127,6 +140,16 @@ public class ProjectServiceImpl implements ProjectService {
 
             project = projectRepository.save(project);
             log.info("成功更新项目: id={}, name={}", projectId, project.getName());
+
+            // 如果状态发生变化,通知所有项目成员
+            List<Long> memberIds = projectMemberRepository.findByProjectId(project.getId())
+                    .stream()
+                    .map(ProjectMember::getUserId)
+                    .collect(Collectors.toList());
+            if (statusChanged) {
+                projectMessageUtils.sendProjectStatusChangedNotification(project, memberIds, oldStatus, status);
+            }
+
             return R.ok(project, "项目更新成功");
         } catch (Exception e) {
             log.error("更新项目失败: projectId={}", projectId, e);
@@ -153,6 +176,13 @@ public class ProjectServiceImpl implements ProjectService {
             projectRepository.save(project);
 
             log.info("成功删除项目（软删除）: id={}, name={}, userId={}", projectId, project.getName(), userId);
+
+            List<Long> memberIds = projectMemberRepository.findByProjectId(project.getId())
+                    .stream()
+                    .map(ProjectMember::getUserId)
+                    .toList();
+            projectMessageUtils.sendProjectDeletedNotification(project, memberIds);
+
             return R.ok(null, "项目删除成功");
         } catch (Exception e) {
             log.error("删除项目失败: projectId={}, userId={}", projectId, userId, e);
@@ -349,6 +379,13 @@ public class ProjectServiceImpl implements ProjectService {
             project.setStatus(ProjectStatus.ARCHIVED);
             projectRepository.save(project);
 
+            // 通知所有成员项目已归档
+            List<Long> projectMemberIds = projectMemberRepository.findByProjectId(project.getId())
+                    .stream()
+                    .map(ProjectMember::getUserId)
+                    .toList();
+            projectMessageUtils.sendProjectArchivedNotification(project, projectMemberIds);
+
             log.info("成功归档项目: id={}, userId={}", projectId, userId);
             return R.ok(null, "项目归档成功");
         } catch (Exception e) {
@@ -439,7 +476,7 @@ public class ProjectServiceImpl implements ProjectService {
         // 提取所有唯一的创建者ID
         List<Long> creatorIds = projects.stream()
                 .map(Project::getCreatorId)
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.toList());
         
