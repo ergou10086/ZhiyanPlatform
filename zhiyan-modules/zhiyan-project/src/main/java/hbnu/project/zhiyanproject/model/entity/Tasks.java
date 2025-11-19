@@ -111,6 +111,12 @@ public class Tasks extends BaseAuditEntity {
     private Boolean isDeleted = false;
 
     /**
+     * 是否为里程碑任务
+     */
+    @Column(name = "is_milestone", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0 COMMENT '是否为里程碑任务（FALSE为普通任务，TRUE为里程碑任务）'")
+    private Boolean isMilestone = false;
+
+    /**
      * 在持久化之前生成雪花ID
      */
     @PrePersist

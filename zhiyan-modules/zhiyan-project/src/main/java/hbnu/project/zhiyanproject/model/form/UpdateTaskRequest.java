@@ -48,5 +48,8 @@ public class UpdateTaskRequest {
 
     @Schema(description = "预估工时（单位：小时，支持小数）")
     private java.math.BigDecimal worktime;
+
+    @Schema(description = "是否为里程碑任务")
+    private Boolean isMilestone;
 }
 

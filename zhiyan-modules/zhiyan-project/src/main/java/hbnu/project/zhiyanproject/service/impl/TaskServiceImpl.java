@@ -98,6 +98,7 @@ public class TaskServiceImpl implements TaskService {
                 .dueDate(request.getDueDate())
                 .worktime(request.getWorktime())
                 .requiredPeople(request.getRequiredPeople() != null ? request.getRequiredPeople() : 1)
+                .isMilestone(request.getIsMilestone()!= null ? request.getIsMilestone() : false)
                 .createdBy(creatorId)
                 .isDeleted(false)
                 .build();
@@ -195,6 +196,12 @@ public class TaskServiceImpl implements TaskService {
 
         if (request.getWorktime() != null) {
             task.setWorktime(request.getWorktime());
+            updated = true;
+        }
+
+        // 可以更新里程碑状态
+        if (request.getIsMilestone() != null) {
+            task.setIsMilestone(request.getIsMilestone());
             updated = true;
         }
 
