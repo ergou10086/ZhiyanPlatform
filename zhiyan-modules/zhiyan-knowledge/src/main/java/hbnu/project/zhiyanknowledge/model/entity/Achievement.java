@@ -52,10 +52,10 @@ public class Achievement extends BaseAuditEntity {
     private Long projectId;
 
     /**
-     * 成果类型：paper(论文)、patent(专利)、dataset(数据集)、model(模型)、report(报告)、custom(自定义)
+     * 成果类型：paper(论文)、patent(专利)、dataset(数据集)、model(模型)、report(报告)、custom(自定义)、task_result(任务成果)
      */
     @Convert(converter = hbnu.project.zhiyanknowledge.converter.AchievementTypeConverter.class)
-    @Column(name = "type", nullable = false, columnDefinition = "ENUM('paper', 'patent', 'dataset', 'model', 'report', 'custom') COMMENT '成果类型'")
+    @Column(name = "type", nullable = false, columnDefinition = "ENUM('paper', 'patent', 'dataset', 'model', 'report', 'custom', 'task_result') COMMENT '成果类型'")
     private AchievementType type;
 
     /**

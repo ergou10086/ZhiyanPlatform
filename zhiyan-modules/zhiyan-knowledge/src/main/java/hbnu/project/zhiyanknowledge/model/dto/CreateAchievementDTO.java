@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,6 +70,11 @@ public class CreateAchievementDTO {
 //    private String tags;
 
     /**
+     * 关联的任务ID列表（创建时可一次性关联多个任务）
+     */
+    private List<Long> linkedTaskIds;
+
+    /**
      * 详细信息JSON（支持自定义字段）
      * 示例：
      * - 论文: {"authors": ["张三", "李四"], "journal": "Nature", "doi": "10.1000/xyz", "publishYear": 2024}
@@ -83,4 +89,3 @@ public class CreateAchievementDTO {
      */
     private Long creatorId;
 }
-

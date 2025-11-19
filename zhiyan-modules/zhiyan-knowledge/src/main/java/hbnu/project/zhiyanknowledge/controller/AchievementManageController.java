@@ -19,6 +19,7 @@ import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
 import hbnu.project.zhiyanknowledge.service.AchievementDetailsService;
 import hbnu.project.zhiyanknowledge.service.AchievementFileService;
 import hbnu.project.zhiyanknowledge.service.AchievementService;
+import hbnu.project.zhiyanknowledge.service.AchievementTaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,6 +63,9 @@ public class AchievementManageController {
     @Autowired
     private final KnowledgeSecurityUtils knowledgeSecurityUtils;
 
+    @Autowired
+    private final AchievementTaskService achievementTaskService;
+
     /**
      * 创建成果
      * 创建一个新的成果，包含基本信息和详情数据
@@ -95,7 +99,28 @@ public class AchievementManageController {
 
         AchievementDTO result = achievementDetailsService.createAchievementWithDetails(createDTO);
 
-        log.info("成果创建成功: achievementId={}", result.getId());
+        // 将字符串类型的成果ID转换为 Long，用于后续服务调用
+        Long achievementId = null;
+        if (result != null && result.getId() != null) {
+            try {
+                achievementId = Long.valueOf(result.getId());
+            } catch (NumberFormatException e) {
+                log.error("创建成果返回的ID无法转换为Long类型: id={}", result.getId(), e);
+                throw new ServiceException("创建成果失败：成果ID格式不合法");
+            }
+        }
+
+        // 如果创建时传入了关联任务ID列表，则建立成果-任务关联关系
+        if (createDTO.getLinkedTaskIds() != null && !createDTO.getLinkedTaskIds().isEmpty()) {
+            if (achievementId == null) {
+                log.error("成果ID为空，无法建立任务关联: result={}", result);
+                throw new ServiceException("创建成果失败：成果ID缺失");
+            }
+            log.info("为成果建立任务关联: achievementId={}, taskIds={}", achievementId, createDTO.getLinkedTaskIds());
+            achievementTaskService.linkTasksToAchievement(achievementId, createDTO.getLinkedTaskIds(), userId);
+        }
+
+        log.info("成果创建成功: achievementId={}", result != null ? result.getId() : null);
         return R.ok(result, "成果创建成功");
     }
 

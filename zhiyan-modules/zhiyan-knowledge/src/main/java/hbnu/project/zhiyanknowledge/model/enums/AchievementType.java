@@ -44,8 +44,12 @@ public enum AchievementType {
     /**
      * 自定义
      */
-    CUSTOM("custom", "自定义成果");
+    CUSTOM("custom", "自定义成果"),
 
+    /**
+     * 任务成果
+     */
+    TASK_RESULT("task_result", "任务成果");
 
     /**
      * 数据库存储值（与表中ENUM类型对应）

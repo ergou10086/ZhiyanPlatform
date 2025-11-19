@@ -117,7 +117,7 @@ public class AchievementDetailController {
     /**
      * 获取所有系统预设模板
      * 返回所有成果类型的字段模板
-     */
+
     @GetMapping("/templates")
     @Operation(summary = "获取所有系统模板", description = "获取所有成果类型的预设字段模板")
     public R<List<AchievementTemplateDTO>> getAllSystemTemplates() {
@@ -127,12 +127,13 @@ public class AchievementDetailController {
 
         return R.ok(templates, "查询成功");
     }
+    */
 
 
     /**
      * 根据类型获取模板
      * 获取指定成果类型的字段模板
-     */
+
     @GetMapping("/template/{type}")
     @Operation(summary = "根据类型获取模板", description = "获取指定成果类型的字段模板")
     public R<AchievementTemplateDTO> getTemplateByType(
@@ -143,7 +144,7 @@ public class AchievementDetailController {
         AchievementTemplateDTO template = achievementDetailsService.getTemplateByType(type);
 
         return R.ok(template, "查询成功");
-    }
+    }*/
 
 
     /**

@@ -38,7 +38,7 @@ public class MinioInitConfig implements CommandLineRunner {
 
 
 
-        
+
 
         try {
             // 创建任务提交文件桶
