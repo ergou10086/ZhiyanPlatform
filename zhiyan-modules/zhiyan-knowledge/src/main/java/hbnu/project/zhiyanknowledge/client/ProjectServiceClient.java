@@ -15,7 +15,11 @@ import java.util.List;
  *
  * @author ErgouTree
  */
-@FeignClient(name = "zhiyan-project", path = "/zhiyan/projects")
+@FeignClient(
+        name = "zhiyan-project",
+        contextId = "zhiyanProjectServiceClient",
+        path = "/zhiyan/projects"
+)
 public interface ProjectServiceClient {
 
     /**

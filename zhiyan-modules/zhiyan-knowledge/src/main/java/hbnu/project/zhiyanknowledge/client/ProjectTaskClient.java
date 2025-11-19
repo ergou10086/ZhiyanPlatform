@@ -20,7 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
  * - 为了避免跨模块强耦合，这里先返回泛型 R<Object>，
  *   由上层服务在需要时将结果映射为 TaskResultTaskRefDTO 等内部 DTO。
  */
-@FeignClient(name = "zhiyan-project", path = "/zhiyan/projects/tasks")
+@FeignClient(
+        name = "zhiyan-project",
+        contextId = "zhiyanProjectTaskClient",
+        path = "/zhiyan/projects/tasks"
+)
 public interface ProjectTaskClient {
 
     /**
