@@ -6,6 +6,7 @@ import hbnu.project.zhiyanknowledge.client.AuthServiceClient;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import hbnu.project.zhiyanknowledge.model.dto.TokenValidateResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class TokenValidateController {
      */
     @GetMapping("/validate")
     @Operation(summary = "验证Token", description = "验证JWT Token是否有效，返回用户信息")
-    public R<AuthServiceClient.TokenValidateResponse> validateToken(
+    public R<TokenValidateResponseDTO> validateToken(
             @Parameter(description = "Authorization token (Bearer xxx)") 
             @RequestHeader("Authorization") String authHeader
     ) {
@@ -40,7 +41,7 @@ public class TokenValidateController {
         
         try {
             // 调用auth模块的验证接口
-            R<AuthServiceClient.TokenValidateResponse> result = authServiceClient.validateToken(authHeader);
+            R<TokenValidateResponseDTO> result = authServiceClient.validateToken(authHeader);
             
             if (R.isSuccess(result) && result.getData() != null) {
                 log.info("Token验证成功: userId={}", result.getData().getUserId());
@@ -73,7 +74,7 @@ public class TokenValidateController {
         }
         
         try {
-            R<AuthServiceClient.TokenValidateResponse> result = authServiceClient.validateToken(authHeader);
+            R<TokenValidateResponseDTO> result = authServiceClient.validateToken(authHeader);
             
             if (R.isSuccess(result) && result.getData() != null && result.getData().getUserId() != null) {
                 log.info("Token检查成功: userId={}", result.getData().getUserId());
@@ -101,7 +102,7 @@ public class TokenValidateController {
         log.info("获取用户ID请求");
         
         try {
-            R<AuthServiceClient.TokenValidateResponse> result = authServiceClient.validateToken(authHeader);
+            R<TokenValidateResponseDTO> result = authServiceClient.validateToken(authHeader);
             
             if (R.isSuccess(result) && result.getData() != null) {
                 String userIdStr = result.getData().getUserId();

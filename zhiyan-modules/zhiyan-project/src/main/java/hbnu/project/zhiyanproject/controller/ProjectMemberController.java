@@ -390,4 +390,26 @@ public class ProjectMemberController {
             return false;
         }
     }
+
+
+    /**
+     * 用于其他微服务通过Feign调用获取项目成员ID列表
+     * 供其他服务调用的内部接口
+     * 无需权限校验
+     * 路径: GET /zhiyan/projects/{projectId}/members/user-ids
+     */
+    @GetMapping("/{projectId}/members/user-ids")
+    public R<List<Long>> getProjectMemberUserIds(
+            @PathVariable @Parameter(description = "项目ID") Long projectId
+    ){
+        log.info("获取项目[{}]的成员ID列表", projectId);
+
+        try {
+            List<Long> userIds = projectMemberService.getProjectMemberUserIds(projectId);
+            return R.ok(userIds);
+        } catch (Exception e) {
+            log.error("获取项目成员ID列表失败: projectId={}", projectId, e);
+            return R.fail("获取成员ID列表失败: " + e.getMessage());
+        }
+    }
 }

@@ -7,6 +7,7 @@ import hbnu.project.zhiyancommonbasic.utils.StringUtils;
 import hbnu.project.zhiyancommonbasic.utils.container.MapUtils;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
+import hbnu.project.zhiyanknowledge.message.KnowledgeMessageService;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementDetail;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,16 +39,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AchievementDetailsServiceImpl implements AchievementDetailsService {
 
-    @Autowired
+    @Resource
     private final AchievementRepository achievementRepository;
 
-    @Autowired
+    @Resource
     private final AchievementDetailRepository achievementDetailRepository;
 
-    @Autowired
+    @Resource
     private final AchievementFileService achievementFileService;
 
     private final AchievementConverter achievementConverter;
+
+    @Resource
+    private final KnowledgeMessageService knowledgeMessageService;
 
     /**
      * 创建成果及其详情
@@ -86,7 +91,10 @@ public class AchievementDetailsServiceImpl implements AchievementDetailsService 
         achievementDetailRepository.save(detail);
         log.info("成果详情记录创建成功: achievementId={}", achievement.getId());
 
-        // 4. 转换并返回
+        // 4. 发送通知
+        knowledgeMessageService.notifyAchievementCreated(achievement);
+
+        // 5. 转换并返回
         return achievementConverter.toDTO(achievement);
     }
 

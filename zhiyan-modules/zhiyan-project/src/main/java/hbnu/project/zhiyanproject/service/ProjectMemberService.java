@@ -214,4 +214,12 @@ public interface ProjectMemberService {
      * @return 成员数量
      */
     long getMemberCount(Long projectId);
+
+    /**
+     * 获取项目的所有成员用户ID
+     *
+     * @param projectId 项目ID
+     * @return 用户ID列表
+     */
+    List<Long> getProjectMemberUserIds(Long projectId);
 }

@@ -181,7 +181,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .stream()
                     .map(ProjectMember::getUserId)
                     .toList();
-            projectMessageUtils.sendProjectDeletedNotification(project, memberIds);
+            projectMessageUtils.sendProjectDeletedNotification(project, memberIds, userId);
 
             return R.ok(null, "项目删除成功");
         } catch (Exception e) {
@@ -384,7 +384,7 @@ public class ProjectServiceImpl implements ProjectService {
                     .stream()
                     .map(ProjectMember::getUserId)
                     .toList();
-            projectMessageUtils.sendProjectArchivedNotification(project, projectMemberIds);
+            projectMessageUtils.sendProjectArchivedNotification(project, projectMemberIds, userId);
 
             log.info("成功归档项目: id={}, userId={}", projectId, userId);
             return R.ok(null, "项目归档成功");

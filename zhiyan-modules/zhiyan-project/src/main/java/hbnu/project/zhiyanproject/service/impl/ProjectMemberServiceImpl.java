@@ -625,4 +625,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
             return R.fail("获取成员列表失败: " + e.getMessage());
         }
     }
+
+    @Override
+    public List<Long> getProjectMemberUserIds(Long projectId) {
+        return projectMemberRepository.findUserIdsByProjectId(projectId);
+    }
 }

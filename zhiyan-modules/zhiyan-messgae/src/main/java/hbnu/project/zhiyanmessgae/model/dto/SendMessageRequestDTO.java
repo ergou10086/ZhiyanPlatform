@@ -21,15 +21,6 @@ public class SendMessageRequestDTO {
 
     /**
      * 消息场景(必填)
-     * PROJECT_CREATED - 项目创建
-     * PROJECT_STATUS_CHANGED - 项目状态变更
-     * PROJECT_DELETED - 项目删除
-     * PROJECT_ARCHIVED - 项目归档
-     * PROJECT_MEMBER_INVITED - 成员被邀请
-     * PROJECT_MEMBER_JOINED - 新成员加入
-     * PROJECT_MEMBER_REMOVED - 成员被移除
-     * PROJECT_MEMBER_LEFT - 成员离开
-     * PROJECT_ROLE_CHANGED - 角色变更
      */
     private String scene;
 

@@ -1,11 +1,14 @@
 package hbnu.project.zhiyanknowledge.service.impl;
 
 import hbnu.project.zhiyancommonbasic.exception.ServiceException;
+import hbnu.project.zhiyanknowledge.message.KnowledgeMessageService;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
 import hbnu.project.zhiyanknowledge.service.AchievementFileService;
 import hbnu.project.zhiyanknowledge.service.AchievementService;
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,8 @@ public class AchievementServiceImpl implements AchievementService {
     @Autowired
     private final AchievementFileService achievementFileService;
 
+    @Autowired
+    private final KnowledgeMessageService knowledgeMessageService;
 
     /**
      * 更新成果状态
@@ -44,9 +49,16 @@ public class AchievementServiceImpl implements AchievementService {
         Achievement achievement = achievementRepository.findById(achievementId)
                 .orElseThrow(() -> new ServiceException("成果不存在"));
 
+        AchievementStatus oldStatus = achievement.getStatus();
+        if (oldStatus == status) {
+            log.info("成果状态未变化: id={}, status={}", achievementId, status);
+            return;
+        }
+
         achievement.setStatus(status);
         achievementRepository.save(achievement);
 
+        knowledgeMessageService.notifyAchievementStatusChange(achievement, oldStatus, status, userId);
         log.info("成果状态更新: id={}, newStatus={}", achievementId, status);
     }
 

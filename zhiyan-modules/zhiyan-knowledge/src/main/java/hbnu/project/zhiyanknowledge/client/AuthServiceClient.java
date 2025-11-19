@@ -1,9 +1,12 @@
 package hbnu.project.zhiyanknowledge.client;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyanknowledge.model.dto.TokenValidateResponseDTO;
+import hbnu.project.zhiyanknowledge.model.dto.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Auth服务Feign客户端
@@ -21,39 +24,27 @@ public interface AuthServiceClient {
      * @return 验证结果，包含用户ID、角色等信息
      */
     @GetMapping("/validate")
-    R<TokenValidateResponse> validateToken(@RequestHeader("Authorization") String token);
-    
+    R<TokenValidateResponseDTO> validateToken(@RequestHeader("Authorization") String token);
+
+
     /**
-     * Token验证响应
+     * 批量根据用户ID列表获取用户信息（服务间调用接口）
+     * 用于其他微服务批量查询用户信息
+     *
+     * @param userIds 用户ID列表
+     * @return 用户信息列表
      */
-    class TokenValidateResponse {
-        private String userId;
-        private String[] roles;
-        private Long remainingTime;
-        
-        public String getUserId() {
-            return userId;
-        }
-        
-        public void setUserId(String userId) {
-            this.userId = userId;
-        }
-        
-        public String[] getRoles() {
-            return roles;
-        }
-        
-        public void setRoles(String[] roles) {
-            this.roles = roles;
-        }
-        
-        public Long getRemainingTime() {
-            return remainingTime;
-        }
-        
-        public void setRemainingTime(Long remainingTime) {
-            this.remainingTime = remainingTime;
-        }
-    }
+    @PostMapping("users/batch-query")
+    R<List<UserDTO>> getUsersByIds(@RequestBody List<Long> userIds);
+
+    /**
+     * 根据用户ID获取用户信息（服务间调用接口）
+     * 用于其他微服务通过Feign调用查询用户
+     *
+     * @param userId 用户ID
+     * @return 用户信息
+     */
+    @GetMapping("/users/internal/{userId}")
+    R<UserDTO> getUserById(@PathVariable("userId") Long userId);
 }
 

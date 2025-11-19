@@ -6,9 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 /**
  * 项目服务Feign客户端
  * 用于调用项目模块的API检查权限
+ * 也为了从project模块查东西
  *
  * @author ErgouTree
  */
@@ -51,4 +54,13 @@ public interface ProjectServiceClient {
     Boolean hasPermission(@PathVariable("projectId") Long projectId,
                           @RequestParam("userId") Long userId,
                           @RequestParam("permission") String permission);
+
+    /**
+     * 获取项目的所有成员用户ID
+     *
+     * @param projectId 项目ID
+     * @return 用户ID列表
+     */
+    @GetMapping("/{projectId}/members/user-ids")
+    R<List<Long>> getProjectMemberUserIds(@PathVariable("projectId") Long projectId);
 }

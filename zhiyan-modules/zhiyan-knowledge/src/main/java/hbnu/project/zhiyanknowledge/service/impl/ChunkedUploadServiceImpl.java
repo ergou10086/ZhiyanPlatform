@@ -5,6 +5,7 @@ import hbnu.project.zhiyancommonoss.enums.BucketType;
 import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyancommonoss.util.MinioUtils;
 import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
+import hbnu.project.zhiyanknowledge.message.KnowledgeMessageService;
 import hbnu.project.zhiyanknowledge.model.dto.*;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -34,22 +36,25 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ChunkedUploadServiceImpl implements ChunkedUploadService {
 
-    @Autowired
+    @Resource
     private final MinioService minioService;
 
-    @Autowired
+    @Resource
     private final MinioUtils minioUtils;
 
-    @Autowired
+    @Resource
     private final FileUploadSessionRepository sessionRepository;
 
-    @Autowired
+    @Resource
     private final AchievementRepository achievementRepository;
 
-    @Autowired
+    @Resource
     private final AchievementFileRepository fileRepository;
 
     private final AchievementConverter achievementConverter;
+
+    @Resource
+    private final KnowledgeMessageService knowledgeMessageService;
 
     // 分片大小阈值：超过此大小才使用分片上传
     private static final long MULTIPART_THRESHOLD = 30 * 1024 * 1024; // 30MB
@@ -259,6 +264,9 @@ public class ChunkedUploadServiceImpl implements ChunkedUploadService {
             sessionRepository.save(session);
 
             log.info("分片上传完成: sessionId={}, fileId={}", session.getId(), achievementFile.getId());
+
+            // 9.发送文件上传完成的通知
+            knowledgeMessageService.notifyAchievementFileUpload(achievementFile.getAchievement(), achievementFile, userId);
 
             return achievementConverter.fileToDTO(achievementFile);
         }catch (Exception e) {

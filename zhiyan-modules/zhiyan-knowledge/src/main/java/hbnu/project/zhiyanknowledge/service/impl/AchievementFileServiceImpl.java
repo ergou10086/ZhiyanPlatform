@@ -9,6 +9,7 @@ import hbnu.project.zhiyancommonoss.enums.BucketType;
 import hbnu.project.zhiyancommonoss.service.MinioService;
 import hbnu.project.zhiyancommonoss.util.MinioUtils;
 import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
+import hbnu.project.zhiyanknowledge.message.KnowledgeMessageService;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementFileDTO;
 import hbnu.project.zhiyanknowledge.model.dto.FileContextDTO;
 import hbnu.project.zhiyanknowledge.model.dto.UploadFileDTO;
@@ -19,12 +20,13 @@ import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
 import hbnu.project.zhiyanknowledge.service.AchievementFileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,19 +45,23 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AchievementFileServiceImpl implements AchievementFileService {
 
-    @Autowired
+    @Resource
     private final MinioService minioService;
 
-    @Autowired
+    @Resource
     private final MinioUtils minioUtils;
 
-    @Autowired
+    @Resource
     private final AchievementFileRepository achievementFileRepository;
 
-    @Autowired
+    @Resource
     private final AchievementRepository achievementRepository;
 
+    @Resource
     private final AchievementConverter achievementConverter;
+
+    @Resource
+    private final KnowledgeMessageService knowledgeMessageService;
 
     /**
      * 默认预签名URL过期时间（3天）
@@ -143,6 +149,9 @@ public class AchievementFileServiceImpl implements AchievementFileService {
         achievementFile = achievementFileRepository.save(achievementFile);
 
         log.info("文件上传成功: fileId={}, objectKey={}", achievementFile.getId(), objectKey);
+
+        // 7.发送通知给除了自己的所有人
+        knowledgeMessageService.notifyAchievementFileUpload(achievement, achievementFile, uploadDTO.getUploadBy());
 
         return achievementConverter.fileToDTO(achievementFile);
     }
@@ -290,7 +299,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
             
             // 4. 设置响应头，强制下载
             String fileName = file.getFileName();
-            String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8").replaceAll("\\+", "%20");
+            String encodedFileName = java.net.URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
             
             response.setContentType("application/octet-stream");
             response.setCharacterEncoding("UTF-8");
@@ -339,21 +348,30 @@ public class AchievementFileServiceImpl implements AchievementFileService {
         AchievementFile file = achievementFileRepository.findById(fileId)
                 .orElseThrow(() -> new ServiceException("文件不存在"));
 
-        // 2. 验证权限（不需要添加更严格的权限控制，项目组成员谁都能删除就得了）
+        // 2. 查询成果信息
+        Achievement achievement = achievementRepository.findById(file.getAchievementId())
+                .orElseThrow(() -> new ServiceException("成果不存在"));
+
+        // 3. 验证权限（不需要添加更严格的权限控制，项目组成员谁都能删除就得了）
         if (!hasFilePermission(fileId, userId)) {
             throw new ServiceException("无权限删除该文件");
         }
 
-        // 3. 从MinIO删除文件
+        // 4. 从MinIO删除文件
         try {
             minioService.deleteFile(BucketType.ACHIEVEMENT_FILES, file.getObjectKey());
             log.info("MinIO文件删除成功: objectKey={}", file.getObjectKey());
-            // 4. 删除数据库记录
+
+            // 5. 删除数据库记录
             achievementFileRepository.deleteById(fileId);
             log.info("文件删除成功: fileId={}", fileId);
+
+            // 6. 发送成果文件删除的通知
+            knowledgeMessageService.notifyAchievementFileDeleted(achievement, file, userId);
         } catch (ServiceException e) {
             log.error("MinIO文件删除失败: objectKey={}", file.getObjectKey(), e);
             // MinIO删除失败，不继续删除数据库记录，避免悬空
+            throw new ServiceException("文件删除失败: " + e.getMessage());
         }
     }
 
@@ -370,14 +388,20 @@ public class AchievementFileServiceImpl implements AchievementFileService {
             return;
         }
 
+        int successCount = 0;
+        int failCount = 0;
+
         for (Long fileId : fileIds) {
             try {
                 deleteFile(fileId, userId);
+                successCount++;
             } catch (Exception e) {
                 log.error("批量删除文件失败: fileId={}", fileId, e);
                 // 继续处理其他文件
+                failCount++;
             }
         }
+        log.info("批量删除文件完成: 成功{}个，失败{}个", successCount, failCount);
     }
 
     /**
@@ -398,7 +422,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
 
         // 2. 转换为DTO列表
         return files.stream()
-                .map(achievementFile -> achievementConverter.fileToDTO(achievementFile))
+                .map(achievementConverter::fileToDTO)
                 .collect(Collectors.toList());
     }
 
@@ -435,12 +459,6 @@ public class AchievementFileServiceImpl implements AchievementFileService {
      */
     @Override
     public boolean hasFilePermission(Long fileId, Long userId) {
-        // 临时允许所有已登录用户访问文件
-        // TODO: 未来可以实现更细粒度的权限验证
-        // 1. 查询文件所属的成果
-        // 2. 查询成果所属的项目
-        // 3. 验证用户是否是项目成员
-        
         if (userId == null) {
             log.warn("权限检查失败: 用户未登录, fileId={}", fileId);
             return false;
@@ -469,7 +487,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
         }
 
         // 生成预签名 URL
-        String fileUrl = null;
+        String fileUrl;
         try {
             // 使用 MinioService 的 getPresignedUrl 方法
             BucketType bucketType = BucketType.ACHIEVEMENT_FILES;
@@ -510,7 +528,7 @@ public class AchievementFileServiceImpl implements AchievementFileService {
     public List<FileContextDTO> getFileContexts(List<Long> fileIds) {
         log.info("[文件上下文批量] 获取文件信息: fileIds={}, count={}", fileIds, fileIds.size());
 
-        if (fileIds == null || fileIds.isEmpty()) {
+        if (fileIds.isEmpty()) {
             return Collections.emptyList();
         }
 
