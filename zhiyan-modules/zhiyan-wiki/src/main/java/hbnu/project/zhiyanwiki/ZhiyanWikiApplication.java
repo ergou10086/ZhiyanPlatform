@@ -2,6 +2,7 @@ package hbnu.project.zhiyanwiki;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -15,13 +16,21 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
         "hbnu.project.zhiyancommonsecurity",
         "hbnu.project.zhiyancommonoss",
         "hbnu.project.zhiyancommonswagger",
+        "hbnu.project.zhiyanactivelog",  // 操作日志模块
 })
 @EnableDiscoveryClient
 @EnableJpaAuditing
 @EnableFeignClients
 // 明确指定 JPA 和 MongoDB repositories 的扫描路径
-@EnableJpaRepositories(basePackages = "hbnu.project.zhiyanwiki.repository")
+@EnableJpaRepositories(basePackages = {
+        "hbnu.project.zhiyanwiki.repository",
+        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+})
 @EnableMongoRepositories(basePackages = "hbnu.project.zhiyanwiki.repository")  // ✅ 添加MongoDB支持
+@EntityScan(basePackages = {
+        "hbnu.project.zhiyanwiki.model.entity",
+        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+})
 public class ZhiyanWikiApplication {
 
     public static void main(String[] args) {

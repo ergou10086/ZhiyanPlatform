@@ -158,6 +158,11 @@
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-activelog</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-messgae</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

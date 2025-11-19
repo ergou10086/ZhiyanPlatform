@@ -18,14 +18,21 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyancommonbasic",
         "hbnu.project.zhiyancommonoss",
         "hbnu.project.zhiyancommonsecurity",
+        "hbnu.project.zhiyanactivelog",  // 操作日志模块
        // 日志模块
 }, exclude = {
         org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class,
         org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration.class,
         org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration.class
 })
-@EnableJpaRepositories(basePackages = "hbnu.project.zhiyanknowledge.repository")
-@EntityScan(basePackages = "hbnu.project.zhiyanknowledge.model.entity")
+@EnableJpaRepositories(basePackages = {
+        "hbnu.project.zhiyanknowledge.repository",
+        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+})
+@EntityScan(basePackages = {
+        "hbnu.project.zhiyanknowledge.model.entity",
+        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+})
 @EnableJpaAuditing
 @EnableDiscoveryClient
 @EnableFeignClients

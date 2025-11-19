@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: zhiyan-message
+  profiles:
+    # 默认使用prod环境，服务器启动时通过参数指定
+    active: cloud

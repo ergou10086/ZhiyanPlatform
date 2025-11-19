@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanknowledge.client;
+package hbnu.project.zhiyanwiki.client;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
