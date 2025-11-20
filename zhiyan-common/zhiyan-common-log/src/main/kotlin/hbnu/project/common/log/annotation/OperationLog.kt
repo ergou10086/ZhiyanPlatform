@@ -47,6 +47,9 @@ annotation class OperationLog(
  * 操作类型枚举
  */
 enum class OperationType(val desc: String) {
+    /** 创建 */
+    CREATE("创建"),
+
     /** 查询 */
     QUERY("查询"),
 

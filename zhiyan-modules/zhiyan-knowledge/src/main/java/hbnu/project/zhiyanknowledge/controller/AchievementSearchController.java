@@ -6,13 +6,15 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyanknowledge.mapper.AchievementConverter;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementDTO;
 import hbnu.project.zhiyanknowledge.model.dto.AchievementQueryDTO;
+import hbnu.project.zhiyanknowledge.model.entity.Achievement;
+import hbnu.project.zhiyanknowledge.repository.AchievementRepository;
 import hbnu.project.zhiyanknowledge.service.AchievementSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 成果查询搜索接口
@@ -37,8 +44,14 @@ import org.springframework.web.bind.annotation.*;
 @AccessLog("成果搜索")
 public class AchievementSearchController {
 
-    @Autowired
+    @Resource
     private final AchievementSearchService achievementSearchService;
+
+    @Resource
+    private final AchievementRepository achievementRepository;
+
+    @Resource
+    private final AchievementConverter achievementConverter;
 
     /**
      * 分页查询成果列表
@@ -142,6 +155,30 @@ public class AchievementSearchController {
         return R.ok(result, "查询成功");
     }
 
+
+    /**
+     * 批量查询成果信息（供其他服务调用）
+     */
+    @GetMapping("/batch")
+    @Operation(summary = "批量查询成果", description = "根据ID列表批量查询成果信息")
+    public R<List<AchievementDTO>> getAchievementsByIds(
+            @RequestParam("ids") String ids) {
+        log.info("批量查询成果: ids={}", ids);
+
+        List<Long> achievementIds = Arrays.stream(ids.split(","))
+                .map(Long::parseLong)
+                .collect(Collectors.toList());
+
+        List<Achievement> achievements = achievementRepository.findAllById(achievementIds);
+
+        // 只返回公开的成果
+        List<AchievementDTO> dtoList = achievements.stream()
+                .filter(a -> Boolean.TRUE.equals(a.getIsPublic()))
+                .map(achievementConverter::toDTO)
+                .collect(Collectors.toList());
+
+        return R.ok(dtoList);
+    }
 
     // ==================== Sentinel 限流处理方法 ====================
     /**

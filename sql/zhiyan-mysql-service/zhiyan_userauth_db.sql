@@ -67,3 +67,19 @@ CREATE TABLE remember_me_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE COMMENT '用户删除时级联删除Token'
 ) COMMENT 'RememberMe自动登录Token表';
 
+
+CREATE TABLE `user_achievement` (
+    `id` BIGINT NOT NULL COMMENT '关联记录ID（雪花ID）',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `achievement_id` BIGINT NOT NULL COMMENT '成果ID',
+    `project_id` BIGINT NOT NULL COMMENT '所属项目ID',
+    `display_order` INT DEFAULT 0 COMMENT '展示顺序（用户可自定义排序）',
+    `remark` VARCHAR(500) COMMENT '备注说明（用户对该成果的个人说明）',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '关联时间',
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+     PRIMARY KEY (`id`),
+     UNIQUE KEY `uk_user_achievement` (`user_id`, `achievement_id`),
+     INDEX `idx_user_id` (`user_id`),
+     INDEX `idx_achievement_id` (`achievement_id`),
+     INDEX `idx_project_id` (`project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户学术成果关联表';
