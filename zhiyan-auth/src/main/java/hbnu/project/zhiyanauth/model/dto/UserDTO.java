@@ -70,4 +70,8 @@ public class UserDTO {
      */
     private List<String> permissions;
 
+    /**
+     * 研究方向标签
+     */
+    private List<String> researchTags;
 }

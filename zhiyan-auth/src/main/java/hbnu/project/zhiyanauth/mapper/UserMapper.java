@@ -32,6 +32,7 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "permissions", ignore = true)
     @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
+    @Mapping(target = "researchTags", expression = "java(user.getResearchTagList())")
     UserDTO toDTO(User user);
 
     /**
@@ -42,6 +43,7 @@ public interface UserMapper {
     @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
     @Mapping(target = "permissions", expression = "java(extractPermissionNames(user.getUserRoles()))")
     @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
+    @Mapping(target = "researchTags", expression = "java(user.getResearchTagList())")
     UserDTO toDTOWithRolesAndPermissions(User user);
 
     /**
