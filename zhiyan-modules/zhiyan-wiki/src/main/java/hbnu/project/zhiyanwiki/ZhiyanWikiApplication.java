@@ -23,13 +23,13 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableFeignClients
 // 明确指定 JPA 和 MongoDB repositories 的扫描路径
 @EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanwiki.repository",
-        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+        "hbnu.project.zhiyanwiki.repository"
+        // 移除 activelog repository 扫描，避免在本服务数据库创建操作日志表
 })
-@EnableMongoRepositories(basePackages = "hbnu.project.zhiyanwiki.repository")  // ✅ 添加MongoDB支持
+@EnableMongoRepositories(basePackages = "hbnu.project.zhiyanwiki.repository")  // 添加MongoDB支持
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanwiki.model.entity",
-        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+        "hbnu.project.zhiyanwiki.model.entity"
+        // 移除 activelog entity 扫描，避免在本服务数据库创建操作日志表
 })
 public class ZhiyanWikiApplication {
 

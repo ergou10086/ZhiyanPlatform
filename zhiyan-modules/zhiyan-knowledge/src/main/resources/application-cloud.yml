@@ -78,6 +78,13 @@ spring:
       # 注册JMX监控
       register-mbeans: true
 
+    # Activelog 数据源（操作日志独立数据库）
+    activelog:
+      url: jdbc:mysql://localhost:3306/zhiyan_activelog_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+      username: root
+      password: zjm10086
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
   # Jackson配置
   jackson:
     time-zone: Asia/Shanghai

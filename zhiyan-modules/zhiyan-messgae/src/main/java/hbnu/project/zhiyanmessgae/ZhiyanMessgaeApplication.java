@@ -3,6 +3,9 @@ package hbnu.project.zhiyanmessgae;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * @author ErgouTree
+ */
 @SpringBootApplication
 public class ZhiyanMessgaeApplication {
 

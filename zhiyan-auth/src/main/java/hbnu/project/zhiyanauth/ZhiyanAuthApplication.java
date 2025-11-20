@@ -24,12 +24,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyancommonlog",
 })
 @EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanauth.repository",
-        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+        "hbnu.project.zhiyanauth.repository"
 })
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanauth.model.entity",
-        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+        "hbnu.project.zhiyanauth.model.entity"
 })
 @EnableJpaAuditing
 @EnableDiscoveryClient

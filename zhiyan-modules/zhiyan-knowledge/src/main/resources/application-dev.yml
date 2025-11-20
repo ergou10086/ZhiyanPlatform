@@ -56,6 +56,7 @@ spring:
 
   # 数据库配置
   datasource:
+    # 主数据源（知识库业务数据库）
     url: jdbc:mysql://localhost:3306/zhiyan_knowledge_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
     username: root
     password: zjm10086
@@ -79,6 +80,13 @@ spring:
       leak-detection-threshold: 30000
       # 注册JMX监控
       register-mbeans: true
+    
+    # Activelog 数据源（操作日志独立数据库）
+    activelog:
+      url: jdbc:mysql://localhost:3306/zhiyan_activelog_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+      username: root
+      password: zjm10086
+      driver-class-name: com.mysql.cj.jdbc.Driver
 
   # Jackson配置
   jackson:
@@ -95,7 +103,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      # 禁用自动建表，使用手动SQL脚本管理表结构
+      ddl-auto: none
     show-sql: true
     open-in-view: false
 

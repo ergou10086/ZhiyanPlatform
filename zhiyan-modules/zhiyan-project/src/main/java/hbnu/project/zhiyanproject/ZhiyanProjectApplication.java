@@ -23,12 +23,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyanactivelog",  // 操作日志模块
 })
 @EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanproject.repository",
-        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+        "hbnu.project.zhiyanproject.repository"
+        // activelog 使用独立数据源，不在此处扫描
 })
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanproject.model.entity",
-        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+        "hbnu.project.zhiyanproject.model.entity"
+        // activelog 使用独立数据源，不在此处扫描
 })
 @EnableJpaAuditing
 @EnableFeignClients(basePackages = "hbnu.project.zhiyanproject.client")

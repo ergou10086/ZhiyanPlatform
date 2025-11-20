@@ -110,8 +110,9 @@ public class OperationLogplusService {
 
     /**
      * 同步保存日志
+     * 使用 activelog 专用的事务管理器
      */
-    @Transactional
+    @Transactional(transactionManager = "activelogTransactionManager")
     protected <T> void saveLogSync(T logEntity, CrudRepository<T, Long> repository, String logType) {
         try {
             T saved = repository.save(logEntity);
@@ -127,9 +128,10 @@ public class OperationLogplusService {
     /**
      * 异步保存日志
      * 适用于非核心业务场景，提升接口响应速度
+     * 使用 activelog 专用的事务管理器
      */
     @Async
-    @Transactional
+    @Transactional(transactionManager = "activelogTransactionManager")
     protected <T> void saveLogAsync(T logEntity, CrudRepository<T, Long> repository, String logType) {
         try {
             T saved = repository.save(logEntity);

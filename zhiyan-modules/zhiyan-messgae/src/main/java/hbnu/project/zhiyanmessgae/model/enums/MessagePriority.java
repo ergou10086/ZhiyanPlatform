@@ -1,10 +1,13 @@
 package hbnu.project.zhiyanmessgae.model.enums;
 
+import lombok.Getter;
+
 /**
  * 任务优先级枚举
  *
  * @author ErgouTree
  */
+@Getter
 public enum MessagePriority {
 
     HIGH,

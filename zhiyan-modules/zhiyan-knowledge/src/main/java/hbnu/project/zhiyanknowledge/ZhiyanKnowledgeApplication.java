@@ -26,12 +26,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration.class
 })
 @EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanknowledge.repository",
-        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+        "hbnu.project.zhiyanknowledge.repository"
+        // 移除 activelog repository 扫描，避免在本服务数据库创建操作日志表
 })
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanknowledge.model.entity",
-        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+        "hbnu.project.zhiyanknowledge.model.entity"
+        // 移除 activelog entity 扫描，避免在本服务数据库创建操作日志表
 })
 @EnableJpaAuditing
 @EnableDiscoveryClient
