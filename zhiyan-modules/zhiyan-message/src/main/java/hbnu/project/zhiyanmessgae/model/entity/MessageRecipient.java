@@ -1,7 +1,7 @@
 package hbnu.project.zhiyanmessgae.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
-import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageRecipient extends BaseAuditEntity {
+public class MessageRecipient {
 
     /**
      * 收件记录ID（主键）
@@ -98,6 +98,14 @@ public class MessageRecipient extends BaseAuditEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_body_id", insertable = false, updatable = false)
     private MessageBody messageBody;
+
+    @PrePersist
+    public void initMessageBodyId() {
+        // 如果 messageBodyId 为 null，尝试从关联的 messageBody 获取
+        if (this.messageBodyId == null && this.messageBody != null && this.messageBody.getId() != null) {
+            this.messageBodyId = this.messageBody.getId();
+        }
+    }
 
     /**
      * 标记为已读

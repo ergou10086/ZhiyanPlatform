@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>zhiyan-messgae</artifactId>
+    <artifactId>zhiyan-message</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>zhiyan-messgae</name>
     <description>zhiyan-messgae</description>

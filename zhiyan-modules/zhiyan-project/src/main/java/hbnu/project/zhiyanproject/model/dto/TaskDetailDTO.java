@@ -135,6 +135,12 @@ public class TaskDetailDTO {
     private LocalDateTime updatedAt;
 
     /**
+     * 是否为里程碑任务
+     */
+    @Schema(description = "是否为里程碑任务", example = "false")
+    private Boolean isMilestone;
+
+    /**
      * 任务执行者DTO
      */
     @Data

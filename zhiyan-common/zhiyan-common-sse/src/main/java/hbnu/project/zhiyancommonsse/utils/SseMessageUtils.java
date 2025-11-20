@@ -6,6 +6,7 @@ import hbnu.project.zhiyancommonsse.dto.SseMessageDto;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 /**
  * SSE工具类
  *
@@ -20,7 +21,16 @@ public class SseMessageUtils {
 
     static {
         if (isEnable() && MANAGER == null) {
-            MANAGER = SpringUtils.getBean(SseEmitterManager.class);
+            try {
+                MANAGER = SpringUtils.getBean(SseEmitterManager.class);
+            } catch (NoSuchBeanDefinitionException e) {
+                log.warn("SseEmitterManager bean not found, SSE functionality will be disabled. " +
+                        "Please ensure 'sse.enabled=true' in your configuration.");
+                MANAGER = null;
+            } catch (Exception e) {
+                log.warn("Failed to initialize SseEmitterManager: {}", e.getMessage());
+                MANAGER = null;
+            }
         }
     }
 
@@ -31,7 +41,7 @@ public class SseMessageUtils {
      * @param message 要发送的消息内容
      */
     public static void sendMessage(Long userId, String message) {
-        if (!isEnable()) {
+        if (!isEnable() || MANAGER == null) {
             return;
         }
         MANAGER.sendMessage(userId, message);
@@ -43,7 +53,7 @@ public class SseMessageUtils {
      * @param message 要发送的消息内容
      */
     public static void sendMessage(String message) {
-        if (!isEnable()) {
+        if (!isEnable() || MANAGER == null) {
             return;
         }
         MANAGER.sendMessage(message);
@@ -55,7 +65,7 @@ public class SseMessageUtils {
      * @param sseMessageDto 要发布的SSE消息对象
      */
     public static void publishMessage(SseMessageDto sseMessageDto) {
-        if (!isEnable()) {
+        if (!isEnable() || MANAGER == null) {
             return;
         }
         MANAGER.publishMessage(sseMessageDto);
@@ -67,7 +77,7 @@ public class SseMessageUtils {
      * @param message 要发布的消息内容
      */
     public static void publishAll(String message) {
-        if (!isEnable()) {
+        if (!isEnable() || MANAGER == null) {
             return;
         }
         MANAGER.publishAll(message);

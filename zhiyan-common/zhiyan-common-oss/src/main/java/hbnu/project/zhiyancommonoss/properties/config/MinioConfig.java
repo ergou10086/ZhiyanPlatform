@@ -5,6 +5,7 @@ import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @RequiredArgsConstructor
 @EnableConfigurationProperties(MinioProperties.class)
+@ConditionalOnProperty(prefix = "minio", name = "endpoint")
 public class MinioConfig {
 
     private final MinioProperties minioProperties;

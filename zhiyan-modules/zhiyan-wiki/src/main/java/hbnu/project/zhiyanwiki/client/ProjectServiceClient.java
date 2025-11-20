@@ -1,10 +1,13 @@
 package hbnu.project.zhiyanwiki.client;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyanwiki.model.dto.ProjectDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * 项目服务Feign客户端
@@ -12,7 +15,9 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author ErgouTree
  */
-@FeignClient(name = "zhiyan-project", path = "/zhiyan/projects")
+@FeignClient(name = "zhiyan-project",
+        url = "http://localhost:8095",
+        path = "/zhiyan/projects")
 public interface ProjectServiceClient {
 
     /**
@@ -51,4 +56,24 @@ public interface ProjectServiceClient {
     Boolean hasPermission(@PathVariable("projectId") Long projectId,
                           @RequestParam("userId") Long userId,
                           @RequestParam("permission") String permission);
+
+
+    /**
+     * 获取项目的所有成员用户ID
+     *
+     * @param projectId 项目ID
+     * @return 用户ID列表
+     */
+    @GetMapping("/{projectId}/members/user-ids")
+    R<List<Long>> getProjectMemberUserIds(@PathVariable("projectId") Long projectId);
+
+
+    /**
+     * 根据项目ID获取项目信息
+     *
+     * @param projectId 项目ID
+     * @return 项目信息
+     */
+    @GetMapping("/{projectId}")
+    R<ProjectDTO>  getProjectById(@PathVariable("projectId") Long projectId);
 }

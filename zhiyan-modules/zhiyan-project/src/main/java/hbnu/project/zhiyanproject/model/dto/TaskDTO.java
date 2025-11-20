@@ -95,4 +95,10 @@ public class TaskDTO {
      */
     @Schema(description = "最后更新时间", example = "2025-10-31T15:30:00")
     private LocalDateTime updatedAt;
+
+    /**
+     * 是否为里程碑任务
+     */
+    @Schema(description = "是否为里程碑任务", example = "false")
+    private Boolean isMilestone;
 }

@@ -18,7 +18,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "permissions")
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor

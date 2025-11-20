@@ -135,7 +135,7 @@ public class WikiPageController {
         // 权限检查：必须有删除权限
         wikiSecurityUtils.requireDelete(pageId);
 
-        wikiPageService.deleteWikiPage(pageId);
+        wikiPageService.deleteWikiPage(pageId, userId);
 
         return R.ok(null, "Wiki页面删除成功");
     }
@@ -267,7 +267,7 @@ public class WikiPageController {
         // 权限检查：必须有编辑权限
         wikiSecurityUtils.requireEdit(pageId);
 
-        wikiPageService.moveWikiPage(pageId, dto.getNewParentId());
+        wikiPageService.moveWikiPage(pageId, dto.getNewParentId(), userId);
 
         return R.ok(null, "Wiki页面移动成功");
     }

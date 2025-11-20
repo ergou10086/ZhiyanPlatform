@@ -6,8 +6,8 @@ import hbnu.project.zhiyanwiki.model.entity.WikiContent;
 import hbnu.project.zhiyanwiki.model.entity.WikiPage;
 import hbnu.project.zhiyanwiki.model.enums.PageType;
 import hbnu.project.zhiyanwiki.repository.WikiPageRepository;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,11 +29,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WikiPageService {
 
-    @Autowired
+    @Resource
     private WikiPageRepository wikiPageRepository;
 
-    @Autowired
+    @Resource
     private WikiContentService contentService;
+
+    @Resource
+    private WikiMessageService wikiMessageService;
 
     /**
      * 创建 Wiki 页面（事务一致性策略）
@@ -98,7 +101,7 @@ public class WikiPageService {
                 page.setContentSize(dto.getContent() != null ? dto.getContent().length() : 0);
                 
                 // 生成摘要（前200字符）
-                if (dto.getContent() != null && dto.getContent().length() > 0) {
+                if (dto.getContent() != null && !dto.getContent().isEmpty()) {
                     String summary = dto.getContent().length() > 200 ? 
                             dto.getContent().substring(0, 200) : dto.getContent();
                     page.setContentSummary(summary);
@@ -114,6 +117,10 @@ public class WikiPageService {
         }
 
         log.info("创建Wiki页面成功: id={}, title={}, type={}", page.getId(), page.getTitle(), page.getPageType());
+
+        // 7. 发送消息
+        wikiMessageService.notifyWikiPageCreate(page, dto.getProjectId(),  dto.getCreatorId());
+
         return page;
     }
 
@@ -160,9 +167,12 @@ public class WikiPageService {
         }
 
         page.setLastEditorId(editorId);
-        page = wikiPageRepository.save(page);
+        WikiPage saved = wikiPageRepository.save(page);
 
         log.info("更新Wiki页面成功: id={}, title={}", page.getId(), page.getTitle());
+
+        wikiMessageService.notifyWikiPageUpdate(saved, saved.getProjectId(), editorId, changeDesc);
+
         return page;
     }
 
@@ -191,7 +201,7 @@ public class WikiPageService {
      * @param pageId 页面ID
      */
     @Transactional
-    public void deleteWikiPage(Long pageId) {
+    public void deleteWikiPage(Long pageId, Long operatorId) {
         WikiPage page = wikiPageRepository.findById(pageId)
                 .orElseThrow(() -> new RuntimeException("Wiki页面不存在"));
 
@@ -209,6 +219,8 @@ public class WikiPageService {
         // 删除元数据
         wikiPageRepository.delete(page);
         log.info("删除Wiki页面成功: id={}, title={}", page.getId(), page.getTitle());
+
+        wikiMessageService.notifyWikiPageDelete(page, page.getProjectId(), operatorId);
     }
 
 
@@ -609,9 +621,11 @@ public class WikiPageService {
      * @param newParentId 新父页面ID
      */
     @Transactional
-    public void moveWikiPage(Long pageId, Long newParentId) {
+    public void moveWikiPage(Long pageId, Long newParentId, Long operatorId) {
         WikiPage page = wikiPageRepository.findById(pageId)
                 .orElseThrow(() -> new ServiceException("Wiki页面不存在"));
+
+        String oldPath = page.getPath();
 
         // 验证新父页面
         if (newParentId != null) {
@@ -633,6 +647,8 @@ public class WikiPageService {
         wikiPageRepository.save(page);
 
         log.info("移动Wiki页面成功: id={}, newParentId={}", pageId, newParentId);
+
+        wikiMessageService.notifyWikiPageMove(page, page.getProjectId(), operatorId, oldPath, page.getPath());
     }
 
 

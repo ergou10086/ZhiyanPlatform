@@ -74,6 +74,7 @@ public class Tasks extends BaseAuditEntity {
     /**
      * 任务状态
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "status", columnDefinition = "ENUM('TODO','IN_PROGRESS','BLOCKED','PENDING_REVIEW','DONE') DEFAULT 'TODO' COMMENT '任务状态（待办/进行中/阻塞/待审核/已完成）'")
     private TaskStatus status = TaskStatus.TODO;
@@ -81,6 +82,7 @@ public class Tasks extends BaseAuditEntity {
     /**
      * 任务优先级
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", columnDefinition = "ENUM('HIGH','MEDIUM','LOW') DEFAULT 'MEDIUM' COMMENT '任务优先级（高/中/低）'")
     private TaskPriority priority = TaskPriority.MEDIUM;
@@ -101,14 +103,23 @@ public class Tasks extends BaseAuditEntity {
     /**
      * 任务需要人数，默认单人任务
      */
+    @Builder.Default
     @Column(name = "required_people", columnDefinition = "INT DEFAULT 1 COMMENT '任务需要人数'")
     private Integer requiredPeople = 1;
 
     /**
      * 是否已删除（软删除标记）
      */
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0 COMMENT '是否已删除（软删除标记，FALSE为未删除，TRUE为已删除）'")
     private Boolean isDeleted = false;
+
+    /**
+     * 是否为里程碑任务
+     */
+    @Builder.Default
+    @Column(name = "is_milestone", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0 COMMENT '是否为里程碑任务（FALSE为普通任务，TRUE为里程碑任务）'")
+    private Boolean isMilestone = false;
 
     /**
      * 在持久化之前生成雪花ID

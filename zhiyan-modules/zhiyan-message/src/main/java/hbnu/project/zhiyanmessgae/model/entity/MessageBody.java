@@ -1,7 +1,6 @@
 package hbnu.project.zhiyanmessgae.model.entity;
 
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
-import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import hbnu.project.zhiyanmessgae.model.enums.MessagePriority;
 import hbnu.project.zhiyanmessgae.model.enums.MessageScene;
@@ -10,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageBody extends BaseAuditEntity {
+public class MessageBody {
 
     /**
      * 消息体ID
@@ -130,6 +130,26 @@ public class MessageBody extends BaseAuditEntity {
         if (this.triggerTime == null) {
             this.triggerTime = LocalDateTime.now();
         }
+        // 在保存前，更新所有收件人的 messageBodyId
+        if (this.id != null && this.recipients != null) {
+            for (MessageRecipient recipient : this.recipients) {
+                if (recipient.getMessageBodyId() == null) {
+                    recipient.setMessageBodyId(this.id);
+                }
+            }
+        }
+    }
+
+    @PostPersist
+    public void updateRecipientsMessageBodyId() {
+        // 保存后，更新所有收件人的 messageBodyId
+        if (this.id != null && this.recipients != null) {
+            for (MessageRecipient recipient : this.recipients) {
+                if (recipient.getMessageBodyId() == null) {
+                    recipient.setMessageBodyId(this.id);
+                }
+            }
+        }
     }
 
     /**
@@ -138,6 +158,10 @@ public class MessageBody extends BaseAuditEntity {
     public void addRecipient(MessageRecipient recipient) {
         recipients.add(recipient);
         recipient.setMessageBody(this);
+        // 如果消息体已经有ID，设置messageBodyId
+        if (this.id != null) {
+            recipient.setMessageBodyId(this.id);
+        }
     }
 
     /**

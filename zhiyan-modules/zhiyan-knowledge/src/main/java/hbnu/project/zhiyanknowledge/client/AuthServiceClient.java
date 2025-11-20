@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author ErgouTree
  */
-@FeignClient(name = "zhiyan-auth-service", url = "http://localhost:8091", path = "/zhiyan/auth")
+@FeignClient(name = "zhiyan-auth", url = "http://localhost:8091", path = "/zhiyan/auth")
 public interface AuthServiceClient {
 
     /**
