@@ -52,6 +52,12 @@ public class TaskResultGenerateRequest implements Serializable {
     private String targetAudience;
 
     /**
+     * 补充生成要求（可选）
+     * 例如：报告结构、语气、需要重点说明的内容等
+     */
+    private String additionalRequirements;
+
+    /**
      * 是否包含附件（可选，默认false）
      * 如果为true，会将任务的附件信息包含在生成内容中
      */
@@ -71,6 +77,8 @@ public class TaskResultGenerateRequest implements Serializable {
      */
     private Long userId;
 }
+
+
 
 
 

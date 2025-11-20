@@ -87,6 +87,12 @@
             <artifactId>zhiyan-common-sse</artifactId>
         </dependency>
 
+        <!-- Redis 模块（用于缓存对话历史） -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-redis</artifactId>
+        </dependency>
+
 <!--        &lt;!&ndash; Redis 模块（用于缓存对话历史） &ndash;&gt;-->
 <!--        <dependency>-->
 <!--            <groupId>hbnu.project</groupId>-->
@@ -103,6 +109,10 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-oss</artifactId>
         </dependency>
     </dependencies>
 
