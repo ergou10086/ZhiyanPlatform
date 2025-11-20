@@ -230,10 +230,14 @@ zhiyan:
   oauth2:
     # 是否启用OAuth2功能
     enabled: true
-    # 回调地址基础路径（不包含具体路径）
+    # 回调地址基础路径（后端OAuth2回调接口的基础URL）
     # 开发环境：本地运行，使用localhost
     # 生产环境：需要改为实际域名，如 https://yourdomain.com
     callback-base-url: http://localhost:8091
+    # 前端回调页面URL（OAuth2登录成功后重定向到的前端页面）
+    # 开发环境：前端项目运行在8080端口
+    # 生产环境：需要改为实际前端域名
+    frontend-callback-url: http://localhost:8001/oauth2/callback
     github:
       # 是否启用GitHub登录
       enabled: true
