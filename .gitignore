@@ -8,6 +8,8 @@
 *.swo
 *~
 
+.cursor
+
 # 编译输出
 target/
 **/target/

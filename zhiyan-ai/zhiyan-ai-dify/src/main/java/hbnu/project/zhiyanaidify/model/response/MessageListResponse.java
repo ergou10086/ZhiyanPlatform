@@ -2,7 +2,7 @@ package hbnu.project.zhiyanaidify.model.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import hbnu.project.zhiyanai.model.dto.MessageDTO;
+import hbnu.project.zhiyanaidify.model.dto.DifyMessageDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +38,6 @@ public class MessageListResponse {
      * 消息列表
      */
     @JsonProperty("data")
-    private List<MessageDTO> data;
+    private List<DifyMessageDTO> data;
 
 }

@@ -10,10 +10,10 @@ import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
 import hbnu.project.zhiyanknowledge.model.entity.FileUploadSession;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementType;
+import jakarta.annotation.Resource;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public abstract class AchievementConverter {
 
-    @Autowired
+    @Resource
     private ObjectMapper objectMapper;
 
     // ==================== Achievement 相关转换 ====================
@@ -149,7 +149,6 @@ public abstract class AchievementConverter {
     @Mapping(target = "sessionId", source = "id")
     @Mapping(target = "status", source = "status", qualifiedByName = "getStatusName")
     @Mapping(target = "uploadedChunks", source = "uploadedChunksJson", qualifiedByName = "parseUploadedChunks")
-    @Mapping(target = "progress", source = ".", qualifiedByName = "calculateProgress")
     public abstract UploadSessionDTO toUploadSessionDTO(FileUploadSession session);
 
     /**
@@ -328,22 +327,9 @@ public abstract class AchievementConverter {
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(uploadedChunksJson, new TypeReference<List<Integer>>() {});
+            return objectMapper.readValue(uploadedChunksJson, new TypeReference<>() {});
         } catch (JsonProcessingException e) {
             return new ArrayList<>();
         }
     }
-
-    /**
-     * 计算上传进度百分比
-     */
-    @Named("calculateProgress")
-    protected double calculateProgress(FileUploadSession session) {
-        if (session.getTotalChunks() == 0) {
-            return 0.0;
-        }
-        List<Integer> uploadedChunks = parseUploadedChunks(session.getUploadedChunksJson());
-        return (double) uploadedChunks.size() / session.getTotalChunks() * 100;
-    }
-
 }

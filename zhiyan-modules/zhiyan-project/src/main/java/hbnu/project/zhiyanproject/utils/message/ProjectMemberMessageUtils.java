@@ -2,11 +2,13 @@ package hbnu.project.zhiyanproject.utils.message;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.client.MessageServiceClient;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.entity.ProjectMember;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -44,7 +46,7 @@ public class ProjectMemberMessageUtils {
             if (R.isSuccess(result) && result.getData() != null && result.getData().getName() != null) {
                 return result.getData().getName();
             } else {
-                log.warn("获取用户[{}]信息失败: {}", userId, result != null ? result.getMsg() : "未知错误");
+                log.warn("获取用户[{}]信息失败: {}", userId, result.getMsg());
                 return "未知用户";
             }
         } catch (Exception e) {

@@ -22,6 +22,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyanactivelog",
         "hbnu.project.zhiyancommonoauth",
         "hbnu.project.zhiyancommonlog",
+        "hbnu.project.zhiyancommonidempotent",
 })
 @EnableJpaRepositories(basePackages = {
         "hbnu.project.zhiyanauth.repository"

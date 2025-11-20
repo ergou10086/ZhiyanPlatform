@@ -1,4 +1,4 @@
-package hbnu.project.zhiyanai.model.dto;
+package hbnu.project.zhiyanaidify.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,7 +20,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class MessageDTO {
+public class DifyMessageDTO {
 
     /**
      * 消息 ID

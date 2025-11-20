@@ -1,12 +1,13 @@
 package hbnu.project.zhiyanproject.utils.message;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.client.MessageServiceClient;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
+import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

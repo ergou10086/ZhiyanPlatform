@@ -2,7 +2,6 @@ package hbnu.project.zhiyancommonsecurity.config;
 
 import hbnu.project.zhiyancommonsecurity.filter.XssFilter;
 import hbnu.project.zhiyancommonsecurity.xss.XssProperties;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -17,18 +16,15 @@ import org.springframework.core.Ordered;
  * @author ErgouTree
  */
 @Configuration
-@EnableConfigurationProperties(XssProperties.class)
 @ConditionalOnProperty(prefix = "security.xss", name = "enabled", havingValue = "true", matchIfMissing = true)
-@RequiredArgsConstructor
+@EnableConfigurationProperties(XssProperties.class)
 public class XssConfig {
-
-    private final XssProperties xssProperties;
 
     /**
      * 注册XSS过滤器
      */
     @Bean
-    public FilterRegistrationBean<XssFilter> xssFilterRegistration() {
+    public FilterRegistrationBean<XssFilter> xssFilterRegistration(XssProperties xssProperties) {
         FilterRegistrationBean<XssFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new XssFilter(xssProperties));
         registration.addUrlPatterns("/*");
