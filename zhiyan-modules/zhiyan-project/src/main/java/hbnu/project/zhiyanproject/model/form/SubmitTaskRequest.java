@@ -31,6 +31,7 @@ public class SubmitTaskRequest {
             example = "已完成数据库设计，包含用户表、项目表和任务表的ER图，并已经过技术评审。")
     private String submissionContent;
 
+    @Builder.Default
     @Schema(description = "提交类型（COMPLETE-完成提交，PARTIAL-阶段性提交，MILESTONE-里程碑提交）",
             example = "COMPLETE")
     private SubmissionType submissionType = SubmissionType.COMPLETE;
@@ -42,6 +43,7 @@ public class SubmitTaskRequest {
     @Schema(description = "实际工时（单位：小时，可选）", example = "8.5")
     private BigDecimal actualWorktime;
 
+    @Builder.Default
     @Schema(description = "是否为最终提交（TRUE-任务完成的最终提交，FALSE-阶段性提交）",
             example = "true")
     private Boolean isFinal = true;

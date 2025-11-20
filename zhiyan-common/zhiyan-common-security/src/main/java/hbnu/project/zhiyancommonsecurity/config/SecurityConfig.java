@@ -2,6 +2,7 @@ package hbnu.project.zhiyancommonsecurity.config;
 
 import hbnu.project.zhiyancommonsecurity.filter.JwtAuthenticationFilter;
 import hbnu.project.zhiyancommonsecurity.interceptor.HeaderInterceptor;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class SecurityConfig implements WebMvcConfigurer {
 
-    private final UserDetailsService userDetailsService;
+    @Resource
+    private UserDetailsService userDetailsService;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
@@ -149,6 +152,11 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(
                                 "/zhiyan/auth/check-permission",    // 权限校验
                                 "/zhiyan/auth/check-permissions"    // 批量权限校验
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/zhiyan/message/internal/**",    // 权限校验
+                                "/zhiyan/message/**"    // 批量权限校验
                         ).permitAll()
 
                         // 用户项目头像管理接口 - 认证用户可以访问

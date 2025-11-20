@@ -21,13 +21,21 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyancommonswagger",
         "hbnu.project.common.log",  // 日志模块
         "hbnu.project.zhiyanactivelog",  // 操作日志模块
+        "hbnu.project.zhiyanmessgae",  // 消息模块（包含controller、service等）
 })
+
 @EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanproject.repository"
+        "hbnu.project.zhiyanproject.repository",
+        "hbnu.project.zhiyanactivelog.repository",  // 扫描活动日志模块的Repository
+        "hbnu.project.zhiyanmessgae.repository"     // 扫描消息模块 Repository
         // activelog 使用独立数据源，不在此处扫描
 })
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanproject.model.entity"
+        "hbnu.project.zhiyanproject.model.entity",
+        "hbnu.project.zhiyanproject.model.dto",
+        "hbnu.project.zhiyanmessgae.model.dto",
+        "hbnu.project.zhiyanmessgae.model.entity",
+        "hbnu.project.zhiyanactivelog.model.entity",  // 扫描活动日志模块的Entity
         // activelog 使用独立数据源，不在此处扫描
 })
 @EnableJpaAuditing

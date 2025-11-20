@@ -34,6 +34,8 @@ public class MessageInternalController {
      */
     @PostMapping("/send/personal")
     public R<Void> sendPersonalMessage(@RequestBody SendMessageRequestDTO request) {
+        log.info("收到发送个人消息请求: {}", request);
+        log.info("===========================================");
         try{
             // 参数验证
             if (request.getScene() == null || request.getReceiverId() == null || request.getTitle() == null || request.getContent() == null) {

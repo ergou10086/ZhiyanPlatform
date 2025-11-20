@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(
         name = "zhiyan-project",
         contextId = "zhiyanProjectTaskClient",
+        url = "http://localhost:8095",
         path = "/zhiyan/projects/tasks"
 )
 public interface ProjectTaskClient {

@@ -1,7 +1,7 @@
 package hbnu.project.zhiyanmessgae.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import hbnu.project.zhiyancommonbasic.annotation.LongToString;
-import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageSendRecord extends BaseAuditEntity {
+public class MessageSendRecord {
 
     /**
      * 记录ID
@@ -82,9 +82,49 @@ public class MessageSendRecord extends BaseAuditEntity {
     private String status;
 
     /**
+     * 数据创建时间
+     */
+    @JsonIgnore
+    @Column(name = "created_at", nullable = true, updatable = false,
+            columnDefinition = "DATETIME COMMENT '创建时间'")
+    private LocalDateTime createdAt;
+
+    /**
+     * 数据最后修改时间
+     */
+    @JsonIgnore
+    @Column(name = "updated_at", nullable = true,
+            columnDefinition = "DATETIME COMMENT '更新时间'")
+    private LocalDateTime updatedAt;
+
+    /**
+     * 数据创建人ID
+     */
+    @LongToString
+    @Column(name = "created_by", columnDefinition = "BIGINT COMMENT '创建人ID'")
+    private Long createdBy;
+
+    /**
+     * 数据最后修改人ID
+     */
+    @LongToString
+    @Column(name = "updated_by", columnDefinition = "BIGINT COMMENT '最后修改人ID'")
+    private Long updatedBy;
+
+    /**
+     * 版本号（乐观锁）
+     */
+    @Version
+    @Builder.Default
+    @Column(name = "version", nullable = false,
+            columnDefinition = "INT DEFAULT 0 COMMENT '版本号（乐观锁）'")
+    private Integer version = 0;
+
+    /**
      * 关联消息体
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_body_id", insertable = false, updatable = false)
     private MessageBody messageBody;
+
 }

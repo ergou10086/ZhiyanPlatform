@@ -55,6 +55,7 @@ public class Project extends BaseAuditEntity {
     /**
      * 项目状态
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "status", columnDefinition = "ENUM('PLANNING','ONGOING','COMPLETED','ARCHIVED') DEFAULT 'PLANNING' COMMENT '项目状态（规划中/进行中/已完成/已归档）'")
     private ProjectStatus status = ProjectStatus.PLANNING;
@@ -62,6 +63,7 @@ public class Project extends BaseAuditEntity {
     /**
      * 项目可见性
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "visibility", columnDefinition = "ENUM('PUBLIC','PRIVATE') DEFAULT 'PRIVATE' COMMENT '项目可见性（公开/私有）'")
     private ProjectVisibility visibility = ProjectVisibility.PRIVATE;
@@ -115,6 +117,7 @@ public class Project extends BaseAuditEntity {
      * - @JsonIgnore: 避免 JSON 序列化时的循环引用
      * - @ToString.Exclude: 避免 toString() 触发懒加载
      */
+    @Builder.Default
     @JsonIgnore
     @lombok.ToString.Exclude
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

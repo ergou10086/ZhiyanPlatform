@@ -3,7 +3,6 @@ package hbnu.project.zhiyancommonoss.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * MinIO配置属性
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
  * @author ErgouTree
  */
 @Data
-@Component
 @ConfigurationProperties(prefix = "minio")
 public class MinioProperties {
 

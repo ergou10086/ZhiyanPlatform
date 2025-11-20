@@ -186,7 +186,7 @@ management:
   prometheus:
     metrics:
       export:
-        enabled: true
+        enabled: false
 
 # 日志配置
 logging:

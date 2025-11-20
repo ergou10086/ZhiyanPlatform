@@ -13,10 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
  *
  * @author Tokito
  */
-@FeignClient(
-        name = "zhiyan-message-service",
-        path = "/zhiyan/message/internal"
-)
+
+@FeignClient(name = "zhiyan-message",url = "http://localhost:8088",path = "/zhiyan/message/internal")
 public interface MessageServiceClient {
 
     /**

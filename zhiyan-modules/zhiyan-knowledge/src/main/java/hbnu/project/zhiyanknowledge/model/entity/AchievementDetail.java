@@ -5,9 +5,7 @@ import hbnu.project.zhiyancommonbasic.annotation.LongToString;
 
 import hbnu.project.zhiyancommonbasic.utils.id.SnowflakeIdUtil;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
@@ -18,7 +16,8 @@ import hbnu.project.zhiyancommonbasic.domain.BaseAuditEntity;
  *
  * @author ErgouTree
  */
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "achievement_detail")
 @DynamicInsert

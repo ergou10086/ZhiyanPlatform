@@ -45,6 +45,9 @@ public class MessageController {
         Page<MessageRecipient> recipientPage = inboxMessageService.pageInbox(userId, pageable);
         Page<MessageListDTO> dtoPage = recipientPage.map(MessageConverter.INSTANCE::toListDTO);
 
+        System.out.println("=== Message Service Received Request ===");
+
+        System.out.println("========================================");
         return R.ok(dtoPage);
     }
 

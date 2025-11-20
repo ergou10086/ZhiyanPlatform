@@ -34,6 +34,7 @@ public class CreateTaskRequest {
     @Schema(description = "任务描述")
     private String description;
 
+    @Builder.Default
     @Schema(description = "任务需要人数")
     @Min(value = 1, message = "任务需要人数至少为1")
     private Integer requiredPeople = 1;
@@ -50,6 +51,7 @@ public class CreateTaskRequest {
     @Schema(description = "预估工时（单位：小时，支持小数）")
     private java.math.BigDecimal worktime;
 
+    @Builder.Default
     @Schema(description = "是否为里程碑任务，默认false")
     private Boolean isMilestone = false;
 }
