@@ -2,9 +2,10 @@ package hbnu.project.zhiyanproject.config;
 
 import hbnu.project.zhiyancommonoss.enums.BucketType;
 import hbnu.project.zhiyancommonoss.service.MinioService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 
@@ -16,11 +17,12 @@ import org.springframework.core.annotation.Order;
  */
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 @Order(1) // 确保优先执行
+@ConditionalOnBean(MinioService.class)
 public class MinioInitConfig implements CommandLineRunner {
 
-    private final MinioService minioService;
+    @Autowired
+    private MinioService minioService;
 
     @Override
     public void run(String... args) {

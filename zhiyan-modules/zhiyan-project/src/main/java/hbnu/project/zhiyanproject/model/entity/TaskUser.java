@@ -76,6 +76,7 @@ public class TaskUser {
     /**
      * 是否有效（TRUE-有效执行者，FALSE-已移除）
      */
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
@@ -96,6 +97,7 @@ public class TaskUser {
      * 角色类型：EXECUTOR-执行者，FOLLOWER-关注者，REVIEWER-审核者
      * 注意：前端暂未实现，暂时不使用，默认都是执行者
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "role_type")
     private RoleType roleType = RoleType.EXECUTOR;  // 暂时不使用，保留字段

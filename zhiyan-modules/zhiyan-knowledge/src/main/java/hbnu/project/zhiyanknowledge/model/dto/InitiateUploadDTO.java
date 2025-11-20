@@ -34,6 +34,7 @@ public class InitiateUploadDTO {
     @Schema(description = "文件总大小(字节)")
     private Long fileSize;
 
+    @Builder.Default
     @Schema(description = "分片大小(字节),默认5MB")
     private Integer chunkSize = 5 * 1024 * 1024; // 默认5MB
 }

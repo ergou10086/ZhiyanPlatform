@@ -10,11 +10,14 @@
     </parent>
 
     <modules>
+        <!-- 先构建公共依赖模块，供其他业务模块使用 -->
+        <module>zhiyan-message</module>
+
+        <!-- 依赖消息模块的业务模块 -->
         <module>zhiyan-project</module>
         <module>zhiyan-knowledge</module>
         <module>zhiyan-wiki</module>
         <module>zhiyan-activelog</module>
-        <module>zhiyan-messgae</module>
     </modules>
 
     <artifactId>zhiyan-modules</artifactId>

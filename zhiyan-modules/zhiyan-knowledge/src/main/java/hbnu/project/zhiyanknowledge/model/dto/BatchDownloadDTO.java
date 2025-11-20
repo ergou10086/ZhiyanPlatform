@@ -25,6 +25,7 @@ public class BatchDownloadDTO {
     @Schema(description = "文件ID列表")
     private List<Long> fileIds;
 
+    @Builder.Default
     @Schema(description = "下载链接过期时间(秒),默认1小时")
     private Integer expirySeconds = 3600;
 }

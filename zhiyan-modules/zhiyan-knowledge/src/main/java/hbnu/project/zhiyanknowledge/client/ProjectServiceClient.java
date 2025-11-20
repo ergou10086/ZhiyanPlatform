@@ -18,6 +18,7 @@ import java.util.List;
 @FeignClient(
         name = "zhiyan-project",
         contextId = "zhiyanProjectServiceClient",
+        url = "http://localhost:8095",
         path = "/zhiyan/projects"
 )
 public interface ProjectServiceClient {

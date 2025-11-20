@@ -82,6 +82,7 @@ public class Achievement extends BaseAuditEntity {
      * 状态：draft(草稿)、under_review(审核中)、published(已发布)、obsolete（过时）
      * 这个状态先简单调整，用户发布就是已发布，然后由用户手动调整状态
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "ENUM('draft', 'under_review', 'published') DEFAULT 'draft' COMMENT '状态'")
     private AchievementStatus status = AchievementStatus.draft;

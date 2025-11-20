@@ -93,6 +93,7 @@ public class ProjectOperationLog {
     /**
      * 操作结果
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "operation_result", nullable = false, length = 20, columnDefinition = "VARCHAR(20) NOT NULL DEFAULT 'SUCCESS' COMMENT '操作结果：SUCCESS-成功, FAILED-失败'")
     private OperationResult operationResult = OperationResult.SUCCESS;

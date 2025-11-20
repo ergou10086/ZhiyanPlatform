@@ -57,6 +57,7 @@ public class TaskSubmission {
     /**
      * 提交类型：COMPLETE-完成提交，PARTIAL-阶段性提交，MILESTONE-里程碑提交
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "submission_type", nullable = false)
     private SubmissionType submissionType = SubmissionType.COMPLETE;
@@ -82,6 +83,7 @@ public class TaskSubmission {
     /**
      * 审核状态：PENDING-待审核，APPROVED-已批准，REJECTED-已拒绝，REVOKED-已撤回
      */
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "review_status", nullable = false)
     private ReviewStatus reviewStatus = ReviewStatus.PENDING;
@@ -114,12 +116,14 @@ public class TaskSubmission {
     /**
      * 提交版本号（同一任务可以多次提交，版本号递增）
      */
+    @Builder.Default
     @Column(name = "version", nullable = false)
     private Integer version = 1;
 
     /**
      * 是否为最终提交（TRUE-任务完成的最终提交）
      */
+    @Builder.Default
     @Column(name = "is_final", nullable = false)
     private Boolean isFinal = false;
 
@@ -138,6 +142,7 @@ public class TaskSubmission {
     /**
      * 是否已删除（软删除标记）
      */
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 

@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author Tokito
  */
-@FeignClient(name = "zhiyan-auth-service", url = "http://localhost:8091", path = "/zhiyan/auth/users")
+@FeignClient(name = "zhiyan-auth", url = "http://localhost:8091", path = "/zhiyan/auth/users")
 public interface AuthServiceClient {
 
     /**
