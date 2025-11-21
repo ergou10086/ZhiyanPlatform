@@ -101,7 +101,7 @@
         <zhiyan-common-excel.version>0.0.1-SNAPSHOT</zhiyan-common-excel.version>
         <zhiyan-activelog.version>0.0.1-SNAPSHOT</zhiyan-activelog.version>
         <zhiyan-common-oauth.version>0.0.1-SNAPSHOT</zhiyan-common-oauth.version>
-        <zhiyan-messgae.version>0.0.1-SNAPSHOT</zhiyan-messgae.version>
+        <zhiyan-message.version>0.0.1-SNAPSHOT</zhiyan-message.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--   解决maven命令执行时控制台出现中文乱码     -->
@@ -663,8 +663,8 @@
 
             <dependency>
                 <groupId>hbnu.project</groupId>
-                <artifactId>zhiyan-messgae</artifactId>
-                <version>${zhiyan-messgae.version}</version>
+                <artifactId>zhiyan-message</artifactId>
+                <version>${zhiyan-message.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

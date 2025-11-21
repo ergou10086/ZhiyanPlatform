@@ -191,5 +191,15 @@ public interface WikiPageRepository extends JpaRepository<WikiPage, Long> {
      * @return
      */
     List<WikiPage> findByProjectIdAndTitleAndParentId(Long projectId, String title, Long projectId1);
+
+
+    /**
+     * 根据页面ID查询对应的项目ID
+     *
+     * @param wikiPageId 页面ID
+     * @return 项目ID，如果页面不存在则返回null
+     */
+    @Query("SELECT w.projectId FROM WikiPage w WHERE w.id = :id")
+    Optional<Long> findProjectIdById(@Param("id") Long wikiPageId);
 }
 

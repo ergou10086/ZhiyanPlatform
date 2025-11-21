@@ -4,6 +4,8 @@ server:
   port: 8093
 
 spring:
+  jmx:
+    enabled: false
   application:
     name: zhiyan-knowledge  # 服务名（业务标识，用于服务发现）
 
@@ -76,11 +78,11 @@ spring:
       # 启用连接泄漏检测（超过30秒未归还的连接会被记录）
       leak-detection-threshold: 30000
       # 注册JMX监控
-      register-mbeans: true
+      register-mbeans: false
 
     # Activelog 数据源（操作日志独立数据库）
     activelog:
-      url: jdbc:mysql://localhost:3306/zhiyan_activelog_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+      url: jdbc:mysql://152.136.245.180:3306/zhiyan_activelog_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
       username: root
       password: zjm10086
       driver-class-name: com.mysql.cj.jdbc.Driver

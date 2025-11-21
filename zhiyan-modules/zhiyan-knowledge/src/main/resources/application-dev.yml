@@ -78,8 +78,8 @@ spring:
       connection-test-query: SELECT 1
       # 启用连接泄漏检测（超过30秒未归还的连接会被记录）
       leak-detection-threshold: 30000
-      # 注册JMX监控
-      register-mbeans: true
+      # 禁用JMX监控（避免与Spring JMX导出器冲突）
+      register-mbeans: false
     
     # Activelog 数据源（操作日志独立数据库）
     activelog:

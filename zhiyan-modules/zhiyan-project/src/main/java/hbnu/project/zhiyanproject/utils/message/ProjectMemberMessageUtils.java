@@ -1,8 +1,8 @@
 package hbnu.project.zhiyanproject.utils.message;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
 
+import hbnu.project.zhiyanmessage.model.pojo.SendMessageRequestPOJO;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.client.MessageServiceClient;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
@@ -63,7 +63,7 @@ public class ProjectMemberMessageUtils {
             // 获取邀请者姓名
             String inviterName = getUserNameById(inviterId);
 
-            SendMessageRequestDTO sendMessageRequestDTO = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO sendMessageRequestDTO = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_MEMBER_INVITED")
                     .senderId(inviterId)
                     .receiverId(member.getUserId())
@@ -100,7 +100,7 @@ public class ProjectMemberMessageUtils {
             // 获取邀请者姓名
             String inviterName = getUserNameById(inviterId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_MEMBER_JOINED")
                     .senderId(inviterId)
                     .receiverIds(existingMemberIds)
@@ -133,7 +133,7 @@ public class ProjectMemberMessageUtils {
             // 获取操作者姓名
             String operatorName = getUserNameById(operatorId);
 
-            SendMessageRequestDTO sendMessageRequestDTO = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO sendMessageRequestDTO = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_MEMBER_REMOVED")
                     .senderId(operatorId)  // 操作者是发送者
                     .receiverId(removedUserId)  // 被移除的用户是接收者
@@ -170,7 +170,7 @@ public class ProjectMemberMessageUtils {
             // 获取操作者姓名
             String operatorName = getUserNameById(operatorId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_MEMBER_REMOVED")
                     .senderId(operatorId)
                     .receiverIds(adminIds)
@@ -204,7 +204,7 @@ public class ProjectMemberMessageUtils {
             // 获取操作者姓名
             String operatorName = getUserNameById(operatorId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_ROLE_CHANGED")
                     .senderId(operatorId)
                     .receiverId(member.getUserId())
@@ -239,7 +239,7 @@ public class ProjectMemberMessageUtils {
                 return;
             }
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_ROLE_CHANGED_ADMIN")
                     .senderId(null)
                     .receiverIds(adminIds)

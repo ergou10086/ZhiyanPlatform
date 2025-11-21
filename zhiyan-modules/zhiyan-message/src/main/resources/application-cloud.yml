@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: zhiyan-message  # 服务名（务必与Feign Client保持一致）
+    name: zhiyan-message  # 服务名（业务标识，用于服务发现）
 
   cloud:
     nacos:
@@ -122,8 +122,6 @@ management:
 logging:
   level:
     com.alibaba.nacos: WARN
-    com.alibaba.nacos.client: DEBUG
-    org.springframework.cloud.client: DEBUG
     org.springframework.cloud: INFO
     root: INFO
     hbnu.project.zhiyan: INFO

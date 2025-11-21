@@ -8,8 +8,8 @@ import hbnu.project.zhiyanknowledge.model.dto.UserDTO;
 import hbnu.project.zhiyanknowledge.model.entity.Achievement;
 import hbnu.project.zhiyanknowledge.model.entity.AchievementFile;
 import hbnu.project.zhiyanknowledge.model.enums.AchievementStatus;
-import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
 
+import hbnu.project.zhiyanmessage.model.pojo.SendMessageRequestPOJO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -159,7 +159,7 @@ public class KnowledgeMessageService {
         // 获取操作者姓名
         String operatorName = getUserNameById(operatorId);
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("ACHIEVEMENT_STATUS_CHANGED")
                 .senderId(operatorId)
                 .receiverIds(filteredReceiverIds)
@@ -206,7 +206,7 @@ public class KnowledgeMessageService {
         // 格式化文件大小
         String fileSizeStr = formatFileSize(file.getFileSize());
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("ACHIEVEMENT_FILE_UPLOADED")
                 .senderId(uploaderId)
                 .receiverIds(filteredReceiverIds)
@@ -250,7 +250,7 @@ public class KnowledgeMessageService {
         // 获取创建者姓名
         String creatorName = getUserNameById(achievement.getCreatorId());
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("ACHIEVEMENT_CREATED")
                 .senderId(achievement.getCreatorId())
                 .receiverIds(filteredReceiverIds)
@@ -297,7 +297,7 @@ public class KnowledgeMessageService {
         // 获取操作者姓名
         String operatorName = getUserNameById(operatorId);
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("ACHIEVEMENT_DELETED")
                 .senderId(operatorId)
                 .receiverIds(filteredReceiverIds)
@@ -345,7 +345,7 @@ public class KnowledgeMessageService {
         // 格式化文件大小
         String fileSizeStr = formatFileSize(achievementFile.getFileSize());
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("ACHIEVEMENT_FILE_DELETED")
                 .senderId(operatorId)
                 .receiverIds(filteredReceiverIds)
@@ -364,7 +364,7 @@ public class KnowledgeMessageService {
         sendBatchMessage(requestDTO, achievement.getId());
     }
 
-    private void sendPersonalMessage(SendMessageRequestDTO request, Long achievementId) {
+    private void sendPersonalMessage(SendMessageRequestPOJO request, Long achievementId) {
         try {
             R<Void> resp = messageServiceClient.sendPersonalMessage(request);
             if (!R.isSuccess(resp)) {
@@ -378,7 +378,7 @@ public class KnowledgeMessageService {
     }
 
 
-    private void sendBatchMessage(SendMessageRequestDTO request, Long achievementId) {
+    private void sendBatchMessage(SendMessageRequestPOJO request, Long achievementId) {
         try {
             R<Void> resp = messageServiceClient.sendBatchPersonalMessage(request);
             if (!R.isSuccess(resp)) {
