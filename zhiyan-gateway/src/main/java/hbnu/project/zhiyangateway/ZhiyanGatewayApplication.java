@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
+ * 网关主类
+ * 目前需排除redis
+ *
  * @author ErgouTree
  */
 @SpringBootApplication(
