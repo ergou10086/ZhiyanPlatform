@@ -60,7 +60,7 @@ public class SnowflakeIdUtil {
      * 创建雪花ID生成器
      *
      * @param datacenterId 数据中心ID (0-31)
-     * @param workerId 工作机器ID (0-31)
+     * @param workerId     工作机器ID (0-31)
      * @return Snowflake实例
      */
     public static Snowflake createSnowflake(long datacenterId, long workerId) {
@@ -72,7 +72,7 @@ public class SnowflakeIdUtil {
      * 使用指定的数据中心ID和工作机器ID生成雪花ID
      *
      * @param datacenterId 数据中心ID (0-31)
-     * @param workerId 工作机器ID (0-31)
+     * @param workerId     工作机器ID (0-31)
      * @return 雪花ID
      */
     public static long nextId(long datacenterId, long workerId) {
@@ -84,7 +84,7 @@ public class SnowflakeIdUtil {
      * 使用指定的数据中心ID和工作机器ID生成雪花ID字符串
      *
      * @param datacenterId 数据中心ID (0-31)
-     * @param workerId 工作机器ID (0-31)
+     * @param workerId     工作机器ID (0-31)
      * @return 雪花ID字符串
      */
     public static String nextIdStr(long datacenterId, long workerId) {
@@ -143,7 +143,7 @@ public class SnowflakeIdUtil {
      * 重置默认雪花ID生成器
      *
      * @param datacenterId 数据中心ID
-     * @param workerId 工作机器ID
+     * @param workerId     工作机器ID
      */
     public static void resetDefaultSnowflake(long datacenterId, long workerId) {
         synchronized (SnowflakeIdUtil.class) {
