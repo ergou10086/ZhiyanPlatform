@@ -1,7 +1,5 @@
 package hbnu.project.zhiyanauth.model.entity;
 
-
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;

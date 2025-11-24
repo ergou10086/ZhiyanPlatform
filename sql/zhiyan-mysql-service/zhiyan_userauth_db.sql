@@ -67,7 +67,7 @@ CREATE TABLE remember_me_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE COMMENT '用户删除时级联删除Token'
 ) COMMENT 'RememberMe自动登录Token表';
 
-
+-- 用户成果关联表
 CREATE TABLE `user_achievement` (
     `id` BIGINT NOT NULL COMMENT '关联记录ID（雪花ID）',
     `user_id` BIGINT NOT NULL COMMENT '用户ID',

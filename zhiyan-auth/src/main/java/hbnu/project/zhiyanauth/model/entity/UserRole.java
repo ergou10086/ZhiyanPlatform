@@ -17,7 +17,8 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "user_roles")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

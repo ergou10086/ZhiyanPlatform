@@ -81,7 +81,7 @@
         <fastexcel.version>1.3.0</fastexcel.version>
         <openai-java.version>0.18.2</openai-java.version>
         <langchain4j.version>0.29.1</langchain4j.version>
-<!--        <spring-ai.version>0.8.1</spring-ai.version>-->
+<!--    <spring-ai.version>0.8.1</spring-ai.version>-->
 
 
         <zhiyan-common-basic.version>0.0.1-SNAPSHOT</zhiyan-common-basic.version>

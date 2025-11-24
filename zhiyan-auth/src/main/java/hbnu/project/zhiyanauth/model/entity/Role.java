@@ -18,7 +18,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "roles")
-@Data
+@Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
