@@ -4,10 +4,14 @@ import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
+import hbnu.project.zhiyanauth.model.entity.User;
+import hbnu.project.zhiyanauth.model.form.UpdateResearchTagsBody;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
 import hbnu.project.zhiyanauth.model.response.UserInfoResponse;
+import hbnu.project.zhiyanauth.repository.UserRepository;
 import hbnu.project.zhiyanauth.service.UserService;
 import hbnu.project.zhiyancommonbasic.domain.R;
+import hbnu.project.zhiyancommonbasic.exception.BusinessException;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,11 +28,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户管理控制器
  * 提供用户信息管理、用户查询、权限查看等功能
- * 
+ * <p>
  * 职责说明：
  * - 本控制器专注于用户信息的增删改查
  * - 认证相关功能（注册、登录、token管理）由 AuthController 负责
@@ -36,8 +41,9 @@ import java.util.Map;
  * - 本控制器同时提供内部接口供其他微服务调用
  *
  * @author ErgouTree
- * @version 3.0
+ * @version 24892734723497285837453789342527836457825342538479352478992547823457897823547847253478923457890234578923457890278354902036748527019708`81479789`318-09278423`167.0
  * @rewrite Tokito
+ * @Re_rewrite ErgouTree,asddjv
  */
 @RestController
 @RequestMapping("/zhiyan/auth/users")     // 原/zhiyan/users
@@ -48,6 +54,8 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+
+    private final UserRepository userRepository;
 
     // ==================== 用户信息查询接口 ====================
 
@@ -194,6 +202,25 @@ public class UserController {
         }
     }
 
+
+    /**
+     * 获取用户研究方向标签
+     */
+    @GetMapping("/profile/research-tags")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "获取研究方向标签", description = "获取当前用户的研究方向标签")
+    public R<List<String>> getResearchTags() {
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("未登录或令牌无效");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在"));
+
+        return R.ok(user.getResearchTagList());
+    }
+
     // ==================== 用户信息修改接口 ====================
 
     /**
@@ -230,6 +257,58 @@ public class UserController {
             log.error("更新用户资料失败", e);
             return R.fail("更新资料失败");
         }
+    }
+
+
+    @PutMapping("/profile/research-tags")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "更新研究方向标签", description = "用户更新自己的研究方向标签（1-5个）")
+    @OperationLog(module = "用户管理", type = OperationType.UPDATE, description = "更新研究方向标签")
+    public R<List<String>> updateResearchTags(
+            @Valid @RequestBody UpdateResearchTagsBody body) {
+        Long userId = SecurityUtils.getUserId();
+        if (userId == null) {
+            return R.fail("未登录或令牌无效");
+        }
+
+        // 验证标签数量
+        if (body.getResearchTags() == null || body.getResearchTags().isEmpty()) {
+            return R.fail("研究方向标签不能为空");
+        }
+
+        if (body.getResearchTags().size() > 5) {
+            return R.fail("研究方向标签最多5个");
+        }
+
+        // 验证标签和长度的接口
+        for(String tag: body.getResearchTags()) {
+            if (tag == null || tag.trim().isEmpty()) {
+                return R.fail("标签内容不能为空");
+            }
+            if (tag.length() > 50) {
+                return R.fail("单个标签长度不能超过50个字符");
+            }
+            // 防止XSS攻击
+            if (tag.matches(".*[<>\"'].*")) {
+                return R.fail("标签不能包含特殊字符");
+            }
+        }
+
+        // 去重并限制数量
+        List<String> uniqueTags = body.getResearchTags().stream()
+                .distinct()
+                .limit(5)
+                .collect(Collectors.toList());
+
+        // 更新用户标签
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在"));
+
+        user.setResearchTagList(uniqueTags);
+        userRepository.save(user);
+
+        log.info("用户[{}]更新研究方向标签: {}", userId, uniqueTags);
+        return R.ok(uniqueTags, "更新成功");
     }
 
     // ==================== 用户状态管理接口（管理员功能） ====================
@@ -348,7 +427,7 @@ public class UserController {
             String message = String.format("批量操作完成：成功 %d 个，失败 %d 个", successCount, failCount);
             log.info(message);
 
-            return failCount == 0 ? R.ok(null, message) : R.ok(null, message);
+            return R.ok(null, message);
         } catch (Exception e) {
             log.error("批量更新用户状态失败", e);
             return R.fail("批量更新失败");

@@ -3,7 +3,7 @@
 spring:
   # 1. 应用基础信息
   application:
-    name: zhiyan-messgae
+    name: zhiyan-message
 
   # 2. 配置中心核心配置（Nacos 连接信息，启动必需）
   cloud:

@@ -1,7 +1,7 @@
 package hbnu.project.zhiyanproject.utils.message;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+import hbnu.project.zhiyanmessage.model.pojo.SendMessageRequestPOJO;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.client.MessageServiceClient;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
@@ -11,6 +11,7 @@ import hbnu.project.zhiyanproject.model.entity.TaskSubmission;
 import hbnu.project.zhiyanproject.model.enums.ReviewStatus;
 import hbnu.project.zhiyanproject.model.enums.TaskStatus;
 import hbnu.project.zhiyanproject.repository.TaskUserRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -73,7 +74,7 @@ public class TaskMessageUtils {
             // 获取创建者姓名
             String creatorName = getUserNameById(creatorId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_ASSIGN")
                     .senderId(creatorId)
                     .receiverIds(assigneeIds)
@@ -106,7 +107,7 @@ public class TaskMessageUtils {
             // 获取操作者姓名
             String operatorName = getUserNameById(operatorId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_ASSIGN")
                     .senderId(operatorId)
                     .receiverIds(newAssigneeIds)
@@ -140,7 +141,7 @@ public class TaskMessageUtils {
             // 获取操作者姓名
             String operatorName = getUserNameById(operatorId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_STATUS_CHANGED")
                     .senderId(operatorId)
                     .receiverIds(assigneeIds)
@@ -179,7 +180,7 @@ public class TaskMessageUtils {
             // 获取接取者姓名
             String claimerName = getUserNameById(claimerId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_ASSIGN")
                     .senderId(claimerId)
                     .receiverId(creatorId)
@@ -214,7 +215,7 @@ public class TaskMessageUtils {
             // 获取提交者姓名
             String submitterName = getUserNameById(submission.getSubmitterId());
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_REVIEW_REQUEST")
                     .senderId(submission.getSubmitterId())
                     .receiverId(creatorId)
@@ -247,7 +248,7 @@ public class TaskMessageUtils {
             // 获取审核者姓名
             String reviewerName = getUserNameById(reviewerId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_REVIEW_RESULT")
                     .senderId(reviewerId)
                     .receiverId(submission.getSubmitterId())
@@ -286,7 +287,7 @@ public class TaskMessageUtils {
             // 获取完成者姓名
             String completedByName = getUserNameById(completedBy);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_STATUS_CHANGED")
                     .senderId(completedBy)
                     .receiverIds(assigneeIds)
@@ -320,7 +321,7 @@ public class TaskMessageUtils {
                 return;
             }
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_STATUS_CHANGED")
                     .senderId(submission.getSubmitterId())
                     .receiverId(creatorId)
@@ -350,7 +351,7 @@ public class TaskMessageUtils {
                 return;
             }
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_STATUS_CHANGED")
                     .senderId(null) // 系统消息
                     .receiverIds(assigneeIds)
@@ -381,7 +382,7 @@ public class TaskMessageUtils {
                 return;
             }
 
-            SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                     .scene("TASK_DEADLINE_REMIND")
                     .senderId(null) // 系统消息
                     .receiverIds(assigneeIds)
@@ -411,7 +412,7 @@ public class TaskMessageUtils {
                 return;
             }
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("TASK_OVERDUE")
                     .senderId(null) // 系统消息
                     .receiverIds(assigneeIds)

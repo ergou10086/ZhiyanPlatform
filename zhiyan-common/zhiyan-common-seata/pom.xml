@@ -14,6 +14,8 @@
     <name>zhiyan-common-seata</name>
     <description>zhiyan-common-seata分布式事务</description>
 
+    <packaging>jar</packaging>
+
     <dependencies>
         <!-- SpringBoot Seata -->
         <dependency>

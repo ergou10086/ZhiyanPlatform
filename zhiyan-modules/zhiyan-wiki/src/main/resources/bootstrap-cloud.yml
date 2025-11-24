@@ -21,6 +21,10 @@ spring:
             group: DEFAULT_GROUP
             refresh: true
 
+          - data-id: zhiyan-common-redis-cloud.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+
       # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
       discovery:
         username: nacos  # 用户名

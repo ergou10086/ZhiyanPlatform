@@ -70,18 +70,15 @@ public class OAuth2Controller {
     /**
      * OAuth2回调接口
      * 第三方平台授权成功后，会回调到此接口，携带授权码code和state
-     * 后端通过code获取用户信息，然后根据情况返回：
-     * - 如果邮箱匹配到已有账号，直接登录成功
-     * - 如果邮箱未匹配，返回需要绑定账号的状态
-     * - 如果OAuth2信息不足（如缺少邮箱），返回需要补充信息的状态
+     * 后端通过code获取用户信息，然后重定向到前端回调页面，并通过URL参数传递结果
      *
      * @param provider 提供商名称
      * @param code     授权码
      * @param state    状态参数（用于防CSRF攻击）
-     * @return 登录响应（可能包含登录成功、需要绑定、需要补充信息等状态）
+     * @return 重定向到前端回调页面
      */
     @GetMapping("/callback/{provider}")
-    @Operation(summary = "OAuth2回调", description = "第三方平台授权成功后的回调接口，根据情况返回登录成功或引导信息")
+    @Operation(summary = "OAuth2回调", description = "第三方平台授权成功后的回调接口，重定向到前端处理")
     @OperationLog(
             module = "OAuth2认证",
             type = OperationType.LOGIN,
@@ -90,13 +87,14 @@ public class OAuth2Controller {
             recordResult = false   // 不记录token等敏感结果
     )
     @SentinelResource(value = "oauth2:callback", blockHandler = "callbackBlockHandler")
-    public R<OAuth2LoginResponse> callback(
+    public void callback(
             @Parameter(description = "OAuth2提供商名称", example = "github", required = true)
             @PathVariable String provider,
             @Parameter(description = "授权码", required = true)
             @RequestParam String code,
             @Parameter(description = "状态参数（用于防CSRF攻击）", required = true)
-            @RequestParam String state) {
+            @RequestParam String state,
+            jakarta.servlet.http.HttpServletResponse response) {
         log.info("OAuth2回调请求 - 提供商: {}, code: {}, state: {}", provider, code, state);
 
         try {
@@ -111,22 +109,20 @@ public class OAuth2Controller {
             // 3. 处理登录（可能返回登录成功、需要绑定、需要补充信息等状态）
             R<OAuth2LoginResponse> loginResult = oAuth2Service.handleOAuth2Login(userInfo);
 
-            if (R.isSuccess(loginResult)) {
-                OAuth2LoginResponse response = loginResult.getData();
-                if (response.getStatus() == OAuth2LoginResponse.OAuth2LoginStatus.SUCCESS) {
-                    log.info("OAuth2登录成功 - 提供商: {}, 用户ID: {}", provider, userInfo.getProviderUserId());
-                } else {
-                    log.info("OAuth2需要用户操作 - 提供商: {}, 状态: {}", provider, response.getStatus());
-                }
-                return loginResult;
-            } else {
-                log.warn("OAuth2登录失败 - 提供商: {}, 错误: {}", provider, loginResult.getMsg());
-                return loginResult;
-            }
+            // 4. 构建前端回调URL并重定向
+            String frontendCallbackUrl = buildFrontendCallbackUrl(provider, loginResult, code, state);
+            log.info("重定向到前端回调页面: {}", frontendCallbackUrl);
+            response.sendRedirect(frontendCallbackUrl);
 
         } catch (Exception e) {
             log.error("OAuth2回调处理失败 - 提供商: {}, 错误: {}", provider, e.getMessage(), e);
-            return R.fail("登录失败: " + e.getMessage());
+            // 重定向到前端错误页面
+            try {
+                String errorUrl = buildFrontendErrorUrl(provider, e.getMessage());
+                response.sendRedirect(errorUrl);
+            } catch (Exception ex) {
+                log.error("重定向到错误页面失败", ex);
+            }
         }
     }
 
@@ -210,6 +206,65 @@ public class OAuth2Controller {
         // 构建完整的回调URL
         // 例如：http://localhost:8091/zhiyan/auth/oauth2/callback/github
         return baseUrl + "/zhiyan/auth/oauth2/callback/" + provider;
+    }
+
+    /**
+     * 构建前端回调URL
+     * 将OAuth2登录结果通过URL参数传递给前端
+     */
+    private String buildFrontendCallbackUrl(String provider, R<OAuth2LoginResponse> loginResult, String code, String state) {
+        String frontendUrl = oAuth2Properties.getFrontendCallbackUrl();
+        if (StringUtils.isEmpty(frontendUrl)) {
+            // 默认使用相对路径
+            frontendUrl = "/oauth2/callback/" + provider;
+        } else {
+            // 移除末尾的斜杠
+            if (frontendUrl.endsWith("/")) {
+                frontendUrl = frontendUrl.substring(0, frontendUrl.length() - 1);
+            }
+            frontendUrl = frontendUrl + "/" + provider;
+        }
+
+        // 构建URL参数
+        StringBuilder urlBuilder = new StringBuilder(frontendUrl);
+        urlBuilder.append("?code=").append(code);
+        urlBuilder.append("&state=").append(state);
+
+        if (R.isSuccess(loginResult)) {
+            OAuth2LoginResponse response = loginResult.getData();
+            urlBuilder.append("&status=").append(response.getStatus().name());
+            
+            // 如果登录成功，传递token
+            if (response.getStatus() == OAuth2LoginResponse.OAuth2LoginStatus.SUCCESS && response.getLoginResponse() != null) {
+                urlBuilder.append("&token=").append(response.getLoginResponse().getAccessToken());
+                if (response.getLoginResponse().getRefreshToken() != null) {
+                    urlBuilder.append("&refreshToken=").append(response.getLoginResponse().getRefreshToken());
+                }
+            }
+        } else {
+            urlBuilder.append("&status=ERROR");
+            urlBuilder.append("&message=").append(java.net.URLEncoder.encode(loginResult.getMsg(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        return urlBuilder.toString();
+    }
+
+    /**
+     * 构建前端错误URL
+     */
+    private String buildFrontendErrorUrl(String provider, String errorMessage) {
+        String frontendUrl = oAuth2Properties.getFrontendCallbackUrl();
+        if (StringUtils.isEmpty(frontendUrl)) {
+            frontendUrl = "/oauth2/callback/" + provider;
+        } else {
+            if (frontendUrl.endsWith("/")) {
+                frontendUrl = frontendUrl.substring(0, frontendUrl.length() - 1);
+            }
+            frontendUrl = frontendUrl + "/" + provider;
+        }
+
+        return frontendUrl + "?status=ERROR&message=" + 
+               java.net.URLEncoder.encode(errorMessage, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     /**

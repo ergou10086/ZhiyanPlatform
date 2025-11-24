@@ -263,6 +263,11 @@ public class UserServiceImpl implements UserService {
                 user.setAvatarUrl(updateBody.getAvatarUrl());
             }
 
+            // 修改研究标签信息
+            if (updateBody.getResearchTags() != null) {
+                user.setResearchTagList(updateBody.getResearchTags());
+            }
+
             // 使用MapStruct更新用户信息
             userMapper.updateUserProfile(user, updateBody);
 

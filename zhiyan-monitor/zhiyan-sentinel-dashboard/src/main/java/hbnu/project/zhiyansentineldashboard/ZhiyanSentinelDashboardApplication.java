@@ -45,7 +45,6 @@ public class ZhiyanSentinelDashboardApplication {
         String path = env.getProperty("server.servlet.context-path", "");
 
         log.info("""
-                        
                         ----------------------------------------------------------
                         \t\
                         Application '{}' is running! Access URLs:

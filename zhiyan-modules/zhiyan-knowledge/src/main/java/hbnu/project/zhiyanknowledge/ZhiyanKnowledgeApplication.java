@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * 智研平台 - 知识管理模块启动类
@@ -25,13 +24,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration.class,
         org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration.class
 })
-@EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanknowledge.repository",
-        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
-})
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanknowledge.model.entity",
-        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+        "hbnu.project.zhiyanknowledge.model.entity"
+        // 移除 activelog entity 扫描，避免在本服务数据库创建操作日志表
 })
 @EnableJpaAuditing
 @EnableDiscoveryClient

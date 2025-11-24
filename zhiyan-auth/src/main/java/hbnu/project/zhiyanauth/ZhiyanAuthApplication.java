@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * 认证主类
@@ -22,14 +21,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "hbnu.project.zhiyanactivelog",
         "hbnu.project.zhiyancommonoauth",
         "hbnu.project.zhiyancommonlog",
-})
-@EnableJpaRepositories(basePackages = {
-        "hbnu.project.zhiyanauth.repository",
-        "hbnu.project.zhiyanactivelog.repository"  // 扫描活动日志模块的Repository
+        "hbnu.project.zhiyancommonidempotent",
 })
 @EntityScan(basePackages = {
-        "hbnu.project.zhiyanauth.model.entity",
-        "hbnu.project.zhiyanactivelog.model.entity"  // 扫描活动日志模块的Entity
+        "hbnu.project.zhiyanauth.model.entity"
 })
 @EnableJpaAuditing
 @EnableDiscoveryClient

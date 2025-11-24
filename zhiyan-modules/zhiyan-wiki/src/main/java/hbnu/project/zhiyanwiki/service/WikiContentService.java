@@ -7,8 +7,9 @@ import hbnu.project.zhiyanwiki.model.entity.WikiContent;
 import hbnu.project.zhiyanwiki.model.entity.WikiContentHistory;
 import hbnu.project.zhiyanwiki.repository.WikiContentHistoryRepository;
 import hbnu.project.zhiyanwiki.repository.WikiContentRepository;
+import hbnu.project.zhiyanwiki.repository.WikiPageRepository;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,14 +27,17 @@ import java.util.List;
 @Slf4j
 public class WikiContentService {
 
-    @Autowired
+    @Resource
     private WikiContentRepository contentRepo;
 
-    @Autowired
+    @Resource
     private WikiContentHistoryRepository historyRepo;
 
-    @Autowired
+    @Resource
     private DiffService diffService;
+
+    @Resource
+    private WikiPageRepository wikiPageRepository;
 
     // 保留最近 10 个版本
     private static final int MAX_RECENT_VERSIONS = 10;
@@ -110,7 +114,7 @@ public class WikiContentService {
 
         // 超过最大保留数量时，将最旧的版本归档到历史表
         if (versions.size() > MAX_RECENT_VERSIONS) {
-            WikiContent.RecentVersion oldest = versions.remove(0);
+            WikiContent.RecentVersion oldest = versions.removeFirst();
             archiveOldVersion(wikiPageId, projectId, oldest);
         }
 
@@ -320,7 +324,7 @@ public class WikiContentService {
 
     /**
      * 全文搜索Wiki内容（混合搜索策略）
-     * 
+     * <p>
      * 策略：
      * 1. 优先使用$text文本索引搜索（适合长文本和多词搜索）
      * 2. 如果结果为空且关键词较短（<=3个字符），使用正则表达式搜索
@@ -408,5 +412,24 @@ public class WikiContentService {
         String content1 = getVersionContent(wikiPageId, version1);
         String content2 = getVersionContent(wikiPageId, version2);
         return diffService.calculateDiff(content1, content2);
+    }
+
+    /**
+     * 获取项目ID
+     */
+    public Long getProjectIdByPageId(Long wikiPageId) {
+        try {
+            WikiContent wikiContent = contentRepo.findByWikiPageId(wikiPageId).orElse(null);
+            if (wikiContent != null && wikiContent.getProjectId() != null) {
+                return wikiContent.getProjectId();
+            }
+
+            wikiPageRepository.findProjectIdById(wikiPageId);
+            log.warn("无法从内容获取项目ID: pageId={}", wikiPageId);
+            return null;
+        }catch (Exception e){
+            log.error("获取项目ID失败", e);
+            return null;
+        }
     }
 }

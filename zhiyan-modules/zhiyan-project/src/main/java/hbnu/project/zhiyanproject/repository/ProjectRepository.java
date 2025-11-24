@@ -193,7 +193,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     /**
      * 查询最近更新的项目
      *
-     * @param limit 限制数量
      * @return 项目列表
      */
     @Query("SELECT p FROM Project p ORDER BY p.updatedAt DESC")

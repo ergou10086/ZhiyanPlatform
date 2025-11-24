@@ -31,7 +31,7 @@ import java.time.LocalDateTime
 class AccessLogAspect(
     private val logProperties: LogProperties,
     private val logHandlers: List<LogHandler>,
-    @Value("\${spring.application.name:unknown}") private val appName: String
+    @get:Value("\${spring.application.name:unknown}") private val appName: String
 ) {
 
     private val logger = LoggerFactory.getLogger(AccessLogAspect::class.java)
@@ -95,7 +95,7 @@ class AccessLogAspect(
             }
         }
 
-        var result: Any? = null
+        var result: Any?
         try {
             // 执行目标方法
             result = joinPoint.proceed()
@@ -146,7 +146,7 @@ class AccessLogAspect(
         return try {
             val attributes = RequestContextHolder.getRequestAttributes()
             (attributes as? ServletRequestAttributes)?.request
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

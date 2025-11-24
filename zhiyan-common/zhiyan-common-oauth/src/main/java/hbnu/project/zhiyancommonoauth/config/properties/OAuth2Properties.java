@@ -21,9 +21,15 @@ public class OAuth2Properties {
 
     /**
      * 回调地址基础路径（不包含具体路径）
-     * 例如：http://localhost:8080
+     * 例如：http://localhost:8091
      */
     private String callbackBaseUrl;
+
+    /**
+     * 前端回调页面URL（OAuth2登录成功后重定向到的前端页面）
+     * 例如：http://localhost:8080/oauth2/callback
+     */
+    private String frontendCallbackUrl;
 
     /**
      * GitHub OAuth2 配置（关联独立的GitHub配置类）

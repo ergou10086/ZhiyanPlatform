@@ -31,11 +31,9 @@ import java.util.*;
 public class CellMergeStrategy extends AbstractMergeStrategy implements WorkbookWriteHandler {
 
     private final List<CellRangeAddress> cellList;
-    private final boolean hasTitle;
     private int rowIndex;
 
     public CellMergeStrategy(List<?> list, boolean hasTitle) {
-        this.hasTitle = hasTitle;
         // 行合并开始下标
         this.rowIndex = hasTitle ? 1 : 0;
         this.cellList = handle(list, hasTitle);
@@ -71,7 +69,7 @@ public class CellMergeStrategy extends AbstractMergeStrategy implements Workbook
         if (CollUtil.isEmpty(list)) {
             return cellList;
         }
-        Field[] fields = ReflectUtils.getFields(list.get(0).getClass(), field -> !"serialVersionUID".equals(field.getName()));
+        Field[] fields = ReflectUtils.getFields(list.getFirst().getClass(), field -> !"serialVersionUID".equals(field.getName()));
 
         // 有注解的字段
         List<Field> mergeFields = new ArrayList<>();

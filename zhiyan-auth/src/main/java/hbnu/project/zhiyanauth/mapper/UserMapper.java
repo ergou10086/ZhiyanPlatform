@@ -1,8 +1,10 @@
 package hbnu.project.zhiyanauth.mapper;
 
 import hbnu.project.zhiyanauth.model.dto.AvatarDTO;
+import hbnu.project.zhiyanauth.model.dto.UserAchievementDTO;
 import hbnu.project.zhiyanauth.model.dto.UserDTO;
 import hbnu.project.zhiyanauth.model.entity.User;
+import hbnu.project.zhiyanauth.model.entity.UserAchievement;
 import hbnu.project.zhiyanauth.model.entity.UserRole;
 import hbnu.project.zhiyanauth.model.form.RegisterBody;
 import hbnu.project.zhiyanauth.model.form.UserProfileUpdateBody;
@@ -11,7 +13,7 @@ import org.mapstruct.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +34,7 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "permissions", ignore = true)
     @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
+    @Mapping(target = "researchTags", expression = "java(user.getResearchTagList())")
     UserDTO toDTO(User user);
 
     /**
@@ -42,6 +45,7 @@ public interface UserMapper {
     @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
     @Mapping(target = "permissions", expression = "java(extractPermissionNames(user.getUserRoles()))")
     @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
+    @Mapping(target = "researchTags", expression = "java(user.getResearchTagList())")
     UserDTO toDTOWithRolesAndPermissions(User user);
 
     /**
@@ -52,6 +56,7 @@ public interface UserMapper {
     @Mapping(target = "roles", expression = "java(extractRoleNames(user.getUserRoles()))")
     @Mapping(target = "permissions", ignore = true)
     @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
+    @Mapping(target = "researchTags", expression = "java(user.getResearchTagList())")
     UserDTO toDTOWithRoles(User user);
 
     /**
@@ -106,11 +111,9 @@ public interface UserMapper {
         if (userRoles == null || userRoles.isEmpty()) {
             return new ArrayList<>();
         }
-        Set<String> permissions = userRoles.stream()
+        return userRoles.stream()
                 .flatMap(ur -> ur.getRole().getRolePermissions().stream())
-                .map(rp -> rp.getPermission().getName())
-                .collect(Collectors.toSet());
-        return new ArrayList<>(permissions);
+                .map(rp -> rp.getPermission().getName()).distinct().collect(Collectors.toList());
     }
 
     /**
@@ -151,6 +154,7 @@ public interface UserMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "version", ignore = true)
+    @Mapping(target = "researchTags", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateUserProfile(@MappingTarget User user, UserProfileUpdateBody updateBody);
 
@@ -165,6 +169,53 @@ public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "permissions", ignore = true)
     @Mapping(target = "avatarUrl", expression = "java(extractAvatarUrlFromJson(user.getAvatarUrl()))")
+    @Mapping(target = "researchTags", expression = "java(user.getResearchTagList())")
     UserDTO toSimpleDTO(User user);
+
+
+
+    /**
+     * 将UserAchievement实体转换为UserAchievementDTO（基础转换）
+     */
+    @Named("toDTO")
+    @Mapping(target = "id", expression = "java(userAchievement.getId().toString())")
+    @Mapping(target = "userId", expression = "java(userAchievement.getUserId().toString())")
+    @Mapping(target = "achievementId", expression = "java(userAchievement.getAchievementId().toString())")
+    @Mapping(target = "projectId", expression = "java(userAchievement.getProjectId().toString())")
+    @Mapping(target = "achievementTitle", ignore = true)
+    @Mapping(target = "achievementType", ignore = true)
+    @Mapping(target = "achievementStatus", ignore = true)
+    UserAchievementDTO toUserAchievementDTO(UserAchievement userAchievement);
+
+
+    /**
+     * 从成果数据中提取成果标题
+     */
+    default String extractAchievementTitle(Map<String, Object> achievementData) {
+        if (achievementData != null && achievementData.containsKey("title")) {
+            return (String) achievementData.get("title");
+        }
+        return null;
+    }
+
+    /**
+     * 从成果数据中提取成果类型
+     */
+    default String extractAchievementType(Map<String, Object> achievementData) {
+        if (achievementData != null && achievementData.containsKey("type")) {
+            return (String) achievementData.get("type");
+        }
+        return null;
+    }
+
+    /**
+     * 从成果数据中提取成果状态
+     */
+    default String extractAchievementStatus(Map<String, Object> achievementData) {
+        if (achievementData != null && achievementData.containsKey("status")) {
+            return (String) achievementData.get("status");
+        }
+        return null;
+    }
 }
 

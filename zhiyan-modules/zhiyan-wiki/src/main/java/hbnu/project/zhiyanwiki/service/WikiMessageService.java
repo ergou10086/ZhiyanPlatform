@@ -1,7 +1,8 @@
 package hbnu.project.zhiyanwiki.service;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+
+import hbnu.project.zhiyanmessage.model.pojo.SendMessageRequestPOJO;
 import hbnu.project.zhiyanwiki.client.AuthServiceClient;
 import hbnu.project.zhiyanwiki.client.MessageServiceClient;
 import hbnu.project.zhiyanwiki.client.ProjectServiceClient;
@@ -78,7 +79,7 @@ public class WikiMessageService {
                 creatorName
         );
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("WIKI_PAGE_CREATED")
                 .senderId(creatorId)
                 .receiverIds(filteredReceiverIds)
@@ -140,7 +141,7 @@ public class WikiMessageService {
                 changeDesc
         );
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("WIKI_PAGE_UPDATED")
                 .senderId(editorId)
                 .receiverIds(filteredReceiverIds)
@@ -200,7 +201,7 @@ public class WikiMessageService {
                 operatorName
         );
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("WIKI_PAGE_DELETED")
                 .senderId(operatorId)
                 .receiverIds(filteredReceiverIds)
@@ -260,7 +261,7 @@ public class WikiMessageService {
                 operatorName
         );
 
-        SendMessageRequestDTO requestDTO = SendMessageRequestDTO.builder()
+        SendMessageRequestPOJO requestDTO = SendMessageRequestPOJO.builder()
                 .scene("WIKI_PAGE_MOVED")
                 .senderId(operatorId)
                 .receiverIds(filteredReceiverIds)
@@ -282,7 +283,7 @@ public class WikiMessageService {
      * @param request  消息请求DTO
      * @param wikiPageId Wiki页面ID（用于日志）
      */
-    private void sendBatchMessage(SendMessageRequestDTO request, Long wikiPageId) {
+    private void sendBatchMessage(SendMessageRequestPOJO request, Long wikiPageId) {
         try {
             R<Void> resp = messageServiceClient.sendBatchPersonalMessage(request);
             if (!R.isSuccess(resp)) {

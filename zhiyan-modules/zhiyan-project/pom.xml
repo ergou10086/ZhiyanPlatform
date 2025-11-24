@@ -234,7 +234,7 @@
 
         <dependency>
             <groupId>hbnu.project</groupId>
-            <artifactId>zhiyan-messgae</artifactId>
+            <artifactId>zhiyan-message</artifactId>
         </dependency>
     </dependencies>
 

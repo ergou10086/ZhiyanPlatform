@@ -24,6 +24,10 @@ spring:
             group: DEFAULT_GROUP
             refresh: true
 
+          - data-id: zhiyan-common-redis-cloud.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+
       # Nacos 服务发现配置（启动阶段可选，但建议提前配置）
       discovery:
         username: nacos  # 用户名
@@ -61,10 +65,24 @@ spring:
       max-lifetime: 1200000
       connection-timeout: 20000
 
+    # Activelog 数据源（操作日志独立数据库）
+    activelog:
+      url: jdbc:mysql://152.136.245.180:3306/zhiyan_activelog_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+      username: root
+      password: zjm10086
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
   # 数据源配置 - MongoDB
   data:
     mongodb:
       uri: mongodb://152.136.245.180:27017/zhiyan_wiki?authSource=admin
+    redis:
+      host: 152.136.245.180  # 使用你的服务器 IP
+      port: 6379
+      password: zjm10086
+      database: 0
+      timeout: 5000
+      username: default
 
   # JPA配置
   jpa:

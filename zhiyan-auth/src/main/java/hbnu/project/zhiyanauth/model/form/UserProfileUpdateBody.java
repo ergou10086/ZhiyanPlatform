@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 用户资料更新表单
  *
@@ -48,4 +50,11 @@ public class UserProfileUpdateBody {
     @Size(max = 500, message = "头像URL长度不能超过500个字符")
     @Schema(description = "头像URL", example = "https://example.com/avatar.jpg")
     private String avatarUrl;
+
+    /**
+     * 研究方向标签
+     */
+    @Size(max = 5, message = "研究方向标签最多5个")
+    @Schema(description = "研究方向标签", example = "[\"机器学习\", \"自然语言处理\"]")
+    private List<@Size(max = 50, message = "单个标签长度不能超过50个字符") String> researchTags;
 }

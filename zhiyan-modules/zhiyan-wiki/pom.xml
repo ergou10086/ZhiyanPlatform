@@ -65,25 +65,11 @@
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-loadbalancer</artifactId>
-               <!-- 排除间接引入的依赖 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-redis</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-basic</artifactId>
-            <!-- Wiki模块不需要Redis，排除Redis相关依赖 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-redis</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -105,17 +91,12 @@
         <dependency>
             <groupId>hbnu.project</groupId>
             <artifactId>zhiyan-common-security</artifactId>
-            <!-- Wiki模块不需要Redis，排除Redis相关依赖 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>hbnu.project</groupId>
-                    <artifactId>zhiyan-common-redis</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-data-redis</artifactId>
-                </exclusion>
-            </exclusions>
+        </dependency>
+
+        <!-- zhiyan-common-redis Redis缓存模块 -->
+        <dependency>
+            <groupId>hbnu.project</groupId>
+            <artifactId>zhiyan-common-redis</artifactId>
         </dependency>
 
         <!-- Swagger/OpenAPI 文档 -->
@@ -148,6 +129,12 @@
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
+        <!-- WebSocket 支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
         <!-- 添加 Logback 日志实现（解决 SLF4J 警告） -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -161,7 +148,7 @@
 
         <dependency>
             <groupId>hbnu.project</groupId>
-            <artifactId>zhiyan-messgae</artifactId>
+            <artifactId>zhiyan-message</artifactId>
         </dependency>
     </dependencies>
 

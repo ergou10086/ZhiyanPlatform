@@ -44,6 +44,7 @@ spring:
           enabled: true
   #  MySQL 数据源配置（用于 WikiPage）
   datasource:
+    # 主数据源（Wiki业务数据库）
     url: jdbc:mysql://localhost:3306/zhiyan_knowledge_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
     username: root
     password: root
@@ -55,6 +56,13 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
       connection-timeout: 20000
+    
+    # Activelog 数据源（操作日志独立数据库）
+    activelog:
+      url: jdbc:mysql://localhost:3306/zhiyan_activelog_db?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8
+      username: root
+      password: root
+      driver-class-name: com.mysql.cj.jdbc.Driver
 
   # 数据源配置 - MongoDB
   data:

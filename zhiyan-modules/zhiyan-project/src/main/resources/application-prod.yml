@@ -144,8 +144,8 @@ spring:
         order_inserts: true
         order_updates: true
     hibernate:
-      # 生产环境建议使用 validate 或 none，避免每次启动检查DDL
-      ddl-auto: validate
+      # 禁用自动建表，使用手动SQL脚本管理表结构
+      ddl-auto: none
     show-sql: false
     open-in-view: false
 

@@ -1,18 +1,20 @@
 package hbnu.project.zhiyanproject.utils.message;
 
 import hbnu.project.zhiyancommonbasic.domain.R;
-import hbnu.project.zhiyanmessgae.model.dto.SendMessageRequestDTO;
+import hbnu.project.zhiyanmessage.model.pojo.SendMessageRequestPOJO;
 import hbnu.project.zhiyanproject.client.AuthServiceClient;
 import hbnu.project.zhiyanproject.client.MessageServiceClient;
 import hbnu.project.zhiyanproject.model.dto.UserDTO;
 import hbnu.project.zhiyanproject.model.entity.Project;
 import hbnu.project.zhiyanproject.model.enums.ProjectStatus;
+
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 项目相关消息工具类
@@ -62,7 +64,7 @@ public class ProjectMessageUtils {
             // 获取创建者姓名
             String creatorName = getUserNameById(creatorId);
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_CREATED")
                     .senderId(null) // 系统消息
                     .receiverId(creatorId)
@@ -95,7 +97,7 @@ public class ProjectMessageUtils {
                 return;
             }
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_STATUS_CHANGED")
                     .receiverIds(projectMemberIds)
                     .title("项目状态变更")
@@ -132,7 +134,7 @@ public class ProjectMessageUtils {
             // 获取操作者姓名
             String operatorName = operatorId != null ? getUserNameById(operatorId) : "系统";
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_DELETED")
                     .senderId(operatorId)
                     .receiverIds(projectMemberIds)
@@ -167,7 +169,7 @@ public class ProjectMessageUtils {
             // 获取操作者姓名
             String operatorName = operatorId != null ? getUserNameById(operatorId) : "系统";
 
-            SendMessageRequestDTO request = SendMessageRequestDTO.builder()
+            SendMessageRequestPOJO request = SendMessageRequestPOJO.builder()
                     .scene("PROJECT_ARCHIVED")
                     .senderId(operatorId)
                     .receiverIds(projectMemberIds)
