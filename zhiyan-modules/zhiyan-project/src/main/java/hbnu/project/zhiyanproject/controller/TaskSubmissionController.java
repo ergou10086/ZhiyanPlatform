@@ -7,12 +7,16 @@ import hbnu.project.zhiyancommonbasic.domain.R;
 import hbnu.project.zhiyancommonidempotent.annotation.Idempotent;
 import hbnu.project.zhiyancommonidempotent.enums.IdempotentType;
 import hbnu.project.zhiyancommonsecurity.utils.SecurityUtils;
+import hbnu.project.zhiyanproject.model.dto.TaskDetailDTO;
+import hbnu.project.zhiyanproject.model.dto.TaskResultContextDTO;
 import hbnu.project.zhiyanproject.model.dto.TaskSubmissionDTO;
 import hbnu.project.zhiyanproject.model.entity.Tasks;
+import hbnu.project.zhiyanproject.model.enums.ReviewStatus;
 import hbnu.project.zhiyanproject.model.form.ReviewSubmissionRequest;
 import hbnu.project.zhiyanproject.model.form.SubmitTaskRequest;
 import hbnu.project.zhiyanproject.repository.TaskRepository;
 import hbnu.project.zhiyanproject.service.ProjectMemberService;
+import hbnu.project.zhiyanproject.service.TaskService;
 import hbnu.project.zhiyanproject.service.TaskSubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,6 +53,7 @@ public class TaskSubmissionController {
     private final TaskSubmissionService submissionService;
     private final TaskRepository taskRepository;
     private final ProjectMemberService projectMemberService;
+    private final TaskService taskService;
 
     // ==================== 提交任务接口 ====================
 

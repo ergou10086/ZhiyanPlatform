@@ -91,6 +91,47 @@ dify:
   temperature: 0.7
   stream-enabled: true
 
+# MinIO 配置 - 与项目模块保持一致
+minio:
+  # MinIO服务地址
+  endpoint: http://152.136.245.180:9000
+  # 访问密钥
+  accessKey: root
+  # 密钥
+  secretKey: rootroot
+  # 是否使用HTTPS
+  secure: false
+  # 桶配置
+  buckets:
+    # 用户头像
+    userAvatars: user-avatars
+    # 项目封面
+    projectCovers: project-covers
+    # Wiki资源
+    wikiAssets: wiki-assets
+    # 成果附件
+    achievementFiles: achievement-files
+    # 临时上传
+    tempUploads: temp-uploads
+  # 文件上传配置
+  upload:
+    # 最大文件大小 (512MB)
+    maxFileSize: 536870912
+    # 最大图片大小 (10MB)
+    maxImageSize: 10485760
+    # 临时文件保留时间 (小时)
+    tempFileRetentionHours: 24
+    # 允许的图片类型
+    allowedImageTypes: jpg,jpeg,png,gif,bmp,webp
+    # 允许的文件类型 (* 表示所有)
+    allowedFileTypes: "*"
+  # 图片处理配置
+  image:
+    # 图片质量 (0.0-1.0)
+    quality: 0.85
+    # 是否生成WebP格式
+    generateWebP: true
+
 # JWT配置
 jwt:
   secret: "zhiyan-platform-2025-this-is-a-very-long-secret-key-for-jwt-tokens-256-bits"

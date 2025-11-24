@@ -3,6 +3,8 @@ package hbnu.project.zhiyanaidify.controller;
 import hbnu.project.common.log.annotation.AccessLog;
 import hbnu.project.common.log.annotation.OperationLog;
 import hbnu.project.common.log.annotation.OperationType;
+import hbnu.project.zhiyanaidify.client.TaskSubmissionClient;
+import hbnu.project.zhiyanaidify.model.dto.TaskResultContextDTO;
 import hbnu.project.zhiyanaidify.model.request.TaskResultGenerateRequest;
 import hbnu.project.zhiyanaidify.model.response.TaskResultGenerateResponse;
 import hbnu.project.zhiyanaidify.service.TaskResultAIGenerateService;
@@ -16,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 任务成果AI生成控制器
@@ -32,6 +36,8 @@ import java.util.List;
 public class TaskResultAIGenerateController {
     
     private final TaskResultAIGenerateService aiGenerateService;
+ 
+    private final TaskSubmissionClient taskSubmissionClient;
 
     /**
      * 生成任务成果草稿
@@ -117,8 +123,38 @@ public class TaskResultAIGenerateController {
         
         return R.ok(drafts);
     }
+
+    @GetMapping("/task/{taskId}/context")
+    @Operation(summary = "获取任务成果上下文", description = "根据任务ID获取任务详情及其所有提交记录，供AI使用")
+    public R<TaskResultContextDTO> getTaskResultContext(
+            @Parameter(description = "任务ID") @PathVariable Long taskId) {
+        log.info("获取任务成果上下文: taskId={}", taskId);
+        return taskSubmissionClient.getTaskResultContext(taskId);
+    }
+
+    @GetMapping("/tasks/context")
+    @Operation(summary = "获取多个任务成果上下文", description = "根据多个任务ID获取对应的任务详情及提交记录列表，供AI使用")
+    public R<List<TaskResultContextDTO>> getTasksResultContext(
+            @Parameter(description = "任务ID列表") @RequestParam("taskIds") List<Long> taskIds) {
+        log.info("获取多个任务成果上下文: taskIds={}", taskIds);
+
+        List<TaskResultContextDTO> contexts = taskIds.stream()
+                .map(id -> {
+                    try {
+                        R<TaskResultContextDTO> result = taskSubmissionClient.getTaskResultContext(id);
+                        if (result != null && result.getCode() == 200 && result.getData() != null) {
+                            return result.getData();
+                        }
+                        log.warn("获取任务成果上下文失败: taskId={}, code={}", id, result != null ? result.getCode() : null);
+                    } catch (Exception e) {
+                        log.error("获取任务成果上下文异常: taskId={}", id, e);
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return R.ok(contexts);
+    }
 }
-
-
-
 

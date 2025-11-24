@@ -25,20 +25,24 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
                 "hbnu.project.zhiyanaidify",
                 "hbnu.project.zhiyancommonsse",
                 "hbnu.project.zhiyancommonbasic",
+                "hbnu.project.zhiyancommonoss",
+                "hbnu.project.zhiyancommonredis",
                 "hbnu.project.zhiyancommonsecurity.config",  // Security 配置（仅 Feign 拦截器）
                 "hbnu.project.zhiyancommonsecurity.utils",  // Security 工具类
-                "hbnu.project.common.log"                   // 日志模块
+                "hbnu.project.common.log",                   // 日志模块
         },
         exclude = {
                 DataSourceAutoConfiguration.class,              // 排除数据源自动配置
                 SecurityAutoConfiguration.class,                // 排除 Spring Security 自动配置
                 UserDetailsServiceAutoConfiguration.class,      // 排除 UserDetailsService 自动配置
                 ManagementWebSecurityAutoConfiguration.class    // 排除 Actuator Security 自动配置
+                // 注意: 不排除 RedisAutoConfiguration，因为需要Redis存储任务生成状态
         }
 )
 @EnableConfigurationProperties
 @EnableFeignClients
 @EnableDiscoveryClient
+@org.springframework.scheduling.annotation.EnableAsync  // 启用异步支持
 public class ZhiyanAiDifyApplication {
     public static void main(String[] args) {
 
