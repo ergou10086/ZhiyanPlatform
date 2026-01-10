@@ -1,8 +1,0 @@
-# Bootstrap 配置文件 - 用于配置优先级较高的配置
-
-spring:
-  application:
-    name: zhiyan-ai-coze
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:cloud}
-
