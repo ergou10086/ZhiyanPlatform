@@ -1,4 +1,0 @@
-# ZhiyanAuth模块自动配置
-org.springframework.boot.autoconfigure.AutoConfiguration=\
-  hbnu.project.zhiyanauth.config.ZhiyanAuthAutoConfiguration
-
